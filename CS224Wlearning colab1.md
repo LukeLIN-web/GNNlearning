@@ -1,5 +1,7 @@
 CS224W学习
 
+https://www.zhihu.com/people/zepengzhang/posts 知乎大佬一起学习
+
 输入一个图, 每个node 有一个feature vector, 输出一个embedding, 也就是一个对下游任务有用的向量. 
 
 #### colab0 
@@ -97,3 +99,14 @@ torch.rand(shape) #就是 uniform distribution, in the range of  [0,1)
 #### 采样negative边
 
 **实现负采样函数，讨论给出的五个边是否为负边（原图不存在的边）**
+
+```python
+        optimizer.zero_grad() #
+        pred = sigmoid(torch.sum(emb(train_edge)[0].mul(emb(train_edge)[1]), 1))# 计算余弦相似度 ,加了sigmoid 把他normalize了,  做了个内积, 把结果变到0到1之间
+        loss = loss_fn(pred, train_label) # loss
+        loss.backward()  # Derive gradients.
+        optimizer.step()  # Update parameters based on gradients.
+        train_edge里面有些节点之间是有连边的，这些节点相邻，属于正例，有些之间不存在连边，这个节点不相邻，就是负例. 
+        这个训练就会把相邻的节点训练得更加相似, 所以就可以判断. 
+```
+
