@@ -100,3 +100,83 @@ PPT里还有一些其他的random walk 算法
 
 ▪ Idea 1: Sample the anon. walks and represent the graph as fraction of times each anon walk occurs. ▪ Idea 2: Learn graph embedding together with anonymous walk embeddings.
 
+### lec4 pagerank
+
+In this lecture, we investigate graph analysis and learning from a matrix perspective. 
+
+ Treating a graph as a matrix的好处
+
+▪ 确定节点的importance 通过 random walk (PageRank) 
+
+▪ 获得节点的 embeddings via matrix factorization因式分解 (MF) 
+
+▪ View other node embeddings (e.g. Node2Vec) as MF 
+
+ Random walk, matrix factorization and node embeddings 都是紧密相关的! 
+
+我们讨论下面几个 Link Analysis approaches 来计算graph中节点的重要性: 
+
+1.  PageRank 
+2. Personalized PageRank (PPR) 
+3. Random Walk with Restarts
+
+#### page rank
+
+利用link 结构来measure 节点的重要性
+
+rank vector r 是随机邻接矩阵的一个eigenvector: We can now efficiently solve for r! ▪ The method is called Power iteration
+
+开始每个重要性都是1/节点个数,  然后一步步迭代, 矩阵乘法. 大约50次迭代就足够 估计出有限解. 
+
+两个问题 
+
+1  有的页是dead end的. 这是一个问题, matrix 不是列随机的.
+
+解决方法: 随机瞬移到其他所有页面. 实现, 就是调整邻接矩阵.   
+
+2 spider traps , 所有的out link都在一个group里, 最终这个trap会吸收所有的importance . 比如最简单的就是一个自环节点.  这导致score不是我们想要的. 
+
+解决方法: 引入概率, 每一步, beta 概率 随机选一个link然后follow a link , 1-beta 概率 瞬移到随机一页.  beta通常 0.8-0.9. 
+
+Personalized PageRank: 瞬移到一些指定的节点而不是所有节点
+
+#### Random Walk with Restarts
+
+推荐系统
+
+节点的proximity怎么比较?
+
+Personalized PageRank: ▪ Ranks proximity of nodes to the teleport nodes S
+
+Proximity on graphs: ▪ Q: What is most related item to Item Q? ▪ Random Walks with Restarts ▪ Teleport back to the starting node: 𝑺 = {Q}
+
+##### 随机行走
+
+Idea  每个节点一样重要 ▪ Importance gets evenly split among all edges and pushed to the neighbors: 
+
+给出查询的节点, 可以模拟一次随机行走: 
+
+▪ Make a step 随机到一个邻居并且记录下来(visit count) 
+
+▪ alpha的概率, restart the walk at one of the QUERY_NODES 
+
+▪ 有最多次 visit count的节点就有最大的proximity to the QUERY_NODES
+
+方法的优点:  Because the “similarity” considers: 
+
+▪ Multiple connections ▪ Multiple paths ▪ Direct and indirect connections ▪ Degree of the node
+
+#### 因式分解
+
+DeepWalk and node2vec have a more complex node similarity definition based on random walks  DeepWalk is equivalent to matrix factorization of the following complex matrix expression:
+
+通过矩阵因式分解和随机行走， 可以有node embedding  比如 deepwalk或 node2vec 
+
+缺点： 
+
+1. 不能获得不在训练集中的node embedding。 需要重新计算所有node embedding
+2. 不能发现结构的similarity，会有截然不同的embedding
+3. 不能充分利用node edge graph的features
+
+解决方法：  GNN， deep representation learning
+

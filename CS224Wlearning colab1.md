@@ -106,7 +106,7 @@ torch.rand(shape) #就是 uniform distribution, in the range of  [0,1)
         loss = loss_fn(pred, train_label) # loss
         loss.backward()  # Derive gradients.
         optimizer.step()  # Update parameters based on gradients.
-        train_edge里面有些节点之间是有连边的，这些节点相邻，属于正例，有些之间不存在连边，这个节点不相邻，就是负例. 
-        这个训练就会把相邻的节点训练得更加相似, 所以就可以判断. 
+        #train_edge里面有些节点之间是有连边的，这些节点相邻，属于正例，有些之间不存在连边，这个节点不相邻，就是负例. 
+        #这个训练就会把相邻的节点训练得更加相似, 所以就可以判断. 
 ```
 
