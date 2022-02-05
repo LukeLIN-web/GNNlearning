@@ -180,3 +180,31 @@ DeepWalk and node2vec have a more complex node similarity definition based on ra
 
 解决方法：  GNN， deep representation learning
 
+### lec5 节点分类和标签传播
+
+Main question today: 网络有一些标签, 怎么assign 标签给其他的node?
+
+一种是lec3提到的node embedding , 今天讨论另一种框架: 消息传递
+
+因为网络中有correlation.
+
+我们会讨论三个技术   relational 分类, iterative 分类和 belief propagation.
+
+homophily: 节点之间会相似, 相似爱好的人会有更多联系. 
+
+节点的联系, 又会影响节点的属性. 
+
+#### 半监督二分类
+
+ 三种方法  relational分类, iterative 分类, 和 correct and smooth
+
+#####  relational分类
+
+ 把邻居节点的label加权求和. 
+
+难点:  不收敛, 模型没有利用节点的feature信息=> 所以需要iterative 分类 
+
+##### iterative 分类 
+
+   训练两个分类器, base classifier 根据attributes 预测.  relational classifier 根据邻居节点label和attributes  预测label
+
