@@ -206,5 +206,69 @@ homophily: 节点之间会相似, 相似爱好的人会有更多联系.
 
 ##### iterative 分类 
 
-   训练两个分类器, base classifier 根据attributes 预测.  relational classifier 根据邻居节点label和attributes  预测label
+   训练两个分类器, base 分类器根据attributes 预测.  
+
+relational 分类器根据邻居节点的label和attributes  预测label
+
+可以提高 collective 分类
+
+##### correct and smooth
+
+2021年9月SOTA的分类方法. 
+
+分为三步
+
+1. 训练base 预测器 (可以很简单, 比如就MLP多层感知器)
+2. 用base预测器来预测所有节点的soft label(每个类 的可能性)
+3. 利用图的结构 修改2中的预测 . 分为correct和smooth.  correct的原理是: 一般base预测的错误和图的边是正相关的, 所以一个节点的error会传播到其他error. 
+
+### lec6 GNN1 模型
+
+shallow encoder的缺点:
+
+1. 需要空间, 没有共享参数, 每个node有自己的embedding
+2. 不能面对新的node, 输入的数据包含测试集的数据,训练过程能够看到这些数据,所以是transductive直推式学习 不是inductive
+3. 不能结合node 的feature
+
+用GNN 多层, 可以解决分类, 预测link, 关系探索, 网络相似性等问题. 
+
+#### 深度学习基础
+
+常用的分类loss 是cross entropy CE交叉熵 
+
+学习率 LR, 是一个超参数, 控制gradient step的大小
+
+当 validation set没有变化的时候,我们就停止训练. 
+
+每个点都计算太慢, 所以用随机梯度下降, 每一步选不同的minibatch. epoch 就是整个dataset 全部过了一遍. 
+
+SGD是full gradient 的无偏估计. 
+
+
+
+##### back propagation 
+
+链式法则, 获得梯度. 
+
+前向传播, 
+
+从输入开始乘法, 慢慢得到最后的loss
+
+##### 引入非线性
+
+ReLU,  rectified linear unit, 就是 max(x,0)
+
+sigmoid , 就是 1/(1+e^-x)  值域在 0到1 
+
+
+
+#### 图深度学习
+
+
+
+#### 图卷积网络
+
+
+
+#### GNN CNN和transformer
 
