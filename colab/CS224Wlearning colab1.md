@@ -101,7 +101,8 @@ torch.rand(shape) #就是 uniform distribution, in the range of  [0,1)
 **实现负采样函数，讨论给出的五个边是否为负边（原图不存在的边）**
 
 ```python
-        optimizer.zero_grad() #
+for i in range(epochs):        
+    	optimizer.zero_grad() #
         pred = sigmoid(torch.sum(emb(train_edge)[0].mul(emb(train_edge)[1]), 1))# 计算余弦相似度 ,加了sigmoid 把他normalize了,  做了个内积, 把结果变到0到1之间
         loss = loss_fn(pred, train_label) # loss
         loss.backward()  # Derive gradients.

@@ -264,11 +264,42 @@ sigmoid , 就是 1/(1+e^-x)  值域在 0到1
 
 #### 图深度学习
 
+##### naive approache
+
+直接把adj. matrix feed into DNN, 问题是参数多, graph大小不同就不适用
+
+利用CNN ? 图是非常多变的, 没有固定的滑动窗口来卷积. 
+
+
+
 
 
 #### 图卷积网络
+
+每个节点根据邻居, 定义了一个计算图 
+
+##### matrix formulation
+
+Many aggregations 可以通过稀疏矩阵的运算加速.
+
+有讲到degree一样的sparse matrix multiplication吗? 好像没有
+
+不是所有GNN都可以表示成矩阵形式, 比如aggregation 函数特别复杂的时候. 
+
+The same aggregation parameters 可以被所有节点分享. 而且模型可以泛化到没见过的节点. 
 
 
 
 #### GNN CNN和transformer
 
+CNN可以看作一种特殊的GNN, 邻居的大小是固定的, ordering 也是固定的. 
+
+CNN不是等价交换permutatino的, 改变像素的顺序会有不同的输出. 
+
+##### transformer
+
+NLP很有用, 序列处理的问题上是最受欢迎的一种模型. 
+
+transformer 也可以看作一种特殊的GNN, 是在一个全连接的word图上. 
+
+### lec7 
