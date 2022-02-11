@@ -46,8 +46,6 @@ OGB也支持PyG dataset 和 Data
 The ogbn-arxiv dataset has 1 graph
 Data(x=[169343, 128], node_year=[169343, 1], y=[169343, 1], adj_t=[169343, 169343, nnz=1166243])
 
-
-
 ##### nn和 nn.Functional的区别?
 
 `nn.Xxx` 需要先实例化并传入参数，然后以函数调用的方式调用实例化的对象并传入输入数据。
@@ -60,7 +58,9 @@ PyTorch官方推荐：具有学习参数的（例如，conv2d, linear, batch_nor
 
 ##### dropout
 
-防止过拟合的一种方法 ,随机把一些参数设置为0 , 减少参数数量, 降低模型复杂度
+防止过拟合的一种方法 ,随机把一些参数设置为0 , 减少参数数量, 降低模型复杂度.
+
+`x = F.dropout(x, p=self.dropout, training=self.training)`
 
 ### GCN网络
 
@@ -74,21 +74,23 @@ Softmax函数使用了torch.nn.LogSoftmax，并定义dropout的概率
 
 `data 128 torch.Size([169343, 128])`
 
-data是一个图, 表示为一个tensor, 有16w个节点,每个节点128个feature. 
+data是一个图, 表示为一个tensor, 有16w个节点,每个节点128个feature.  x就是二维的tensor 16w* 128 , adj_t 也是tensor 16w * 16w.
 
 forward不会写, `edge_index tensor adj_t` 有什么用?
 
-forward一层层连起来就可以了。
+GCNConv需要邻接矩阵.  forward一层层连起来就可以了。
 
 示意图中间这三个点是啥？
 
+就是每一层都和第一层一样
+
 BN是啥？
 
-就是把一个batch中的每个tensor的第一个元素都归一化， 然后对每个tensor的第二个元素都归一化， 以此类推。 为了应对有时一个向量里的元素值太大或者太小。
+有时一个向量里的元素值太大或者太小。就把一个batch中的每个tensor的第一个元素都归一化， 然后对每个tensor的第二个元素都归一化， 以此类推。 
 
 BN num_features 是多少呢？ 
 
-
+是hidden dim , 为什么呢?  因为BN 连在 GCNconv的后面.
 
 TypeError: append() missing 1 required positional argument: 'module'？
 
@@ -96,9 +98,7 @@ TypeError: append() missing 1 required positional argument: 'module'？
 
 ##### train函数
 
-` out = model(data.x, data.adj_t)`  为什么这么传? 
-
-为什么model是传这两个? 
+` out = model(data.x, data.adj_t)`  为什么model是传这两个? 
 
 会自动执行forward
 
@@ -112,9 +112,71 @@ x是节点的特征向量 ,y是标签
 
  **https://pytorch.org/docs/stable/generated/torch.squeeze.html**  去掉维度为1 的维度, 在给定的维度进行一个挤压操作. 你可以把这个squeeze去掉看看会报什么错
 
-
-
 `y = x.squeeze(1)` 等价于`y = torch.squeeze(x, 1)` 
 
-   x = self.convs(x) 为什么会有NotImplementedError?
+报错: RuntimeError: 0D or 1D target tensor expected, multi-target not supported. 需要变成1维
 
+val是训练过程中的测试集，是为了让你在边训练边看到训练的结果，及时判断学习状态。*test*就是训练模型结束后，用于评价模型结果的测试
+
+```shell
+Epoch: 01, Loss: 4.1908, Train: 25.46%, Valid: 28.79% Test: 25.75%
+Epoch: 02, Loss: 2.3507, Train: 22.43%, Valid: 21.17% Test: 26.66%
+Epoch: 03, Loss: 1.9348, Train: 32.51%, Valid: 26.68% Test: 31.12%
+Epoch: 04, Loss: 1.7861, Train: 33.88%, Valid: 21.63% Test: 18.61%
+Epoch: 05, Loss: 1.6681, Train: 35.50%, Valid: 24.05% Test: 21.02%
+Epoch: 06, Loss: 1.5779, Train: 36.02%, Valid: 26.58% Test: 25.52%
+Epoch: 07, Loss: 1.5019, Train: 36.38%, Valid: 30.07% Test: 31.83%
+Epoch: 08, Loss: 1.4513, Train: 37.16%, Valid: 34.15% Test: 38.13%
+Epoch: 09, Loss: 1.4104, Train: 38.04%, Valid: 36.17% Test: 41.44%
+Epoch: 10, Loss: 1.3717, Train: 38.18%, Valid: 35.10% Test: 41.04%
+Epoch: 11, Loss: 1.3339, Train: 38.92%, Valid: 34.80% Test: 40.79%
+Epoch: 12, Loss: 1.3157, Train: 40.44%, Valid: 36.50% Test: 42.53%
+Epoch: 13, Loss: 1.2892, Train: 42.95%, Valid: 40.94% Test: 46.42%
+```
+
+#### 图属性预测
+
+Task type: binary classification
+
+加载dataset , 设置好device , 设置好split, dataset有一个属性是任务类型. 
+
+然后加载dataset到pyG.data 的DataLoader中, 有train, 验证, 测试三种dataloader. 这时候要设置一个batch 32个graph, 训练的时候要shuffle 图的顺序. 
+
+*torch_geometric.data.Batch* 有一个属性是batch, 标出每个节点属于哪个batch
+
+ 0 0 0 1  n-2
+
+比如第一个0是指第一个节点属于第0个batch
+
+首先使用AtomEncoder， 将节点属性和边属性分别映射到一个新的空间，在这个新的空间中，就可以对节点和边进行信息融合。这里只需要hidden_dim，会把输入x处理成hidden_dim的维度，不需要input_dim
+
+然后用前面GCN的框架做Node embedding
+
+关键用global mean pooling， 对输出的所有node_feature 做平均，得到graph的特征
+
+```python
+self.pool = global_mean_pool(hidden_dim,)
+# 这个参数应该填写啥? 
+其实啥也不用填, 就直接
+self.pool = global_mean_pool
+```
+
+ImportError: IProgress not found. Please update jupyter and ipywidgets?
+
+我尝试安装一下. `conda install -c conda-forge ipywidgets`
+
+`out = model(batch)` 这个该填什么参数? 
+
+看forward的参数设计即可. 
+
+```python
+
+t = t.float()    #'float32'
+t = t.double()   #'float64'
+```
+
+Iteration:   0%|          | 0/1029 [00:00<?, ?it/s]
+
+为啥不是30个epoch? 为啥迭代不动? 
+
+哦, 可能是minibatch 1029个. 
