@@ -6,6 +6,12 @@ CS224W学习
 
 python3.9.7 , PyTorch has version 1.10.2
 
+遇到了问题undefined symbol, 可以参考下面.
+
+https://github.com/pyg-team/pytorch_geometric/issues/3484
+
+
+
 ```python
 # 激活环境后
 conda install ogb
@@ -177,6 +183,11 @@ t = t.double()   #'float64'
 
 Iteration:   0%|          | 0/1029 [00:00<?, ?it/s]
 
-为啥不是30个epoch? 为啥迭代不动? 
+为啥不是30个epoch? 
 
-哦, 可能是minibatch 1029个. 
+因为是minibatch 1029个. 
+
+为啥迭代不动? 
+
+batch size变小了, 也还是不动. 
+
