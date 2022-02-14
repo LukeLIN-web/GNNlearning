@@ -142,6 +142,10 @@ Epoch: 13, Loss: 1.2892, Train: 42.95%, Valid: 40.94% Test: 46.42%
 
 #### 图属性预测
 
+ogbg-molhiv是个较小的分子属性预测数据集，用于图分类任务（二元分类）。有41,127个无向图，平均每个图有25.5个节点、13.75个边。任务目标是二元分类。评估指标是ROC-AUC。节点有9维特征
+
+
+
 Task type: binary classification
 
 加载dataset , 设置好device , 设置好split, dataset有一个属性是任务类型. 
@@ -191,3 +195,22 @@ Iteration:   0%|          | 0/1029 [00:00<?, ?it/s]
 
 batch size变小了, 也还是不动. 
 
+```python
+if step % 100 ==0:
+    print(loss)# 常用的输出.
+    #loss 不变小. 为啥呢?
+    #因为每一次都在不同的batch上训练啊,肯定开始时不稳定的,log的话可能比较小
+
+loss = loss_fn(out[is_labeled], batch.y[is_labeled].float())
+
+#改了一处这里, Tensor. *type_as* (tensor) → Tensor. Returns this tensor cast to the type of the given tensor`
+    loss = loss_fn(out[is_labeled], batch.y[is_labeled].type_as(out))
+```
+
+一个epoch需要多少个step?
+
+
+
+AUC-ROC（Area Under Curve）是机器学习中常用的一个分类器评价指标
+
+可以看https://ogb.stanford.edu/docs/leader_graphprop/#ogbg-molhiv 的实现, AUC能解决两个分类的数据不平衡的问题.没有万能的指标去评价模型，必须结合业务场景，选取最适合的指标。除了ROC曲线可以计算AUC之外，PR曲线也可以有类似的AUC计算
