@@ -320,4 +320,93 @@ NLP很有用, 序列处理的问题上是最受欢迎的一种模型.
 
 transformer 也可以看作一种特殊的GNN, 是在一个全连接的word图上. 
 
-### lec7 
+### lec7 GNN2 Design Space 
+
+用pyG 解决一个实际问题. 发布一个blog post. 
+
+##### 什么是好的博客?
+
+一步步解释 图学习技术, 假设你的读者熟悉ML, 但是不熟悉 PyG
+
+可视化, gif > image > Text , 可视化越多越好
+
+code snippets要有, 
+
+链接到colab 来复现结果. 
+
+应用在哪里?
+
+推荐系统, 分子分类, 论文分类, 知识图谱, 产品购买分类, 蛋白质结构
+
+在哪里可以找到模型? OGB leaderboard 和top ML 会议:  KDD, ICLR, ICML , neurlPS WWW, WSDM 
+
+deep graph encoder , 就是GCN , 然后activation function, 然后 正则化, 比如dropout,  然后GCN, 
+
+every node base on neighbor确定了一个计算图, 可以传播信息来计算node feature .  aggregate 信息. 
+
+#### 经典的GNN 层
+
+GNN Layer = Message + Aggregation  
+
+message 可以用一个线性层, aggregation 可以用max, mean或者sum 
+
+MSG 每个node 计算出一个message.  求和就是aggregation. 
+
+非线性 activation , 可以 add expressiveness, ReLU  Sigmoid . 
+
+##### GraphSAGE
+
+有两个贡献，一是提出了更多的聚合方法（mean/lstm/pooling），二是对邻居信息进行多跳抽样
+
+message 用AGG计算, aggregation分两个stage 
+
+L2正则化, 可以在每一次apply, 作用是有一致的scales, 有时候可以提高performance. 
+
+##### Graph Attention Networks
+
+GCN 和 GraphSAGE中, 每个邻居是一样重要的, 权重系数和图的结构属性正相关(具体的来说, 和节点的度正相关)
+
+attention关注重要的信息, 计算一个attention coefficient,  normalize 后得到最终的权重. 加权求和.
+
+multi-head是在channel上进行切分分别计算最后拼接/平均
+
+优点: 计算高效, 计算 attention coefficient可以并行, 存储更高效, 参数固定不再和图大小增长, 
+
+我们可以考虑很多现代的DL技术, 比如 batch normalization来稳定训练, dropout来防止过拟合, attention/gateing来控制一个消息的重要性
+
+##### batch normalization
+
+dropout 随机把一些神经元置为0 
+
+GNN中 , linear layer  message function 应用dropout 
+
+太多GNN层, 问题, over smoothing, 所有embedding 收敛到同一个值.  为什么会这样?
+
+堆叠太多层- >  receptive 域高度重叠, 也就是大家hop过来都是这些节点 -> node embedding 高度相似 
+
+解决方法:  
+
+1.不要加太多层, 分析必要的receptive field. 
+
+那怎么具有足够的表达能力呢?  在每层内修改. 
+
+2. 增加不传递message 的layer 
+
+一个GNN 不一定全是GNN layer  , 可以在前面后面加一些MLP layer .  实际中很有用. 
+
+当encoding很重要的时候,  比如node表示images/texts 时, 就加pre processing layers. 
+
+reasoning/transformation 重要的时候,  比如graph classification, knowledge graphs,  加Post-processing layers
+
+如果必须需要很多层呢?
+
+那就add skip connection: increase the impact of earlier layers on the final node embeddings, 在GNN中增加shortcut
+
+这样可以有更多可能性, 就有混合 浅GNN 和深GNN . 
+
+ 
+
+
+
+ 
+

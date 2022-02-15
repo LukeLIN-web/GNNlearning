@@ -193,7 +193,6 @@ def test(model, data, split_idx, evaluator, save_model_results=False):
     model.eval()
 
     # The output of model on all data
-    out = None
 
     ############# Your code here ############
     ## (~1 line of code)
@@ -242,7 +241,7 @@ if 'IS_GRADESCOPE_ENV' not in os.environ:
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('Device: {}'.format(device))
 
-    split_idx = dataset.get_idx_split()
+    split_idx = dataset.get_idx_split() # dataset has divided three part for you. you just get the dict.
 
     # Check task type
     print('Task type: {}'.format(dataset.task_type))
@@ -251,7 +250,8 @@ if 'IS_GRADESCOPE_ENV' not in os.environ:
 # We will train the graph classification task on a batch of 32 graphs
 # Shuffle the order of graphs for training set
 if 'IS_GRADESCOPE_ENV' not in os.environ:
-    train_loader = DataLoader(dataset[split_idx["train"]], batch_size=2, shuffle=True, num_workers=0)
+    print(len(dataset[split_idx["train"]]))
+    train_loader = DataLoader(dataset[split_idx["train"]], batch_size=32, shuffle=True, num_workers=0)
     valid_loader = DataLoader(dataset[split_idx["valid"]], batch_size=32, shuffle=False, num_workers=0)
     test_loader = DataLoader(dataset[split_idx["test"]], batch_size=32, shuffle=False, num_workers=0)
 
@@ -344,8 +344,7 @@ def train(model, device, data_loader, optimizer, loss_fn):
             pass
         else:
             ## ignore nan targets (unlabeled) when computing training loss.
-            is_labeled = batch.y == batch.y
-
+            is_labeled = batch.y == batch.y # nan值和任何值都不相等，包括本身,所以用这个代码判断y里面哪些是nan值
 
             ############# Your code here ############
             ## Note:
@@ -357,7 +356,7 @@ def train(model, device, data_loader, optimizer, loss_fn):
             ## (~3 lines of code)
             optimizer.zero_grad()
             out = model(batch)
-            loss = loss_fn(out, batch.y.float())
+            loss = loss_fn(out[is_labeled], batch.y[is_labeled].float())
             #########################################
 
             loss.backward()
