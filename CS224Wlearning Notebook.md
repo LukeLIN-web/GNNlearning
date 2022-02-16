@@ -380,7 +380,9 @@ dropout 随机把一些神经元置为0
 
 GNN中 , linear layer  message function 应用dropout 
 
-太多GNN层, 问题, over smoothing, 所有embedding 收敛到同一个值.  为什么会这样?
+##### 太多GNN层问题
+
+ over smoothing, 所有embedding 收敛到同一个值.  为什么会这样?
 
 堆叠太多层- >  receptive 域高度重叠, 也就是大家hop过来都是这些节点 -> node embedding 高度相似 
 
@@ -404,9 +406,79 @@ reasoning/transformation 重要的时候,  比如graph classification, knowledge
 
 这样可以有更多可能性, 就有混合 浅GNN 和深GNN . 
 
- 
+###  lec8 augmentation 
+
+为什么要增强图?
+
+1. features , 缺乏features 
+2. 图结构, 可能太sparse 导致消息传递太没效率或者太dense导致消息传递开销太大, 太large 导致显存不够.  
+
+所以, 输入的图往往不是最适合的计算图
+
+#### 增强的方法
+
+##### feature 增强
+
+可能没有node feature
+
+标准的方法是
+
+1. 给nodes分配常量值. 
+2. 给node分配unique ID, one hot vectors, 这个方法更expressive, 但是不能泛化到unseen node, 计算的开销也更大, 可以用在小图和transductive图(没有新的node).  
+
+可能GNN 学不到一些特定的结构, 比如环的长度 
+
+学不到就直接加进去, 比如 Node degree § Clustering coefficient § PageRank § Centrality
+
+##### 图结构 增强
+
+**太sparse  ->  Add virtual nodes / edges**
+
+怎么加边?  Connect 2-hop neighbors via virtual edges  例子是Bipartite graphs
+
+加一个虚拟node, 超级源点. 这样所有节点都距离为2 这样可以大大加快稀疏矩阵中的消息传递. 
+
+**太dense  -> Sample neighbors when doing message passing**
+
+随机采样一些节点的邻居, 有一些邻居不计算了, 来减少计算量. 在实践中也work的很好
+
+**太large  -> 采样子图**
 
 
 
- 
+#### 用GNN预测
+
+3个level , 节点, edge, graph. 
+
+global pooling 会丢失结构信息.  -> 解决方法, 分层aggregate 所有的node embedding 
+
+实践中可以用 diffpool :  利用两个独立的GNN, 分层计算.  联合训练 GNN1和GNN2
+
+regression就是label有连续的值, 分类是label离散的. 
+
+分类可以用CE 交叉熵作为损失函数, 
+
+regression就用 mean squared error MSE  , 也叫L2 loss 
+
+##### split graph
+
+在训练, 验证和测试set中都能看到整个图. 叫做transductive setting.  我们只分割标签
+
+用整个图计算嵌入, 用几个节点 train, 然后 另外几个节点evaluate.  这种是不能处理图预测任务的. 
+
+或者, inductive setting, 把边也拆开. 获得多个独立的图. 用独立的图各自计算嵌入.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
