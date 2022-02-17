@@ -354,6 +354,12 @@ MSG 每个node 计算出一个message.  求和就是aggregation.
 
 非线性 activation , 可以 add expressiveness, ReLU  Sigmoid . 
 
+##### GCN
+
+message:  就是加个权重然后根据入度正则化
+
+aggregation:  用sum, 然后activation
+
 ##### GraphSAGE
 
 有两个贡献，一是提出了更多的聚合方法（mean/lstm/pooling），二是对邻居信息进行多跳抽样
@@ -505,7 +511,7 @@ loss/accuracy 不收敛:
 
 过拟合:   
 
-
+### lec9 GNN理论
 
 
 
