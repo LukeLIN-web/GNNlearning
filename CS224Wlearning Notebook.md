@@ -1,3 +1,17 @@
+需求, support 一些需求, 没有需求就可以自己创新一些用例,  正常是英伟达的一套生态.
+
+不是算法支持, Iass  cuda软件包, 没有DL 背景, 需要support,  需要沟通要环境, 快速上手一个算法, 定位问题, 解决问题. 
+
+我们能不能支持阿里的框架? 不能支持就试试. 性能分析, profile的工具优化, 应用层是调用底层框架, 侧重GPU调用的一部分.
+
+计算框架, graph, 计算图的拆解. 编译. 
+
+
+
+为什么要加噪声, 跳出原来的选择, 跳出初始化的干扰. 
+
+  
+
 ### lec2 传统特征
 
 #### node level
@@ -472,8 +486,6 @@ reasoning/transformation 重要的时候,  比如graph classification, knowledge
 
 **太large  -> 采样子图**
 
-
-
 #### 用GNN预测
 
 3个level , 节点, edge, graph. 
@@ -488,23 +500,36 @@ regression就是label有连续的值, 分类是label离散的.
 
 regression就用 mean squared error MSE  , 也叫L2 loss 
 
-##### split graph
+##### 数据集分割
 
-在训练, 验证和测试set中都能看到整个图. 叫做transductive setting.  我们只分割标签
+Fixed split: 只切分一次
 
-用整个图计算嵌入, 用几个节点 train, 然后 另外几个节点evaluate.  这种是不能处理图预测任务的. 
+图的数据集切分很特殊, 会影响message passing- > 影响节点的embedding
 
-或者, inductive setting, 把边也拆开. 获得多个独立的图. 用独立的图各自计算嵌入.
+解决方法:
 
+1.  transductive setting, 输入图可以被 所有splits 看到, 只分割节点的label. 在训练时用整个图计算embedding,然后用部分label训练.  评估时也是, 整个图计算embedding, 然后 用部分label evaluate.
+2.  Inductive setting, 不同split之间的边切掉, 一个split就是一个独立的图, 在训练时用单个split的图计算embedding,然后用这个split的label训练. validation也是. 
 
+在训练, 验证和测试set中都能看到整个图. 叫做transductive setting.  我们只分割标签. transductive setting 只能用于 node/edge 预测任务
+
+或者 inductive setting, 把边也拆开. 获得多个独立的图. 用独立的图各自计算嵌入.  inductive可以用于node/edge/graph 任务. 比如 图分类, 因为必须test没见过的图.  用整个图计算嵌入, 用几个节点 train, 然后 另外几个节点evaluate.  这种是不能处理图预测任务的. 
 
 ##### 预测edge
 
-这是无监督或者自监督的, 我们需要创建label. 
+Link Predict
 
-inductive : 把边分成两种类型, message edge 和supervision edges . supervision edge不输入GNN
+这是无监督/自监督任务, 要自己创建label.  分割边两次
 
-transductive : 这是默认的setting, 把边分成四种, Training message edges ,Training supervision edges, Validation edges ,Test edges.  这是非常trick和复杂的, 不过PyG和GraphGym 有很完善的库
+step1 : 边分为两种
+
+inductive : 把边分成两种类型, message edge 和supervision edges . supervision edge不输入GNN 
+
+ message edges(用来消息传递)和supervision edges(用来计算) supervision edges 作为model 做出预测的label, 不会被fed into GNN. 
+
+step2: edge split,  
+
+transductive : 是默认的设置, 把边分成四种, Training message edges ,Training supervision edges, Validation edges ,Test edges.  这是非常trick和复杂的, 不过PyG, DeepSNAP和GraphGym 有很完善的库
 
 DeepSNAP provides core modules for 预测 pipeline 
 
@@ -519,7 +544,6 @@ general tips:
 3. 激活函数, ReLU 比较好,§ Other alternatives: LeakyReLU, SWISH, rational activation,  输出层不要用激活函数
 4. 每一层包含bias term
 5. embedding 维度, 32 , 64 , 128 比较好
-6. 
 
 ##### 怎么debug
 
@@ -529,11 +553,19 @@ loss/accuracy 不收敛:
 2. 调整超参数
 3. 检查权重参数初始化
 
-过拟合:   
+过拟合: 调试loss func, 尝试可视化
 
 ### lec9 GNN理论
 
+这些GNN 模型,  GCN, GAT, GraphSAGE, design space.  
 
+expressive power (ability to distinguish different graph structures) 有什么区别?
+
+怎么设计一个最expressive 的GNN model?
+
+GCN (mean-pool) [Kipf and Welling ICLR 2017]  Element-wise mean pooling + Linear + ReLU non-linearity
+
+GraphSAGE (max-pool) [Hamilton et al. NeurIPS 2017]MLP + element-wise max-pooling
 
 
 
