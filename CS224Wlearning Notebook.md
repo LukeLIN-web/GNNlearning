@@ -386,7 +386,7 @@ aggregation:  用sum, 然后activation
 
 message 用AGG计算, aggregation分两个stage ,先agg 邻居,再agg自己. 
 
-`       权重矩阵 串联( 自己,(聚合邻居))`
+`权重矩阵 串联( 自己,(聚合邻居))`
 
 L2正则化, 可以在每一次apply, 作用是有一致的scales, 有时候可以提高performance. 
 
