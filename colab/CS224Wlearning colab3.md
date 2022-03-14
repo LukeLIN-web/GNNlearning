@@ -10,7 +10,7 @@ CS224W学习
 
 执行三个函数, forward, message, aggregate.
 
-消息传递, 就是更新feature vecotr, 
+消息传递, 就是更新feature vector
 
 1. 每个节点通过边传递消息
 2. 聚合消息
@@ -18,7 +18,23 @@ CS224W学习
 
 #### forward
 
-handle 预处理等, 调用propagate函数 初始化消息传递
+handle 预处理等, 初始化消息传递
+
+1. 调用propagate函数 来传递消息
+2. 更新node embedding, 从前面层skip connection
+3. 可能还有正则化.
+
+```mermaid
+flowchart TB
+    subgraph forward
+    prop-->messa
+    messa--> aggregate
+    end
+    subgraph two
+    b1-->b2
+    end
+    forward --> two
+```
 
 ##### 传播函数
 
@@ -40,7 +56,7 @@ Calling `propagate` initiates the message passing process.
 
 - `extra=(extra_i, extra_j)`代表额外的信息，我们可以在每个节点的当前特征嵌入之外与之关联。事实上，我们可以包括任意多的`param=(param_i, param_j)`形式的额外参数。我们再次强调，用`_i `和`_j `做索引可以让我们区分中心节点和相邻节点。
 
-The output of the `propagate` function is a matrix of node embeddings after the message passing process and has shape [N,d].
+ `propagate` 函数的输出is a matrix of node embeddings after the message passing process and has shape [N,d].
 
 ##### message 函数
 

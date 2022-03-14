@@ -1,14 +1,4 @@
-需求, support 一些需求, 没有需求就可以自己创新一些用例,  正常是英伟达的一套生态.
 
-不是算法支持, Iass  cuda软件包, 没有DL 背景, 需要support,  需要沟通要环境, 快速上手一个算法, 定位问题, 解决问题. 
-
-我们能不能支持阿里的框架? 不能支持就试试. 性能分析, profile的工具优化, 应用层是调用底层框架, 侧重GPU调用的一部分.
-
-计算框架, graph, 计算图的拆解. 编译. 
-
-
-
-为什么要加噪声, 跳出原来的选择, 跳出初始化的干扰. 
 
   
 
@@ -30,9 +20,7 @@ Eigenvector centrality: the sum of the centrality of neighbouring nodes:
 
 GDV counts #(graphlets) that a node touches.  Graphlet degree vector的意义在与它提供了对于一个节点的本地网络拓扑的度量，这样可以比较两个节点的GDV来度量它们的相似度。由于Graphlet的数量随着节点的增加可以很快变得非常大，所以一般会选择2-5个节点的Graphlet来标识一个节点的GDV。
 
-We have introduced different ways to obtain node features. 
-
- They can be categorized as: 
+获得节点feature的方法有:
 
 ▪ Importance-based features: 
 
@@ -567,11 +555,48 @@ GCN (mean-pool) [Kipf and Welling ICLR 2017]  Element-wise mean pooling + Linear
 
 GraphSAGE (max-pool) [Hamilton et al. NeurIPS 2017]MLP + element-wise max-pooling
 
+GNN是怎么捕捉 local neighborhood structures 的?
+
+关键是计算图
+
+不同的local neighborhoods  决定了不同的计算图
+
+单射injective .  当*a* ≠ *b*时，*f*(*a*) 一定≠ *f*(*b*)
+
+最有expressive 的GNN 应该map subtrees to the node embeddings injectively. 
+
+如果每一步neighbor aggregation都是单射的, 那么GNN 就可以完全分辨不同的子树结构. 
+
+#### 设计最强大的GNN
+
+如上所述, 最重要的就是injective aggregation function. 
+
+GCN mean , GraphSAGE max 都不是单射的.  所以不够powerful
+
+Graph Isomorphism Network (GIN) [Xu et al. ICLR 2019]   
+
+Apply an MLP, element-wise sum, followed by another MLP. 是单射的, is THE most expressive GNN in the class of message-passing GNNs!  
+
+GIN 用 NN to model 单射哈希函数
+
+GIN 和 WL graph kernel 的expressive 差不多, 
+
+### lec10 Knowledge Graph Embeddings
+
+#### 异质图
+
+每个边的类型可能不同
+
+##### Relational GCNs 
+
+使用不同的NN 权重来表示不同的relation 类型. 
+
+
+
+##### Knowledge Graphs 
 
 
 
 
 
-
-
-
+##### Embeddings for KG Completion

@@ -144,8 +144,6 @@ Epoch: 13, Loss: 1.2892, Train: 42.95%, Valid: 40.94% Test: 46.42%
 
 ogbg-molhiv是个较小的分子属性预测数据集，用于图分类任务（二元分类）。有41,127个无向图，平均每个图有25.5个节点、13.75个边。任务目标是二元分类。评估指标是ROC-AUC。节点有9维特征
 
-
-
 Task type: binary classification
 
 加载dataset , 设置好device , 设置好split, dataset有一个属性是任务类型. 
