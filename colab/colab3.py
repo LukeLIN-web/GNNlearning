@@ -1,5 +1,6 @@
 import torch_geometric
-
+import os
+print(torch_geometric.__version__)
 import torch
 import torch_scatter
 import torch.nn as nn
@@ -17,8 +18,6 @@ from torch.nn import Parameter, Linear
 from torch_sparse import SparseTensor, set_diag
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.utils import remove_self_loops, add_self_loops, softmax
-
-print(torch_geometric.__version__)
 
 
 class GNNStack(torch.nn.Module):
@@ -95,8 +94,8 @@ class GraphSage(MessagePassing):
         #            message from neighbors.
         # Don't forget the bias!
         # Our implementation is ~2 lines, but don't worry if you deviate from this.
+        self.lin_l = nn.Linear(in_channels, out_channels)
         self.lin_r = nn.Linear(in_channels, out_channels)
-        self.lin_l = nn.Linear()
 
         ############################################################################
 
@@ -124,11 +123,12 @@ class GraphSage(MessagePassing):
         #    torch.nn.functional)
         #
         # Our implementation is ~5 lines, but don't worry if you deviate from this.
-        out =
+
+        x_prop = self.propagate(edge_index, x=(x, x), size=size)  # aggre stage1
+        out = self.lin_l(x) + x_prop  # aggre stage2
 
         if self.normalize:
             out = F.normalize(out, p=2, dim=1)
-
 
         ############################################################################
 
@@ -144,7 +144,7 @@ class GraphSage(MessagePassing):
         # what message each neighboring node passes.
         #
         # Our implementation is ~1 lines, but don't worry if you deviate from this.
-        out =
+        out = self.lin_r(x_j)
 
         ############################################################################
 
@@ -163,6 +163,7 @@ class GraphSage(MessagePassing):
         # https://pytorch-scatter.readthedocs.io/en/latest/functions/scatter.html#torch_scatter.scatter
         #
         # Our implementation is ~1 lines, but don't worry if you deviate from this.
+        out = torch_scatter.scatter(inputs, index, dim=node_dim, reduce="mean")
 
         ############################################################################
 
