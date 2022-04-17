@@ -507,7 +507,7 @@ Fixed split: 只切分一次
 
 在训练, 验证和测试set中都能看到整个图. 叫做transductive setting.  我们只分割标签. transductive setting 只能用于 node/edge 预测任务
 
-或者 inductive setting, 把边也拆开. 获得多个独立的图. 用独立的图各自计算嵌入.  inductive可以用于node/edge/graph 任务. 比如 图分类, 因为必须test没见过的图.  用整个图计算嵌入, 用几个节点 train, 然后 另外几个节点evaluate.  这种是不能处理图预测任务的. 
+或者 inductive setting, 把边也拆开. 获得多个独立的图. 用独立的图各自计算嵌入.  inductive可以用于节点/边/ 图任务. 比如 图分类, 因为必须test没见过的图.  用整个图计算嵌入, 用几个节点 train, 然后 另外几个节点evaluate.  这种是不能处理图预测任务的. 
 
 ##### 预测edge
 
