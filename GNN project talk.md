@@ -32,8 +32,6 @@ measurement, performance, 一些operation.
 
 有事情先和marco讲. 
 
-老师衣服上有个burosys.
-
 courses,
 
 发一个成绩单给老师. 知道一下上什么课.
