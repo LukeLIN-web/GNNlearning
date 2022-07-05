@@ -14,8 +14,6 @@
 
 •图演化: 物理模拟 
 
-
-
 ### lec2 传统特征
 
 #### node level
@@ -274,11 +272,30 @@ ReLU,  rectified linear unit, 就是 max(x,0)
 
 sigmoid , 就是 1/(1+e^-x)  值域在 0到1 
 
+GNN是梯度下降来学习的吗? 是的. 
+
+
+
+图 https://en.wikipedia.org/wiki/Sparse_matrix
+
+COO ,COO stores a list of (row, column, value) tuples. Ideally, the entries are sorted first by row index and then by column index, to improve random access times. This is another format that is good for incremental matrix construction
+
+Formats can be divided into two groups:
+
+- Those that support efficient modification, such as DOK (Dictionary of keys), LIL (List of lists), or COO (Coordinate list). These are typically used to construct the matrices.
+- Those that support efficient access and matrix operations, such as CSR (Compressed Sparse Row) or CSC (Compressed Sparse Column).
+
+
+
 #### 图深度学习
 
 ##### naive approache
 
-直接把临接矩阵feed into DNN, 问题是参数多, graph大小不同就不适用.
+临接矩阵直接附加上feature矩阵.  然后feed into DNN, 问题是
+
+1. 参数多,  参数比training example 更多, 这样训练不稳定,  容易过拟合
+2.   graph大小不同, 比如7节点, 训练的五个节点的模型就不适用.
+3. 图是没有固定顺序的, 节点的顺序变了, 就不一样了. 
 
 利用CNN ? 图是非常多变的, 没有固定的滑动窗口来卷积. 
 
@@ -286,9 +303,15 @@ sigmoid , 就是 1/(1+e^-x)  值域在 0到1
 
 #### 图卷积网络GCN
 
-每个节点根据邻居, 定义了一个计算图 
+每个节点根据邻居, 定义了一个计算图 .
+
+ 要同时训练每个节点的计算图.  
+
+怎么实现节点顺序变了输出不变的?  
 
 ##### matrix formulation
+
+训练的参数是什么? 
 
 Many aggregations 可以通过稀疏矩阵的运算加速.
 
@@ -478,7 +501,13 @@ reasoning/transformation 重要的时候,  比如graph classification, knowledge
 
 随机采样一些节点的邻居, 有一些邻居不计算了, 来减少计算量. 在实践中也work的很好
 
-**太large  -> 采样子图**
+**太large  -> 采样子图** 
+
+可以有minibatch,  (采样时间, cpu移动到gpu时间)很久. 甚至可以到85%.  不同的采样方法速度也不一样. 
+
+比如把一张大图, 分成15000个cluster, 一个mini batch 训练32个子图, 
+
+可见性, 
 
 #### 用GNN预测
 
