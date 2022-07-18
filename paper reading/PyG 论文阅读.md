@@ -30,9 +30,3 @@ Do you think the work will be impactful or not?
 
 
 
-提前三天跟他说,  北森系统提交离职申请, 写好最后的工作日. 
-
-顺丰, 问一问能不能寄.上海.   
-
-
-
