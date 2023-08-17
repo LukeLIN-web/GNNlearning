@@ -1,0 +1,157 @@
+{
+  "main": {
+    "id": "ef40f1285b63f501",
+    "type": "split",
+    "children": [
+      {
+        "id": "688411adccbf70a6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "871be19f611a3a70",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "ppopp/DSP.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "a08a7bd0fc1e5011",
+    "type": "split",
+    "children": [
+      {
+        "id": "1b2d467e68a8b629",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "05c663bec48d22d6",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "c0160c153ce89882",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "6146b53b02617307",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 247.5
+  },
+  "right": {
+    "id": "6d7555f921a8914b",
+    "type": "split",
+    "children": [
+      {
+        "id": "8569a343ce9a6f3d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b43fea27779d92b8",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "ppopp/DSP.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "c4500b9dc858a017",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "ppopp/DSP.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "cfa2a2932bc8655a",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "7831d8def89efb6b",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "ppopp/DSP.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "871be19f611a3a70",
+  "lastOpenFiles": [
+    "ppopp/pipad.md",
+    "ppopp/DSP.md",
+    "PyG 论文阅读.md",
+    "WWW2022/Resource-Efficient Training for Large Graph Convolutional Networks with Label-Centric Cumulative Sampling.pdf",
+    "design-space-for-GNNs.pdf"
+  ]
+}
