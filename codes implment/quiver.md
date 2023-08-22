@@ -155,7 +155,7 @@ inference, 存所有的inference后的label. 推理的优化.
 
 ### 摘要
 
-1. 计算PSGS. probabilistic sampled graph size. 并行度高的放GPUinfer.
+1. 计算PSGS. probabilistic sampled graph size. 并行度高的放GPUinfer. 不过开源的代码里没有看到psgs.
 2. feature, 可以看代码文档
 
 图变化了, 怎么处理? 
