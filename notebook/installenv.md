@@ -75,9 +75,9 @@ apt list | grep nvidia-container-toolkit # 查看是否安装toolkit, 有[instal
 
 用` sudo apt-get --purge remove "*nvidia*"`删除了所有, 
 
-直接安装 nvidia-container-toolkit, 会把driver 自动装了. 看这个来安装就行https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html 
+直接安装 nvidia-container-toolkit, 会把driver 自动装了. https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html 
 
-https://askubuntu.com/questions/1436506/how-to-resolve-unmet-dependencies-error-when-upgrading-depends-nvidia-kernel-c   有这个问题. 根据这个网址的第一个回答可以显示nvidia-smi , 但是不能成功docker . 多 重启几次. 
+https://askubuntu.com/questions/1436506/how-to-resolve-unmet-dependencies-error-when-upgrading-depends-nvidia-kernel-c   有这个问题. 根据这个网址的第一个回答可以显示nvidia-smi , 但是不能成功docker . 多重启几次. 
 
 nvidia-smi 报错：Failed to initialize NVML: Driver/library version mismatch - endRuz的文章 - 知乎 https://zhuanlan.zhihu.com/p/443208000  
 
