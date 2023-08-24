@@ -176,10 +176,6 @@ user latency threshold 是 30 ms.
 
 
 
-
-
-
-
 ## serving
 
 prepare data, 会 generate_neighbour_num. 产生 `25_10_neighbour_num_False.npy`
@@ -193,7 +189,7 @@ OSError: [Errno 22] Invalid argument
 
 方法 :  注释掉
 
-为什么需要多个stream_input_queue_list?
+为什么需要多个stream_input_queue_list? 因为有多个进程在读取
 
 怎么准备不同Batch之间复用? 给有重复的输入. 
 
@@ -211,11 +207,7 @@ OSError: [Errno 22] Invalid argument
 
 他有8个cpu sampler, 2个gpu sampler., 分别处理, 怎么判断所有进程都结束了呢? 
 
-两个device, 每个device两个进程. 
-
-有1000个. 
-
-```
+```python
     start_time = time.time()
     while True:
         result = result_queue.get()
@@ -230,21 +222,35 @@ request_mode = 'Fixed', request_mode='CPU' 和 request_mode = 'Random' 有什么
 
 exp_id = 'fixed_depatch'  和 exp_id = 'auto_depatch' 有什么区别?  没区别  就是个string.
 
-exp_id ='fixed_depatch' , sample_mode = 'GPU'有重复的时候就会报错, 为什么? 
+exp_id ='fixed_depatch' , sample_mode = 'GPU'有重复的时候就会报错eof , 为什么?   因为访问了同一个点
 
 it's because an `id` in the training list (format `imgname 0 id 0`) is equal to or larger than the param `last_fc_size`.  因为没有从0 开始
 
 The `id` should start from 0 and not exceed `last_fc_size-1`.
 
+为什么有的给gpu，反而更慢了. 可能因为这个重复的节点 degree小. 选高degree的，不要随机一个，重复. 测试quiver 
+
+quiver load feature 要多久？ 占多少时间。  `edge_index, _, size = adj.to(device)  和 x = x_all[n_id].to(device)` 大概占用53%  ,占用的多, 就可以用pipeline的方法. 
+
 ```
 /opt/conda/conda-bld/pytorch_1670525552843/work/aten/src/ATen/native/cuda/ScatterGatherKernel.cu:144: operator(): block: [0,0,0], thread: [15,0,0] Assertion `idx_dim >= 0 && idx_dim < index_size && "index out of bounds"` failed.
 ```
 
-他开多个gpu loop, 是怎么划分任务的? 就是不断从queue中取任务. 
+他开多个gpu loop, 是怎么划分任务的?   A:  不断从queue中取任务. 
 
+ threshold是1670  , 测试degree ,  一个batch 48个点,  48个点的neighbor num sum = 576, threshold是1670. 所以判断他在CPU里快. 实验也说明了这一点. 
 
+看不同重复率的时候, 跳过, 用的时间. 
 
- threshold是1670 , 
+速度差不多
+
+ Batch size 调大点看看? 
+
+可能因为neighbor num 总量没有超过GPU带宽的上限, 所以速度差不多
+
+sampling的时间应该比较大. 
+
+-1, -1 不能产生neighbor num .`python prepare_data.py ` 会自动退出. 
 
 
 
@@ -260,9 +266,7 @@ https://github.com/pyg-team/pytorch_geometric/tree/master/examples/multi_gpu
 
 https://github.com/pyg-team/pytorch_geometric/blob/master/examples/quiver/README.md
 
-Pip 安装失败runtimeError:    CUDA was not found on the system, please set the CUDA_HOME or the CUDA_PATH  environment variable or add NVCC to your system PATH. The extension compilation will fail.
-
-这是一个假的cudatoolkit, 没有nvcc. 不能编译. 
+Pip 安装失败runtimeError:    CUDA was not found on the system, please set the CUDA_HOME or the CUDA_PATH  environment variable or add NVCC to your system PATH. The extension compilation will fail.   这是一个假的cudatoolkit, 没有nvcc. 不能编译. 
 
 ```bash
 1. 安装python3.8 
@@ -346,7 +350,7 @@ python3.7 , cuda10.2 , torch 1.9.0,torch-geometric        2.0.2,torch-quiver    
 
 https://github.com/quiver-team/torch-quiver/issues/133
 
-用这个镜像 ,torch-quiver           0.1.0 .
+用这个镜像 ,torch-quiver   0.1.0 .
 
 `python3 examples/pyg/reddit_quiver.py`  AttributeError: module 'torch_quiver' has no attribute 'device_quiver_from_csr_array'. 这个是内部cpp出了问题. https://github.com/quiver-team/torch-quiver/issues/133   卸载重装torch-quiver 0.1.1.  运行上面的, hang住不动了. 
 
