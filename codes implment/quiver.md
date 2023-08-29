@@ -138,10 +138,6 @@ a wrapper of the communicator in the NCCL library. It supports both p2p communic
 
 可以模仿这个写scatter操作. 
 
-#### **p2p_clique_replicate**
-
-#### `quiver.init_p2p([0, 1])`
-
 ## 论文
 
 https://arxiv.org/pdf/2305.10863.pdf
@@ -168,13 +164,9 @@ quiver也有.
 
 inference可能经常查询一些out degree低的.
 
-
-
 #### 6Evaluation
 
 user latency threshold 是 30 ms.
-
-
 
 ## serving
 
@@ -218,7 +210,7 @@ OSError: [Errno 22] Invalid argument
 
 怎么disable CPU? 
 
-request_mode = 'Fixed', request_mode='CPU' 和 request_mode = 'Random' 有什么区别?   cpu就是fix在cpu上, 
+request_mode = 'Fixed', request_mode='CPU' 和 request_mode = 'Random' 有什么区别?   cpu就是fix在cpu上,  random是啥?  没找到. 只区分了 'Preparation'和其他. 
 
 exp_id = 'fixed_depatch'  和 exp_id = 'auto_depatch' 有什么区别?  没区别  就是个string.
 
@@ -242,15 +234,19 @@ quiver load feature 要多久？ 占多少时间。  `edge_index, _, size = adj.
 
 看不同重复率的时候, 跳过, 用的时间. 
 
-速度差不多
-
- Batch size 调大点看看? 
+Batch size 调大点看看? 前面的快, 时间为80% ,  但是后面的慢. 
 
 可能因为neighbor num 总量没有超过GPU带宽的上限, 所以速度差不多
 
 sampling的时间应该比较大. 
 
 -1, -1 不能产生neighbor num .`python prepare_data.py ` 会自动退出. 
+
+一个batch中, 一半是高degree, 一半是低degree. 这样一百个batch,  比较 前50个batch全是高degree.
+
+
+
+
 
 
 

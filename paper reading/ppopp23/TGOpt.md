@@ -1,5 +1,3 @@
-
-
 Charith Mendis  教授, 主要是做 ai  编译的.
 
 问题
@@ -50,11 +48,9 @@ nodes often share common neighbors and this can lead to duplicate ⟨𝑖, 𝑡 
 
 ## 4 Redundancy-Aware Optimizations
 
-uses a memoization cache in the computation of temporal embeddings for a batch
-
 ### 4.1Deduplicating Nodes
 
- jointly operates on the two separate arrays in order to avoid creating intermediate tensors. 仔细设计高效低内存消耗的hash算法, 产生unique element , 
+ jointly operates on the two separate arrays in order to avoid creating intermediate tensors.  hash算法, 产生unique element , 
 
 ### 4.2 Memoization of Embeddings
 
@@ -123,4 +119,14 @@ https://github.com/ADAPT-uiuc/tgopt
 ` pip install torch==1.12.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu`
 
 为什么装cpu版本. 
+
+300行代码一个cpp文件就搞定了. 
+
+
+
+
+
+#### dedup_src_ts
+
+
 
