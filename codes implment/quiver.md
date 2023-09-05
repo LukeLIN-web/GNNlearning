@@ -197,6 +197,24 @@ OSError: [Errno 22] Invalid argument
                     cpu_batched_queue.put(item)
 ```
 
+
+
+#### despatch
+
+ 为什么需要8个 auto despatch?   stream_input_queue  一对一有8个.   input_proc_per_device = 4  device_num = 2  
+
+cpu_batched_queue_list有几个? 有device num个.  gpu batch queue 也是.  就是多个queue输入. 
+
+
+
+
+
+
+
+
+
+
+
 他有8个cpu sampler, 2个gpu sampler., 分别处理, 怎么判断所有进程都结束了呢? 
 
 ```python
@@ -242,7 +260,39 @@ sampling的时间应该比较大.
 
 -1, -1 不能产生neighbor num .`python prepare_data.py ` 会自动退出. 
 
-一个batch中, 一半是高degree, 一半是低degree. 这样一百个batch,  比较 前50个batch全是高degree.
+我们的mix :  一个batch中, 一半是高degree, 一半是低degree. 这样一百个batch,  比较 前50个batch全是高degree.
+
+quiver原本的 workload.npy  一个batch全是小degree， 一个batch全是大degree  .没有任何mix.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
