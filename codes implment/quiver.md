@@ -85,7 +85,7 @@ x[n_id], __getitem__的时候会先node_idx = node_idx.to(self.rank), 然后调�
 | sample      | GPU                                     |      |
 | feature     | hot的在GPU中.  cpu part 在shared memory |      |
 | train index | 内存                                    |      |
-| topology    | shared memory                           |      |
+| topology    | CPU shared memory                       |      |
 |             |                                         |      |
 
 quiver的内存位置. TOPO在哪里, feature在哪里,每个算法都要研究, 能说出来. 
@@ -151,10 +151,14 @@ inference, 存所有的inference后的label. 推理的优化.
 
 ### 摘要
 
-1. 计算PSGS. probabilistic sampled graph size. 并行度高的放GPUinfer. 不过开源的代码里没有看到psgs.
-2. feature, 可以看代码文档
+1. 计算PSGS. probabilistic sampled graph size. 并行度高的放GPUinfer. 开源的代码里没有看到psgs这个词, 就是他处理的数据集`quiver.generate_neighbour_num`
+2. feature, 可以看代码文档 FAP, 就是feature被访问的可能性
 
-图变化了, 怎么处理? 
+
+
+### Latency and Throughput in GNN Serving
+
+
 
 #### Zero-copy
 
@@ -185,20 +189,6 @@ OSError: [Errno 22] Invalid argument
 
 怎么准备不同Batch之间复用? 给有重复的输入. 
 
-```python
-    def auto_despatch(self, idx):
-    
-	    neighbour_num = np.load(self.neighbour_path)
-                tmp_sum = np.take(neighbour_num, item).sum()
-                
-                if tmp_sum > self.threshold:
-                    gpu_batched_queue.put(item)
-                else:
-                    cpu_batched_queue.put(item)
-```
-
-
-
 #### despatch
 
  为什么需要8个 auto despatch?   stream_input_queue  一对一有8个.   input_proc_per_device = 4  device_num = 2  
@@ -207,9 +197,7 @@ cpu_batched_queue_list有几个? 有device num个.  gpu batch queue 也是.  就
 
 
 
-
-
-
+输入的时间是多久? 
 
 
 
@@ -259,10 +247,6 @@ Batch size 调大点看看? 前面的快, 时间为80% ,  但是后面的慢.
 sampling的时间应该比较大. 
 
 -1, -1 不能产生neighbor num .`python prepare_data.py ` 会自动退出. 
-
-我们的mix :  一个batch中, 一半是高degree, 一半是低degree. 这样一百个batch,  比较 前50个batch全是高degree.
-
-quiver原本的 workload.npy  一个batch全是小degree， 一个batch全是大degree  .没有任何mix.
 
 
 
