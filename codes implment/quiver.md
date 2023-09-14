@@ -191,11 +191,9 @@ OSError: [Errno 22] Invalid argument
 
 #### despatch
 
- 为什么需要8个 auto despatch?   stream_input_queue  一对一有8个.   input_proc_per_device = 4  device_num = 2  
+ 为什么需要8个 auto despatch?  为了加快despatch的速度.   stream_input_queue  一对一有8个.   input_proc_per_device = 4 就是每个device会有4个despatch进程.   device_num = 2  
 
 cpu_batched_queue_list有几个? 有device num个.  gpu batch queue 也是.  就是多个queue输入. 
-
-
 
 输入的时间是多久? 
 
@@ -231,16 +229,12 @@ The `id` should start from 0 and not exceed `last_fc_size-1`.
 quiver load feature 要多久？ 占多少时间。  `edge_index, _, size = adj.to(device)  和 x = x_all[n_id].to(device)` 大概占用53%  ,占用的多, 就可以用pipeline的方法. 
 
 ```
-/opt/conda/conda-bld/pytorch_1670525552843/work/aten/src/ATen/native/cuda/ScatterGatherKernel.cu:144: operator(): block: [0,0,0], thread: [15,0,0] Assertion `idx_dim >= 0 && idx_dim < index_size && "index out of bounds"` failed.
+/opt/conda/conda-bld/pytorch_1670525552843/work/aten/src/ATen/native/cuda/ScatterGatherKernel.cu:144: operator(): block: [0,0,0], thread: [15,0,0] 
 ```
 
 他开多个gpu loop, 是怎么划分任务的?   A:  不断从queue中取任务. 
 
- threshold是1670  , 测试degree ,  一个batch 48个点,  48个点的neighbor num sum = 576, threshold是1670. 所以判断他在CPU里快. 实验也说明了这一点. 
-
-看不同重复率的时候, 跳过, 用的时间. 
-
-Batch size 调大点看看? 前面的快, 时间为80% ,  但是后面的慢. 
+ threshold是1670  , 测试degree ,  一个batch 48个点,  48个点的neighbor num sum = 576, threshold是1670. 所以判断他在CPU里快. 实验也说明了这一点. 所以不是加载topo的原因, 那是什么原因呢? 因为GPU并行度不高. 小规模数据，GPU的启动和数据传输开销可能会使其比CPU更慢。 某些任务可能难以分解为并行操作，因此CPU可能更适合执行这些任务。
 
 可能因为neighbor num 总量没有超过GPU带宽的上限, 所以速度差不多
 
@@ -248,19 +242,7 @@ sampling的时间应该比较大.
 
 -1, -1 不能产生neighbor num .`python prepare_data.py ` 会自动退出. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+太复杂了, 还是从单进程重写吧, 别人的多进程代码想改也太难了. 
 
 
 
