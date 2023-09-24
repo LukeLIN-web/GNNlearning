@@ -154,11 +154,7 @@ inference, 存所有的inference后的label. 推理的优化.
 1. 计算PSGS. probabilistic sampled graph size. 并行度高的放GPUinfer. 开源的代码里没有看到psgs这个词, 就是他处理的数据集`quiver.generate_neighbour_num`
 2. feature, 可以看代码文档 FAP, 就是feature被访问的可能性
 
-
-
 ### Latency and Throughput in GNN Serving
-
-
 
 #### Zero-copy
 
@@ -172,18 +168,15 @@ inference可能经常查询一些out degree低的.
 
 user latency threshold 是 30 ms.
 
+latency 很小, throughtput很大. 
+
+论文说Note that PaGraph [26], BGL [27] and GNNLab [42] support training only, and we could not extend them to supporting GNN serving. 为什么? 
+
+
+
 ## serving
 
 prepare data, 会 generate_neighbour_num. 产生 `25_10_neighbour_num_False.npy`
-
-reddit_serving.py开了很多进程.
-
-```
-    os.sched_setaffinity(0, [2*(cpu_offset+rank)])
-OSError: [Errno 22] Invalid argument
-```
-
-方法 :  注释掉
 
 为什么需要多个stream_input_queue_list? 因为有多个进程在读取
 
@@ -196,10 +189,6 @@ OSError: [Errno 22] Invalid argument
 cpu_batched_queue_list有几个? 有device num个.  gpu batch queue 也是.  就是多个queue输入. 
 
 输入的时间是多久? 
-
-
-
-
 
 他有8个cpu sampler, 2个gpu sampler., 分别处理, 怎么判断所有进程都结束了呢? 
 
