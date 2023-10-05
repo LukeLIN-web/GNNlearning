@@ -166,6 +166,10 @@ inference可能经常查询一些out degree低的.
 
 #### 6Evaluation
 
+target 99th percentile latency to 10 ms for PSGS
+
+the latency of PSGS-Strict, PSGS-Loose and Batchsize-Bound, which handle 99%, 73%, and 55% of queries within 10 ms, respectively
+
 user latency threshold 是 30 ms.
 
 latency 很小, throughtput很大. 
@@ -180,7 +184,7 @@ prepare data, 会 generate_neighbour_num. 产生 `25_10_neighbour_num_False.npy`
 
 为什么需要多个stream_input_queue_list? 因为有多个进程在读取
 
-怎么准备不同Batch之间复用? 给有重复的输入. 
+怎么准备不同Batch之间复用? 给有重复的输入.  
 
 #### despatch
 
@@ -239,7 +243,7 @@ sampling的时间应该比较大.
 
 
 
-
+数据集, 48000， 他是一个batch  have low two-hop neighborhood < 15， 然后下一个batch all have high two-hop neighborhood (>200).  高度repeat的,  unique后只有1500 个点.  500个小degree, 1000个大degree
 
 
 
