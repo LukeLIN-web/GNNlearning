@@ -33,6 +33,10 @@ inference要实时调度.
 
 ### scheduling policies
 
+#### base
+
+尽可能多package
+
 #### BMC policy
 
 从小到大 根据PMC 排序.  左边一个, 右边一个. 

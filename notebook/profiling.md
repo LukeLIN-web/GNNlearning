@@ -16,8 +16,6 @@ Aten::stack 耗时最长,是在什么地方的?
 
 https://github.com/pytorch/pytorch/tree/master/benchmarks/distributed/ddp/compare
 
-
-
 profiler可以用: Python如何快速定位最慢的代码？ - pyinstrument   知乎 https://www.zhihu.com/question/485980118/answer/2113308987
 
 计算 Python 代码的内存和模型显存消耗的小技巧 - deephub的文章 - 知乎 https://zhuanlan.zhihu.com/p/446903067
@@ -34,8 +32,6 @@ py-spy> 163.20s behind in sampling, results may be inaccurate. Try reducing the 
 #### Torch bench
 
 是timeit的包装, 它会做cuda同步的操作. https://pytorch.org/tutorials/recipes/recipes/benchmark.html 
-
-
 
 ### 显存检查
 

@@ -2,12 +2,6 @@
 
 dockerfile, 非常好用.可以看看经典仓库的dockerfile. 以后建环境的时候把过程记在dockerfile上, 因为dockfile 文件小不用下载很久. 
 
-#### CUDA
-
-```
-docker pull nvidia/cuda:10.2-devel-ubuntu18.04
-```
-
 #### pip
 
 几个常用的参数: 
@@ -25,11 +19,9 @@ https://packaging.python.org/en/latest/guides/distributing-packages-using-setupt
 
 把egg info删除了, pip list就找不到了. 
 
-conda 好像不能识别pip安装的软件. 
+conda list 不能识别pip安装的软件. 
 
 用mamba会快很多. 
-
-
 
 #### 安装PyG
 
@@ -123,6 +115,4 @@ conda install numpy ninja pyyaml mkl mkl-include setuptools cmake cffi typing_ex
 export  $LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 确认path有/usr/local/cuda/bin
 ```
-
-5.4G    ./pytorch-direct. 
 

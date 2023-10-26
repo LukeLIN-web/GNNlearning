@@ -113,13 +113,9 @@ quickly remove neighbors.
 
 This multi-round communication can effectively avoid congestion in all-to-all communication.
 
-
-
 ## 7 实验
 
 ReFresh can reach this same accuracy in 25 minutes while the slowest baseline (PyG) takes more than 6 hours
-
-
 
  他们是多GPU吗? 共享了什么?是的, 共享了node feature. 但是embedding 有共享吗?
 
