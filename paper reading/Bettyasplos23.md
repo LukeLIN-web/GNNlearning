@@ -110,8 +110,6 @@ dgl的metis不支持按照edge weight来分吧.   有可能没做，或者做了
 
 We introduce a system support (named Betty) to enable GNN training with large and complex graphs, based on the idea of micro-batches to partition the large graph and fit into GPU memory.
 
-
-
 ## 代码
 
 https://github.com/PASAUCMerced/Betty#readme

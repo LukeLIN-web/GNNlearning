@@ -227,10 +227,6 @@ torch.Size([906, 1433])
 
 注意history是不同层都不同的,  一次forward是把每一层的mini batch 都push新的.
 
-
-
-
-
 ```
             h = history.pull(n_id[batch_size:]) #把mini batch外的都pull下来, 给下一个conv 用.
             return torch.cat([x[:batch_size], h], dim=0) 

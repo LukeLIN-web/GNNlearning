@@ -45,8 +45,6 @@ cmake -DCMAKE_PREFIX_PATH=/root/share/learningpybind/libtorch ..
 cmake --build . --config Release -- -j 32
 ```
 
-
-
 ### 性能调优指南
 
 等所有代码写完了, 需要性能的时候再调性能.  
@@ -110,5 +108,4 @@ self.emb[n_id] = x.to(self.emb.device) # to了之后还在计算图上吗? detac
 ## 怎么测试
 
 1. 为什么forward之后没有被计算的embedding不全为0 ?   因为weight和bias不是0.
-2. 
 

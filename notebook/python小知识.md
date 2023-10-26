@@ -1,4 +1,4 @@
-vscode pdb 的Watch  可以在调试的过程中查看, 不用手动添加print. 非常方便. 
+vscode pdb 的Watch  可以在调试的过程中查看, 不用手动print. 非常方便. 
 
 #### module
 
@@ -36,25 +36,8 @@ Note that relative imports are based on the name of the current module. Since th
 
 #### 计时
 
-time的误差挺大的.可以达到0.02s
-
 https://stackoverflow.com/questions/17579357/time-time-vs-timeit-timeit
 
-```
-# First run
-0.0 0.012654680972022981
-# Second run
-0.031000137329101562 0.012747430190149865
-# Another run
-0.0 0.011262325239660349
-# Another run
-0.016000032424926758 0.012740166697164025
-# Another run
-0.016000032424926758 0.0440628627381413
-```
-
 #### args
-
-args
 
 num_workers=args.num_workers,传入参数是中间横线`argparser.add_argument('--num-workers', default=2, type=int)`, 为啥没关系? 就是没关系的. 这个参数ignore中间短横和下划线区别.

@@ -17,8 +17,6 @@ In this paper, we focus on **DTDG-based DGNNs** and refer to the sliding window 
 
 ## 2 Background
 
-
-
 ### 2.2
 
 PyGT [38] and TGL [51] are two general frame- works aiming to implement the ubiquitous support for as many DGNN models as possible .看了一下pygt才3个star没人用. 
@@ -42,8 +40,6 @@ topology 变化很小.
 一次request取的data, 并不都是有用的. 
 
 ### 3.3 Opportunities for Data Reuse and Parallelism
-
-
 
 we first take topology overlap into consideration cooperatively and design a new graph format that can extract the overlaps efficiently to elim- inate the redundant transfer.
 

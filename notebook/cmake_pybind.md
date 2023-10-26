@@ -8,12 +8,6 @@ cpp修改了, make了之后会在build生成.so , 但是不能直接用, 要重�
 
 1. https://github.com/pybind/pybind11/discussions/4345 
 
-
-
-
-
-
-
 #### pybind 入门
 
 ```shell
@@ -106,15 +100,9 @@ cmake example用的是CMakeExtension, python example用的是Pybind11Extension. 
 3.  [Python objects as arguments](https://pybind11.readthedocs.io/en/stable/advanced/functions.html#python-objects-as-arguments)
 4. [Accepting *args and **kwargs](https://pybind11.readthedocs.io/en/stable/advanced/functions.html#accepting-args-and-kwargs) 
 
-
-
-
-
 ##### 项目学习
 
 https://medium.com/practical-coding/setting-up-a-c-python-project-with-pybind11-and-cmake-8de391494fca
-
-
 
 ### setuptools
 

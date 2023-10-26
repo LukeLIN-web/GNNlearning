@@ -26,11 +26,7 @@ GPU一层训练后,检查embedding stale性, 如果active( 什么样是active �
 
 如果我们就是micro batch少传 embedding的话,感觉和他们的一模一样. 
 
-
-
 Sync at what point?
-
-
 
 ### 代码:
 
