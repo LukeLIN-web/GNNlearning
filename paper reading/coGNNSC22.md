@@ -53,3 +53,9 @@ inference要实时调度.
 
 https://github.com/guessmewho233/CoGNN_info_for_SC22/tree/master/environment
 
+#### base policy的实现
+
+用hash name取出.
+
+joblist存了什么? 
+

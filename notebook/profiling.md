@@ -22,12 +22,9 @@ profiler可以用: Python如何快速定位最慢的代码？ - pyinstrument   �
 
 ##### Py-spy
 
-https://github.com/benfred/py-spy
+https://github.com/benfred/py-spy  只能测cpu time
 
 启动之前需要[`--cap-add SYS_PTRACE`](https://docs.docker.com/engine/security/seccomp/)
-
-
-py-spy> 163.20s behind in sampling, results may be inaccurate. Try reducing the sampling rate
 
 #### Torch bench
 
@@ -37,9 +34,15 @@ py-spy> 163.20s behind in sampling, results may be inaccurate. Try reducing the 
 
 https://github.com/Stonesjtu/pytorch_memlab
 
+https://github.com/nicolargo/nvidia-ml-py3 
+
+
+
+## Nsight
+
 英伟达 https://developer.nvidia.com/nsight-systems
 
-https://github.com/nicolargo/nvidia-ml-py3 
+### 安装
 
 怎么用本地nsight gui, 看远程docker container中的profile结果 ?
 
@@ -52,6 +55,33 @@ https://docs.nvidia.com/nsight-systems/UserGuide/index.html#linux-launch-process
 1. 他没告诉我应该profile文件还是直接启动进程? 
 
 要改container的sshd_config，因为22端口可能被host占用
+
+
+
+
+
+`nvprof` is a legacy tool and will not be receiving new features. 
+
+
+
+在 iter开始和结束的位置打一个标签,TORCH.CUDA.NVTX.RANGE_PUSH   refer:  1
+
+1. PyTorch训练加速的量化分析 - 风车车车的文章 - 知乎 https://zhuanlan.zhihu.com/p/416942523
+2. https://dev-discuss.pytorch.org/t/using-nsight-systems-to-profile-gpu-workload/59
+
+```bash
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --capture-range=cudaProfilerApi --force-overwrite true -x true -o 512 python ladies_e2e.py
+```
+
+
+
+nsys-rep 可以在remote server 可视化吗? 
+
+
+
+
+
+
 
 
 

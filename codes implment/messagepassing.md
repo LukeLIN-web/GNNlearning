@@ -32,8 +32,6 @@ def __lift__(self, src, edge_index, dim):
 
 decomposed_layers是什么? 
 
-
-
 比如有 28个边, message之后, out = 一个28 行的矩阵. 
 
 #### aggre
