@@ -16,6 +16,12 @@ UGache: A Unified GPU Cache for Embedding-based Deep Learning
 
 
 
+#### 代码
+
+注意docker 需要 degrade network 到3.1, 因为3.2 需要python3.9.
+
+
+
 
 
 ## Gsampler
