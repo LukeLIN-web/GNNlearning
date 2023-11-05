@@ -1,3 +1,19 @@
+
+
+https://jeongseob.github.io/readings_mlsys.html
+
+
+
+## SHEPHERD: Serving DNNs in the Wild
+
+ 延迟要求: 50-500ms
+
+
+
+
+
+
+
 #### workload调查
 
 大部分都是从硬件加速的角度来的.  都是静态到达, 不是慢慢到达, 没有从进入pattern来考虑.  
