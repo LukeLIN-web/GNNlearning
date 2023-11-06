@@ -10,6 +10,34 @@ https://jeongseob.github.io/readings_mlsys.html
 
 
 
+dgnn都没有代码. 
+
+STAG: Enabling Low Latency and Low Staleness of GNN-based Services with Dynamic Graphs https://arxiv.org/pdf/2309.15875.pdf
+
+有两种,  forward inference-based (inf-based) approach and backend updatebased (upd-based) approach. 来更新dynamic graphs.
+
+inf base, 只在 收到的时候改变图结构. aligraph.
+
+Cache-based gnn system for dynamic graphs, 没有代码. 
+
+
+
+没有代码. 
+
+SPEED: Streaming Partition and Parallel Acceleration for Temporal Interaction Graph Embedding
+
+
+
+Redundancy-Free High-Performance Dynamic GNN Training with Hierarchical Pipeline Parallelism
+
+
+
+ink stream  https://arxiv.org/pdf/2309.11071.pdf
+
+
+
+survey : https://arxiv.org/pdf/2306.14052.pdf   . A Survey on Graph Neural Network Acceleration: Algorithms, Systems, and Customized Hardware
+
 
 
 
