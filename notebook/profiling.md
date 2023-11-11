@@ -58,8 +58,6 @@ https://docs.nvidia.com/nsight-systems/UserGuide/index.html#linux-launch-process
 
 
 
-
-
 `nvprof` is a legacy tool and will not be receiving new features. 
 
 
@@ -71,17 +69,18 @@ https://docs.nvidia.com/nsight-systems/UserGuide/index.html#linux-launch-process
 
 ```bash
 nsys profile -w true -t cuda,nvtx,cudnn,cublas --capture-range=cudaProfilerApi --force-overwrite true -x true -o 512 python ladies_e2e.py
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --capture-range=cudaProfilerApi --force-overwrite true -x true -o ugache python dgl_sample.py 
 ```
 
 
 
 nsys-rep 可以在remote server 可视化吗? 
 
+WARNING: CPU context switch tracing not supported, disabling.
+Try the 'nsys status --environment' command to learn more.
 
-
-
-
-
+WARNING: CPU sampling not supported, disabling.
+Try the 'nsys status --environment' command to learn more.
 
 
 

@@ -4,9 +4,26 @@ https://jeongseob.github.io/readings_mlsys.html
 
 
 
-## SHEPHERD: Serving DNNs in the Wild
+### SHEPHERD: Serving DNNs in the Wild
 
- 延迟要求: 50-500ms
+nsdi 2023 , 一作张弘. 延迟要求: 50-500ms
+
+NSDI 2023有哪些值得关注的文章？ - 孙挺Sunt的回答 - 知乎
+https://www.zhihu.com/question/543376768/answer/3119939466
+
+clock work  osdi 2020 ,   online global policy. 
+
+nexus , 周期性的, per-stream policy.
+
+calculat CV for each group streaming, 100-1000个stream, 就会比较稳定而且可以预测到达pattern.
+
+怎么group呢? 等吗? 
+
+在每个group 中 online serving. 
+
+
+
+
 
 
 
