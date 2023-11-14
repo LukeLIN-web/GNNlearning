@@ -68,6 +68,13 @@ solver调用filler 来fill cache .
 
 
 
+product , 2449029 个节点
+
+为什么 表示边的indices: torch.Size([123718152]) 是一维数组?  因为是csc 
+
+- `self.indptr`：该数组可能保存表示图中每个节点的边的开始和结束的索引。最后一个值可能是边的总数或可以添加新边的端点。
+- `self.indices`：该数组可能包含由边连接的节点的索引。索引指的是该数组中列出每条边的连接节点的位置。
+
 ```cpp
 coll_torch_record  // warp
 void coll_cache_record(int replica_id, uint32_t* key, size_t num_keys) {

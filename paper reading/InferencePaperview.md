@@ -4,6 +4,10 @@ https://jeongseob.github.io/readings_mlsys.html
 
 
 
+Efficient Scaling of Dynamic Graph Neural Networks.
+
+
+
 ### SHEPHERD: Serving DNNs in the Wild
 
 nsdi 2023 , 一作张弘. 延迟要求: 50-500ms
@@ -20,12 +24,6 @@ calculat CV for each group streaming, 100-1000个stream, 就会比较稳定而�
 怎么group呢? 等吗? 
 
 在每个group 中 online serving. 
-
-
-
-
-
-
 
 dgnn都没有代码. 
 
