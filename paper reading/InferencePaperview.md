@@ -47,7 +47,25 @@ Redundancy-Free High-Performance Dynamic GNN Training with Hierarchical Pipeline
 
 
 
-ink stream  https://arxiv.org/pdf/2309.11071.pdf
+#### ink stream 
+
+InkStream: Real-time GNN Inference on Streaming Graphs via Incremental Update . https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9644829  也是加速gnn inference. 
+
+动态图的inference有一些paper 比如inkstream ，实际应用和Motivation更强
+
+https://arxiv.org/pdf/2309.11071.pdf
+
+问题: 改了之后再fetch neighbor 内存不够.
+
+方法: 可以Incremental Update
+
+#### 介绍
+
+figure1 说明subgraph construction 占据了50%.
+
+figure3 说明受影响的只有1%. 但是只算 affected area 也要几秒.
+
+
 
 
 

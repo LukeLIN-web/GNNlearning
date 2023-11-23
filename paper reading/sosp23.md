@@ -28,12 +28,6 @@ Clockwork是一个GPU一个模型, Paella targets a different point in the desig
 
 
 
-
-
-
-
-
-
 ## UGache
 
 https://dl.acm.org/doi/pdf/10.1145/3600006.3613169
@@ -48,7 +42,7 @@ ugache不能处理在过程中改变index
 
 它是啥时候solve生成cache policy的? 
 
-
+怎么看cache policy呢? 
 
 Coordination between Extractor and Solver is achieved through a simple per-GPU hashtable.
 
@@ -65,8 +59,6 @@ solver调用filler 来fill cache .
 注意docker 需要 degrade network 到3.1, 因为3.2 需要python3.9.
 
 看了半天也没看懂他啥时候re-evaluates Solver’s model
-
-
 
 product , 2449029 个节点
 
@@ -86,6 +78,30 @@ class FreqRecorder
 void FreqRecorder::Record(const KeyT* input, size_t num_inputs){
   就是记录freq.
 }
+
+coll_torch_init_t{
+  torch_eager_gpu_mem_allocator //
+
+coll_cache_init()
+}
+  
+coll_cache_init(){
+CollCache::build_v2  
+}
+
+
+CollCache::build_v2{
+  初始化solver的参数
+    solve_impl_master
+    然后cache_ctx->build   
+}
+
+CacheContext::build(){
+
+
+}
+  
+
 ::torch::Tensor coll_torch_create_emb_shm //好像没干啥
   coll_torch_lookup_key_t_val_ret 调用了common::coll_cache_lookup 
     coll_cache_lookup 把每个steps[replica_id]++; 算出偏移然后寻址_coll_cache->lookup(replica_id, key, num_keys, output, stream, step_key);

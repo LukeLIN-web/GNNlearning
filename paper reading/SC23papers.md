@@ -1,8 +1,6 @@
 BLAD: Adaptive Load Balanced Scheduling and Operator Overlap Pipeline For Accelerating The Dynamic GNN Training
 
-sjtu的. 
-
-有开源,但是不可复现. 
+sjtu 不是ipads的.  不可复现. dockerhub和 github 都删除了.
 
 ### 摘要
 
