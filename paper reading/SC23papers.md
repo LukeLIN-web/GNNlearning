@@ -32,8 +32,6 @@ topology manager 调整 model的op 执行顺序.
 
 之前的snapshot也要提供feature. 
 
-
-
 ### TWO-LEVEL LOAD SCHEDULING
 
  𝑠𝑔𝑖 represents the 𝑖-th snapshot group.

@@ -97,7 +97,30 @@ CollCache::build_v2{
 }
 
 CacheContext::build(){
+分配一些gpu 内存, 
 
+}
+
+CollCache::solve_impl_master{
+  _nid_to_block = Tensor::CreateShm
+        _block_placement = solver->block_placement;
+    _block_access_advise = solver->block_access_from;
+    _block_density = solver->block_density_tensor;
+}
+
+CollCache::solve_impl_slave(){
+//重载了六个同名的函数. 
+  他solve就是修改了一下CollCache中的_block_access_advise
+    _block_access_advise = Tensor::OpenShm
+}
+
+Tensor::OpenShm{
+ void* data = cpu::MmapCPUDevice::MapFd(MMAP(MMAP_RW_DEVICE), nbytes, fd); 
+}
+
+cpu::MmapCPUDevice::MapFd{
+  
+  void* ptr = mmap(nullptr, nbytes, prot, MAP_SHARED | MAP_LOCKED, fd, 0);
 
 }
   
@@ -113,7 +136,9 @@ CacheContext::build(){
 
 
 
+他是怎么输出求解器的解的呢?  怎么输出placement策略
 
+用的是Unified Memory吗? 数据搬运是 gpu发起的还是cpu发起的? 
 
 
 
