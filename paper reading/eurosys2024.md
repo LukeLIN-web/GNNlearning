@@ -24,11 +24,15 @@ Orion 为高优先级 DNN 作业保持高性能（低尾部延迟），同时通
 
 #### 介绍
 
-他认为MPS 和GPU Stream 是不够 interference-aware.  
+They believe MPS  and GPU Stream 是不够 interference-aware.  
 
 干扰是什么呢?  就是把两个memory-intensive的 BN2d kernels 放在一个SM中. 
 
-3.2大部分GPU, preempt后不能抢占, 所以是怎么调度的? 就是在torch下一层, 硬件上一层.
+3.2
+
+大部分GPU, preempt后不能抢占, 所以是怎么调度的? 就是在torch下一层,  hardware scheduler 上一层.
+
+how they put in same SM?  you can allocate it by yourself?  MPS.  set a queue? 
 
 ###  5 orion
 
@@ -41,20 +45,20 @@ orion是一个a dynamically linked lib that controls GPU operations submitted by
 2 be_duration = 0 , be_submitted = Event ()
 3 hp_task_running = False
 4 while True :
-5 op_hp = client_q_hp . pop ()
-6 op_be = client_q_be . peek () # 先不删除. 
-7 if ( op_hp != None ) :
-8 launch_kernel ( op_hp , stream_hp ) # 有高选高
-9 hp_task_running = True
-10 if ( op_be != None ) :
-11 schedule = schedule_be ( op_hp , op_be )
+5 	op_hp = client_q_hp . pop ()
+6 	op_be = client_q_be . peek () # 先不删除. 
+7 	if ( op_hp != None ) :
+8 		launch_kernel ( op_hp , stream_hp ) # 有高选高
+9 		hp_task_running = True
+10 	if ( op_be != None ) :
+11 		schedule = schedule_be ( op_hp , op_be )
 12 if ( be_duration > DUR_THRESHOLD ) :
-13 if ( be_submitted . finished () ) :
-14 be_duration = 0
+13 		if ( be_submitted . finished () ) :
+14 	be_duration = 0
 15 else :
 16 schedule = False
 17 if ( schedule ) :
-18 client_q_be . pop ()
+18 client_q_be.pop ()
 19 launch_kernel ( op_be , stream_be )
 20 be_duration += op_be . duration
 21 be_submitted . record ( stream_be )
@@ -71,17 +75,9 @@ orion是一个a dynamically linked lib that controls GPU operations submitted by
 
 阈值是怎么确定的?
 
-SM_THRESHOLD  默认是总SM数量,  如果high-priority job是training, SM_THRESHOLD 可以很大. 二分法调整 SM_THRESHOLD. 
+SM_THRESHOLD  默认是总SM数量,  如果high-priority job是training, SM_THRESHOLD 可以很大. 二分法调整 SM_THRESHOLD. 为了防止高优先级 job starve. 
 
  3000 lines of C++/CUDA code.
-
-
-
-
-
-
-
-
 
 
 

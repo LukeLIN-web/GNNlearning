@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #### Paella: Low-latency Model Serving with Software-defined GPU Scheduling
 
 upenn Vincent Liu
@@ -12,8 +6,6 @@ upenn Vincent Liu
 
 co-designing the model compiler, local clients, and the scheduler to bypass the built-in GPU scheduler and enable software control of kernel execution order. 
 
-
-
 #### related work
 
 模型推理框架: Clipper [19], Cocktail [29], and INFaaS [61], for instance, adaptively select model variants and introduce related optimizations in autoscaling, caching, and batching of their execution
@@ -21,10 +13,6 @@ co-designing the model compiler, local clients, and the scheduler to bypass the 
 Paella attempts to address deficiencies in the GPU hardware scheduler, which requires a co-design of CUDA kernels and model serving
 
 Clockwork是一个GPU一个模型, Paella targets a different point in the design space, opting to maximize GPU occupancy for high throughput and minimize JCT given that constraint.  Paella is the first to leverage thread-block instrumentation to softwareize the scheduling decisions of GPUs.
-
-
-
-
 
 
 
@@ -121,9 +109,9 @@ Tensor::OpenShm{
 cpu::MmapCPUDevice::MapFd{
   
   void* ptr = mmap(nullptr, nbytes, prot, MAP_SHARED | MAP_LOCKED, fd, 0);
-
+  //是否就是说明是让host驱动的.
 }
-  
+
 
 ::torch::Tensor coll_torch_create_emb_shm //好像没干啥
   coll_torch_lookup_key_t_val_ret 调用了common::coll_cache_lookup 
@@ -131,6 +119,14 @@ cpu::MmapCPUDevice::MapFd{
   CollCache是 global cache manager. one per process
   CollCache::lookup, 就是提取_session_list[replica_id]->ExtractFeat
 
+    
+TensorPtr Tensor::CopyToExternal{
+    Context working_ctx = Priority(source->Ctx(), ctx);
+    Device::Get(working_ctx)->CopyDataFromTo(source->_data, 0, tensor->_data, 0,nbytes, source->_ctx, tensor->_ctx, stream);//copy的话 cpu gpu都有， 看是什么working ctx
+  Device::Get(working_ctx)->StreamSync(working_ctx, stream);//StreamSync 应该是gpu 做
+  }
+定义了一个enum DeviceType { kMMAP = 0, kCPU = 1, kGPU = 2, kGPU_UM = 3}; 会比较Context 优先级, 好像是哪个优先级大就用哪个设备发起传输.  为啥kmmap 比kcpu还小? 
+    
     
 ```
 
@@ -140,7 +136,15 @@ cpu::MmapCPUDevice::MapFd{
 
 用的是Unified Memory吗? 数据搬运是 gpu发起的还是cpu发起的? 
 
+改一下代码, 重新运行
 
+```
+bash /tmp/setup_docker.sh
+bash /tmp/setup_docker.gnn.sh
+
+```
+
+安装挺慢的, 大概需要20分钟-30分钟. 
 
 
 
