@@ -25,6 +25,8 @@ conda list 不能识别pip安装的软件.
 
 #### 安装PyG
 
+https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pyg 官方容器
+
 https://data.pyg.org/whl/ 可以找到对应的. 看别人的代码可以学会很多.
 
 ```

@@ -1,12 +1,4 @@
-
-
 https://jeongseob.github.io/readings_mlsys.html
-
-
-
-Efficient Scaling of Dynamic Graph Neural Networks.
-
-
 
 ### SHEPHERD: Serving DNNs in the Wild
 
@@ -25,27 +17,24 @@ calculat CV for each group streaming, 100-1000个stream, 就会比较稳定而�
 
 在每个group 中 online serving. 
 
-dgnn都没有代码. 
-
-STAG: Enabling Low Latency and Low Staleness of GNN-based Services with Dynamic Graphs https://arxiv.org/pdf/2309.15875.pdf
-
 有两种,  forward inference-based (inf-based) approach and backend updatebased (upd-based) approach. 来更新dynamic graphs.
 
 inf base, 只在 收到的时候改变图结构. aligraph.
 
-Cache-based gnn system for dynamic graphs, 没有代码. 
+https://github.com/zheng-yp/DecoupledDGNN
 
+没有代码:
 
+1. Efficient Scaling of Dynamic Graph Neural Networks. SC'21
 
-没有代码. 
+2. SPEED: Streaming Partition and Parallel Acceleration for Temporal Interaction Graph Embedding
 
-SPEED: Streaming Partition and Parallel Acceleration for Temporal Interaction Graph Embedding
+3. Redundancy-Free High-Performance Dynamic GNN Training with Hierarchical Pipeline Parallelism
 
-
-
-Redundancy-Free High-Performance Dynamic GNN Training with Hierarchical Pipeline Parallelism
-
-
+4. Cache-based gnn system for dynamic graphs
+5. STAG: Enabling Low Latency and Low Staleness of GNN-based Services with Dynamic Graphs https://arxiv.org/pdf/2309.15875.pdf
+6. DynaGraph: Dynamic Graph Neural Networks at Scale
+7. Approximate Caching for Efficiently Serving Diffusion Models 
 
 #### ink stream 
 

@@ -43,4 +43,3 @@ msg store用dict 存 tensor的引用, tensor都在GPU上, 但是, 占用的GPU m
 msg_store存的是什么?  存了event.  为了存最近的msg eij(t) raw_msg
 
 self.memory 存的是什么? 是之前的所有节点的信息
-
