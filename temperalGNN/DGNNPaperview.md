@@ -6,17 +6,25 @@
 
 inf base, 只在 收到的时候改变图结构. aligraph.
 
-https://github.com/zheng-yp/DecoupledDGNN  人大的论文,  vldb23 ,只是可用不能复现. 
+https://github.com/zheng-yp/DecoupledDGNN  人大的论文,  vldb23 ,只是可用不能复现.  统一了连续 和离散dgnn.
 
-统一了连续 和离散dgnn,
+disttgl. https://github.com/amazon-science/disttgl
 
 Refer:
 
 [图表示学习] 2 动态图(Dynamic Graph)最新研究总结（2020） - Ziyue Wu的文章 - 知乎 https://zhuanlan.zhihu.com/p/274364815
 
+memory-based TGNNs:  DistTGL , tgn
 
 
 
+总结一下不同的dgnn代码的对象.
+
+| paper         | ctgn | dtgn |      |
+| ------------- | ---- | ---- | ---- |
+| DecoupledDGNN | √    | √    |      |
+| pyg - tgn     | √    |      |      |
+|               |      |      |      |
 
 
 
@@ -53,4 +61,30 @@ figure3 说明受影响的只有1%. 但是只算 affected area 也要几秒.
 2. Bottleneck Analysis of Dynamic Graph Neural Network Inference on CPU and GPU . 分析了问题
 
  
+
+### disttgl
+
+problem
+
+1. their node memory favors smaller batch sizes to capture more dependencies in graph events. Why? memory lack?这个node memory 不是内存, 是记忆. 
+
+2. need synchronous.  跨cluster同步的开销非常大. 
+
+方法
+
+an enhanced TGNN model, a novel training algorithm, and an optimized system.
+
+#### 1 介绍
+
+batch size 增加 ,acc会减少, 为什么? 
+
+model: 添加了additional static node memory, which improves both the accuracy and convergence rate.
+
+System: We build an optimized system adopting prefetching and pipelining techniques to minimize the mini-batch generation overhead
+
+并行的算法: we can process consecutive graph events that do not have overlapping nodes in batches by updating their node memory in parallel. 但是这个方法batch size不能太大不然肯定有overlap.  
+
+####  3
+
+we separate the static and dynamic node memory and capture them explicitly. DistTGL keeps the original GRU node memory on all nodes to capture the dynamic node information and implements an additional mechanism to capture the static node information.
 
