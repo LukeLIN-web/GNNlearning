@@ -6,7 +6,7 @@
 
 inf base, 只在 收到的时候改变图结构. aligraph.
 
-https://github.com/zheng-yp/DecoupledDGNN  人大的论文,  vldb23 ,只是可用不能复现.  统一了连续 和离散dgnn.
+
 
 disttgl. https://github.com/amazon-science/disttgl
 
@@ -16,8 +16,6 @@ Refer:
 
 memory-based TGNNs:  DistTGL , tgn
 
-
-
 总结一下不同的dgnn代码的对象.
 
 | paper         | ctgn | dtgn |      |
@@ -26,11 +24,9 @@ memory-based TGNNs:  DistTGL , tgn
 | pyg - tgn     | √    |      |      |
 |               |      |      |      |
 
-
-
 #### 没有代码
 
-1. Efficient Scaling of Dynamic Graph Neural Networks. SC'21
+1. Efficient Scaling of Dynamic Graph Neural Networks. SC'21  
 2. SPEED: Streaming Partition and Parallel Acceleration for Temporal Interaction Graph Embedding
 3. Redundancy-Free High-Performance Dynamic GNN Training with Hierarchical Pipeline Parallelism
 4. Cache-based gnn system for dynamic graphs
@@ -38,6 +34,8 @@ memory-based TGNNs:  DistTGL , tgn
 6. DynaGraph: Dynamic Graph Neural Networks at Scale
 7. PiPAD: Pipelined and Parallel Dynamic GNN Training on GPUs
 8. Streaming Graph Neural Networks  2018年
+
+https://github.com/zheng-yp/DecoupledDGNN  人大的论文,  vldb23 ,只是可用不能复现.  统一了连续 和离散dgnn.
 
 #### ink stream 
 
@@ -88,3 +86,4 @@ System: We build an optimized system adopting prefetching and pipelining techniq
 
 we separate the static and dynamic node memory and capture them explicitly. DistTGL keeps the original GRU node memory on all nodes to capture the dynamic node information and implements an additional mechanism to capture the static node information.
 
+超越了tgn. 
