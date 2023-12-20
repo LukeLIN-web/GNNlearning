@@ -39,32 +39,73 @@ memory-based TGNNs:  DistTGL , tgn
 8. Streaming Graph Neural Networks  2018年
 9. Bottleneck Analysis of Dynamic Graph Neural Network Inference on CPU and GPU . 分析了问题 
 
-### disttgl
+## disttgl
 
- https://github.com/amazon-science/disttgl  , optimize tgn multiple GPU training, memory-based TGNNs.
+ https://github.com/amazon-science/disttgl  , optimize tgn multiple GPU training, memory-based TGNNs.  提出了三种Parallelism，搞清楚都是为什么在做什么
+
+哪些假设 默认是对的? 
 
 problem
 
-1. their node memory favors smaller batch sizes to capture more dependencies in graph events. Why? memory lack?这个node memory 不是内存, 是记忆. 
+1. figure3  staleness and information loss. - > new model 
 
-2. need synchronous.  跨cluster同步的开销非常大. 
+2. need synchronous.  跨server同步的开销非常大.  -> a novel training algorithm, and an optimized system.
 
-方法
+contribution:  怎么解决提出的问题.
 
-an enhanced TGNN model, a novel training algorithm, and an optimized system.
+1. enhances the node memory in M-TGNNs by introducing additional static node memory,   优化了 accuracy and convergence rate 
+2. introduces two novel parallel training strategies - epoch parallelism and memory parallelism.  Additionally, DistTGL provides heuristic guidelines to determine the optimal training configurations based on the dataset and hardware characteristics.
+3. adopting prefetching and pipelining techniques to minimize the mini-batch generation overhead. It serializes the memory operations on the node memory and efficiently executes them by an independent daemon process -- >  解决 complex and expensive synchronizations
 
-#### 1 介绍
+### 1 介绍
 
 batch size 增加 ,acc会减少, 为什么? 
 
-model: 添加了additional static node memory, which improves both the accuracy and convergence rate.
+model: **添加了additional static node memory.**   -> acc提高, 加速. 是解决哪个问题? 
 
-System: We build an optimized system adopting prefetching and pipelining techniques to minimize the mini-batch generation overhead
+System:  adopting **prefetching and pipelining** techniques to minimize the mini-batch generation overhead   ->  是解决哪个问题? 
 
-并行的算法:  原先是process consecutive graph events that do not have overlapping nodes in batches by updating their node memory in parallel. 但是这个方法batch size不能太大不然肯定有overlap.  
+### 2 背景
 
-####  3
+M-TGNN并行的算法:  原先是process consecutive graph events that do not have overlapping nodes in batches by updating their node memory in parallel. 但是这个方法batch size不能太大不然肯定有overlap.    但是batch size太小又不能充分利用GPU的并行性. 所以MTGNN 大batch 处理events,  少量更新 node memory.  但是这会导致figure3 的 staleness and information loss.
 
-we separate the static and dynamic node memory and capture them explicitly. DistTGL keeps the original GRU node memory on all nodes to capture the dynamic node information and implements an additional mechanism to capture the static node information.
+###  3
+
+为什么说fails on dynamic graphs?   While this may be true on some evolving graphs like citation graphs, it fails on the dynamic graphs where  high-frequency information is important. 
+
+we separate the static and dynamic node memory and capture them explicitly.  DistTGL keeps the original GRU node memory on all nodes to capture the dynamic node information and **implements an additional mechanism to capture the static node information**.
 
 超越了tgn. 
+
+#### 3.2
+
+epoch 并行: training different epochs simultaneously using only one copy of the node memory.
+
+为什么需要 negative mini-batch? 
+
+memory parallelism: each trainer uses its own copy of the node memory to process and update the graph events within that segment. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## BLAD
+
+问题:  
+
+贡献:  每个共享是对应哪个问题
+
+假设:  
+
+哪里可以进一步提升,被攻击. 
+

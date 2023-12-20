@@ -4,7 +4,7 @@ sjtu 不是ipads的.  不可复现. dockerhub和 github 都删除了.
 
 ### 摘要
 
-调度workload 减少同步和通讯时间.  调整op 执行顺序.
+调度workload 减少同步和通讯时间.  调整op执行顺序.
 
 allocates each snapshot group to a GPU
 
@@ -14,7 +14,7 @@ Vertex partition (e.g. Aligraph, DGL, PyGT) distributes the vertices of each gra
 
 snapshot partition(e.g. ESDG) distributes the snapshots to different GPUs.  hidden states are transferred with the snapshot partition
 
-问题: high communication overhead, the long synchronization, and the poor resource usage.
+问题: high communication overhead, long synchronization, and poor resource usage.
 
 因为 node变化, 所以不同GPU load不 balance. 
 
@@ -26,13 +26,11 @@ All groups **without data dependency** are scheduled to one GPU, and each GPU/no
 
 topology manager 调整 model的op 执行顺序. 
 
-
-
 ### 3Background
 
 之前的snapshot也要提供feature. 
 
-### TWO-LEVEL LOAD SCHEDULING
+#### TWO-LEVEL LOAD SCHEDULING
 
  𝑠𝑔𝑖 represents the 𝑖-th snapshot group.
 
