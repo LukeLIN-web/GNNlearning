@@ -6,8 +6,6 @@
 
 inf base, 只在 收到的时候改变图结构. aligraph.
 
-
-
 Refer:
 
 [图表示学习] 2 动态图(Dynamic Graph)最新研究总结（2020） - Ziyue Wu的文章 - 知乎 https://zhuanlan.zhihu.com/p/274364815
@@ -29,7 +27,7 @@ memory-based TGNNs:  DistTGL , tgn
 
 #### 没有代码
 
-1. Efficient Scaling of Dynamic Graph Neural Networks. SC'21  
+1. Efficient Scaling of Dynamic Graph Neural Networks. SC'21
 2. SPEED: Streaming Partition and Parallel Acceleration for Temporal Interaction Graph Embedding
 3. Redundancy-Free High-Performance Dynamic GNN Training with Hierarchical Pipeline Parallelism
 4. Cache-based gnn system for dynamic graphs

@@ -1,20 +1,18 @@
-
-
 ## BLAD
 
-BLAD: Adaptive Load Balanced Scheduling and Operator Overlap Pipeline For Accelerating The Dynamic GNN Training
+BLAD: Adaptive Load Balanced Scheduling and Operator Overlap Pipeline For Accelerating The Dynamic GNN Training.  来自 sjtu 不是ipads的.  不可复现. dockerhub和 github 都删除了.
 
-问题:  
+问题:  high communication overhead  ->  把数据集分成snapshot group, 然后allocates each snapshot group to different  GPU. 
 
-贡献:  每个共享是对应哪个问题
+long synchronization ->
 
-假设:  
+and poor resource usage.  ->  启动多个GPU,同时执行compute密集和memroy 密集的operators.  另外, 还调整 model执行顺序. 
 
-哪里可以进一步提升,被攻击. 
+贡献:  是对应哪个问题
 
+假设:    哪里可以进一步提升,被攻击. 
 
-
-sjtu 不是ipads的.  不可复现. dockerhub和 github 都删除了.
+观察challenge  :   不同snapshot 的vertice 数量差距大.   
 
 ### 摘要
 
@@ -52,8 +50,6 @@ forward之后放入 queue,  为啥有的进入P2, 有的不进入?
 
 
 
-
-
 ## DistTGL
 
 ```bash
@@ -70,7 +66,6 @@ args.group = 0是不行的.
 args.group = 1 会出错. 
     self.tot_length = len([fn for fn in os.listdir(self.path) if fn.startswith('{}_pos'.format(mode))]) // minibatch_parallelism
 FileNotFoundError: [Errno 2] No such file or directory: 'minibatches/WIKI_1_49_32/'
-
 train_neg_samples = 1的时候,不存在. 
 ```
 
@@ -86,13 +81,15 @@ and 𝑗 represents how many epochs to train in parallel for each copy of node m
 
  https://github.com/amazon-science/disttgl  , optimize tgn multiple GPU training, memory-based TGNNs.  提出了三种Parallelism，搞清楚都是为什么在做什么
 
+
+
 哪些假设 默认是对的? 
 
 #### problem
 
-1. figure3  staleness and information loss.  解决方法 - > new model 
+1. figure3  staleness and information loss.  怕information leak,所以要晚一个step训练.  解决方法 - > new model  提高acc. 
 
-2. need synchronous.  跨server同步的开销非常大  ->  memory parallelism不用传输. 
+2. need synchronous.  同步的开销非常大  ->  memory parallelism不用同步node memory.  
 
 #### contribution:  怎么解决提出的问题.
 
@@ -114,16 +111,29 @@ M-TGNN并行的算法:  原先是process consecutive graph events that do not ha
 
 ###  3
 
-为什么说fails on dynamic graphs?   While this may be true on some evolving graphs like citation graphs, it fails on the dynamic graphs where  high-frequency information is important. 
+While this may be true on some evolving graphs like citation graphs, it fails on the dynamic graphs where  high-frequency information is important.  为什么说fails on dynamic graphs?   
 
-we separate the static and dynamic node memory and capture them explicitly.  DistTGL keeps the original GRU node memory on all nodes to capture the dynamic node information and **implements an additional mechanism to capture the static node information**.
+优点:  we separate the static and dynamic node memory and capture them explicitly.  DistTGL keeps the original GRU node memory on all nodes to capture the dynamic node information and **implements an additional mechanism to capture the static node information**.  效果-> 提高了acc. 
 
 超越了tgn. 
 
 #### 3.2
 
-epoch 并行: training different epochs simultaneously using only one copy of the node memory. 优点: 需要的内存少, 同时可以capture dependency.
+figure 7 :  i  是 第i个 mini batch的意思
+
+mini batch, 就是简单的数据划分. 
+
+epoch 并行: training different epochs simultaneously using only one copy of the node memory.  有3个GPU, 在3个iter 就训练同一个mini batch的3个epoch, 优点: 需要的内存少, 同时可以capture dependency. 
 
 为什么需要 negative mini-batch? 
 
 memory parallelism: each trainer uses its own copy of the node memory to process and update the graph events within that segment.  优点: 不需要trainer之间同步node memory
+
+### 4
+
+#### 4.2
+
+DistTGL only applies memory parallelism across machines,  只需要同步weight, 不需要同步 node memory. 
+
+
+

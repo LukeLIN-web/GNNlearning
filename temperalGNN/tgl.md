@@ -75,3 +75,16 @@ evenly distributed to each thread
 Reference：
 
 1. TGL https://zhuanlan.zhihu.com/p/547407225
+
+## 代码
+
+下载了wiki 数据集. 
+
+```
+python setup.py build_ext --inplace
+
+python train.py --data WIKI --config ./config/TGN.yml
+
+AttributeError: module 'dgl.function' has no attribute 'copy_src'  改成copy_u
+```
+
