@@ -82,9 +82,7 @@ Reference：
 
 ```
 python setup.py build_ext --inplace
-
 python train.py --data WIKI --config ./config/TGN.yml
-
 AttributeError: module 'dgl.function' has no attribute 'copy_src'  改成copy_u
 ```
 

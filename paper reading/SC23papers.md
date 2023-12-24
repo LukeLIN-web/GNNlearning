@@ -58,13 +58,13 @@ HTTP request sent, awaiting response... 403 Forbidden
 2023-12-18 12:01:25 ERROR 403: Forbidden.
 # 我用这个edge feature试试 ,名字不一样:
 wget -P ./DATA/WIKI https://s3.us-west-2.amazonaws.com/dgl-data/dataset/tgl/WIKI/edge_features.pt 
-
 python gen_minibatch.py --data WIKI --gen_eval --minibatch_parallelism 2
 # gen_minibatch.py 干了什么呢? 
 好像是把neg mfg, pos mfg 都sample 出来存起来.  是否实验不公平? 
 args.group = 0是不行的. 
 args.group = 1 会出错. 
     self.tot_length = len([fn for fn in os.listdir(self.path) if fn.startswith('{}_pos'.format(mode))]) // minibatch_parallelism
+    
 FileNotFoundError: [Errno 2] No such file or directory: 'minibatches/WIKI_1_49_32/'
 train_neg_samples = 1的时候,不存在. 
 ```
@@ -105,7 +105,27 @@ model: **添加了additional static node memory.**   -> acc提高, 加速. 是�
 
 System:  adopting **prefetching and pipelining** techniques to minimize the mini-batch generation overhead   ->  是解决哪个问题? 
 
+你想你训练的时候同时在更新两件事情，一个是模型的参数，还有一个就是Node Embedding，Paper里面讲的最开始初始化为0，之所以有Info Leak的问题，也是因为我们在更新Node Embedding
+
+当你训练结束，推理的时候我的理解用的肯定是已经训练好的Node Embedding，因为我们也会假设这个Feature包含了历史的信息，我这么理解对吗？
+
+推理是从0开始的吗?  还是用 已经训练好的Node Embedding 继续训练?
+
+
+
 ### 2 背景
+
+delay update node memory的原因是 防止information leak.
+
+每个node 会有一个node memory Sv,  这node memory  感觉是很占据内存的. 
+
+有event , 会产生  mu, mv.  mu 的自变量有:  sv,su, time encoding 和 euv
+
+然后update su, sv.  update函数可以是任何sequence model. 
+
+
+
+
 
 M-TGNN并行的算法:  原先是process consecutive graph events that do not have overlapping nodes in batches by updating their node memory in parallel. 但是这个方法batch size不能太大不然肯定有overlap.    但是batch size太小又不能充分利用GPU的并行性. 所以MTGNN 大batch 处理events,  少量更新 node memory.  但是这会导致figure3 的 staleness and information loss.
 

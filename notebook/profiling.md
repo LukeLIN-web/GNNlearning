@@ -63,13 +63,23 @@ https://docs.nvidia.com/nsight-systems/UserGuide/index.html#linux-launch-process
 在 iter开始和结束的位置打一个标签,`TORCH.CUDA.NVTX.RANGE_PUSH `  
 
 ```bash
-nsys profile -w true -t cuda,nvtx,cudnn,cublas --capture-range=cudaProfilerApi --force-overwrite true -x true -O 512 python train.py --data WIKI --config ./config/TGN.yml
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --force-overwrite true -x true -o wikitgn python train.py --data WIKI --config ./config/TGN.yml
 nsys profile -w true -t cuda,nvtx,cudnn,cublas --capture-range=cudaProfilerApi --force-overwrite true -x true -o ugache python dgl_sample.py  --data WIKI --config ./config/TGN.yml 
 ```
 
 nsys-rep 可以在remote server 可视化吗? 
 
-Generated: 没有生成文件是为啥? 
+Generated: 没有生成文件是为啥? 你里面都没有Cuda profile API，没有torch.cuda.cudart().cudaProfilerStart() 就不会开始测. 
+
+#### 怎么分析nsys-rep?
+
+分析3个相邻iteration, 
+
+看SM资源是否有满. 
+
+
+
+
 
 
 
@@ -77,9 +87,10 @@ Generated: 没有生成文件是为啥?
 
 可以本地下载gui , 然后ssh连接
 
-
-
 refer:
 
 1. PyTorch训练加速的量化分析 - 风车车车的文章 - 知乎 https://zhuanlan.zhihu.com/p/416942523
 2. https://dev-discuss.pytorch.org/t/using-nsight-systems-to-profile-gpu-workload/59
+
+#### cudaprofileapi
+
