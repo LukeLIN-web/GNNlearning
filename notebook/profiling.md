@@ -65,6 +65,8 @@ https://docs.nvidia.com/nsight-systems/UserGuide/index.html#linux-launch-process
 ```bash
 nsys profile -w true -t cuda,nvtx,cudnn,cublas --force-overwrite true -x true -o wikitgn python train.py --data WIKI --config ./config/TGN.yml
 nsys profile -w true -t cuda,nvtx,cudnn,cublas --capture-range=cudaProfilerApi --force-overwrite true -x true -o ugache python dgl_sample.py  --data WIKI --config ./config/TGN.yml 
+
+nsys profile -w true -t cuda,nvtx,cudnn,cublas  --force-overwrite true -x true -o disttgl torchrun --nnodes=1 --nproc_per_node=2 --rdzv_id=0 --rdzv_backend=c10d train.py --data WIKI --group 1 --minibatch_parallelism 2
 ```
 
 nsys-rep 可以在remote server 可视化吗? 

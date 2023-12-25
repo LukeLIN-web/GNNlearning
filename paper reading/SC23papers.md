@@ -63,10 +63,11 @@ python gen_minibatch.py --data WIKI --gen_eval --minibatch_parallelism 2
 好像是把neg mfg, pos mfg 都sample 出来存起来.  是否实验不公平? 
 args.group = 0是不行的. 
 args.group = 1 会出错. 
-    self.tot_length = len([fn for fn in os.listdir(self.path) if fn.startswith('{}_pos'.format(mode))]) // minibatch_parallelism
-    
-FileNotFoundError: [Errno 2] No such file or directory: 'minibatches/WIKI_1_49_32/'
-train_neg_samples = 1的时候,不存在. 
+
+torchrun --nnodes=1 --nproc_per_node=2 --rdzv_id=0 --rdzv_backend=c10d train.py --data WIKI --group 1 --minibatch_parallelism 2
+
+python gen_minibatch.py --data WIKI --gen_eval --minibatch_parallelism 1
+torchrun --nnodes=1 --nproc_per_node=1 --rdzv_id=0 --rdzv_backend=c10d train.py --data WIKI --group 1 --minibatch_parallelism 1
 ```
 
 i j  k 应该是多少呢    
@@ -156,4 +157,20 @@ memory parallelism: each trainer uses its own copy of the node memory to process
 DistTGL only applies memory parallelism across machines,  只需要同步weight, 不需要同步 node memory. 
 
 
+
+## 代码
+
+self.read_status[self.rank] =1 , 没有重置为0 ? 
+
+read_status 是在读什么东西?   似乎是卡CPU瓶颈了.  一个GPU 对应一个CPU进程。 
+
+`node_memory.zero_()`  卡住了, 这个Size有多大？ torch.Size([9228, 100])是在cpu还是在GPU?  是在cpu. 单独测一下要多久? 一瞬间. 
+
+是不是别的也在访问 ,  有个barrier 在等别人用.  还有什么在访问 node memory? 死锁.  需要简化场景. 怎么简化场景?  二分法注释掉无关的代码.
+
+可能是 MailBox 也在访问? 
+
+https://github.com/pytorch/pytorch/blob/c7e9c1510274184b41e408e6409f252bb1717085/torch/_refs/__init__.py#L6179C28-L6179C28 zero_() 的源码
+
+ 单GPU. 单minibatch， 也会卡。 for循环全部置为0 不会出错 . 
 
