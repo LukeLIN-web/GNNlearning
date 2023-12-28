@@ -53,7 +53,7 @@ forward之后放入 queue,  为啥有的进入P2, 有的不进入?
 ## DistTGL
 
 ```bash
- https://s3.us-west-2.amazonaws.com/dgl-data/dataset/tgl/REDDIT/edge_features_e0.pt
+https://s3.us-west-2.amazonaws.com/dgl-data/dataset/tgl/REDDIT/edge_features_e0.pt
 HTTP request sent, awaiting response... 403 Forbidden
 2023-12-18 12:01:25 ERROR 403: Forbidden.
 # 我用这个edge feature试试 ,名字不一样:
@@ -81,8 +81,6 @@ and 𝑗 represents how many epochs to train in parallel for each copy of node m
 能不能一个机器搞?
 
  https://github.com/amazon-science/disttgl  , optimize tgn multiple GPU training, memory-based TGNNs.  提出了三种Parallelism，搞清楚都是为什么在做什么
-
-
 
 哪些假设 默认是对的? 
 
@@ -112,21 +110,15 @@ System:  adopting **prefetching and pipelining** techniques to minimize the mini
 
 推理是从0开始的吗?  还是用 已经训练好的Node Embedding 继续训练?
 
-
-
 ### 2 背景
 
 delay update node memory的原因是 防止information leak.
 
-每个node 会有一个node memory Sv,  这node memory  感觉是很占据内存的. 
+每个node 会有一个node memory Sv,  这node memory 是很占据内存的. 
 
 有event , 会产生  mu, mv.  mu 的自变量有:  sv,su, time encoding 和 euv
 
 然后update su, sv.  update函数可以是任何sequence model. 
-
-
-
-
 
 M-TGNN并行的算法:  原先是process consecutive graph events that do not have overlapping nodes in batches by updating their node memory in parallel. 但是这个方法batch size不能太大不然肯定有overlap.    但是batch size太小又不能充分利用GPU的并行性. 所以MTGNN 大batch 处理events,  少量更新 node memory.  但是这会导致figure3 的 staleness and information loss.
 
@@ -146,7 +138,7 @@ mini batch, 就是简单的数据划分.
 
 epoch 并行: training different epochs simultaneously using only one copy of the node memory.  有3个GPU, 在3个iter 就训练同一个mini batch的3个epoch, 优点: 需要的内存少, 同时可以capture dependency. 
 
-为什么需要 negative mini-batch? 
+为什么需要 negative mini-batch?  为什么要有neg mfg?
 
 memory parallelism: each trainer uses its own copy of the node memory to process and update the graph events within that segment.  优点: 不需要trainer之间同步node memory
 
@@ -155,8 +147,6 @@ memory parallelism: each trainer uses its own copy of the node memory to process
 #### 4.2
 
 DistTGL only applies memory parallelism across machines,  只需要同步weight, 不需要同步 node memory. 
-
-
 
 ## 代码
 

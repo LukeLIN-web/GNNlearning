@@ -1,5 +1,7 @@
 Charith Mendis  教授, 主要是做 ai  编译的.
 
+
+
 问题
 
 1.  inference 放在training 还work吗？ 论文只有inference, 没有training, 为什么?     model parameters and weights 会 change. 所以embedding就不一样. 
@@ -7,7 +9,7 @@ Charith Mendis  教授, 主要是做 ai  编译的.
 
 ## 摘要
 
-
+加速inference, proposes to accelerate TGNN inference by de-duplication, memorization, and pre-computation.
 
 ## 1 introduction
 
@@ -70,13 +72,13 @@ precomputes time-encoding vectors in advance before running inference.
 
 优化了lookup 过程.
 
-什么是 time-encoding vectors? 
+什么是 time-encoding vectors? 就是把时间也编码作为一个变量. 
 
 ## 5 实验
 
 speedups of 4.9× on CPU and 2.9× on GPU
 
-baseline我们可以用TGL.
+baseline 用TGL.
 
 ## 6Related Work
 
@@ -88,7 +90,7 @@ baseline我们可以用TGL.
 
 #### dynaGraph 
 
-存中间embedding, 只支持DTDG. 我们可以做CTDG
+存中间embedding, 只支持DTDG.   所以做CTDG.
 
 #### HAG abstraction. 
 
@@ -110,23 +112,34 @@ tensorcore能用在这里吗,  可以同时计算16*16 *16 的三维的.
 
 A100支持block is sparse. 
 
-### 代码
+## 代码
 
 https://github.com/ADAPT-uiuc/tgopt
 
 #### 环境
 
-` pip install torch==1.12.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu`
+Docker file 写的是 ` pip install torch==1.12.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu`
 
-为什么装cpu版本. 
+为什么装cpu版本?  论文说在cpu上有卓越的性能. 因为有embedding存在CPU. 
 
-300行代码一个cpp文件就搞定了. 
+300行代码一个cpp文件就搞定了. 代码量小. 
 
+#### 数据
 
+jodie-wiki  533M 
 
+```
+python data-reformat.py -d jodie-wiki 就是把snap的文件转换为jodie 格式. 
+python data-process.py -d jodie-wiki 也是数据对齐. 
+python train.py -d jodie-wiki --model <prefix> --gpu 0
+python inference.py -d jodie-wiki --model tgat --prefix test --opt-all --gpu 0
+```
 
+论文里说几十秒就infer完成了. 
 
-#### dedup_src_ts
+实测INFO:root:average runtime: 82.7851089797914 +/- 0.0 secs 
+
+dedup_src_ts 是什么用? 
 
 
 

@@ -71,6 +71,7 @@ evenly distributed to each thread
 ## 缺点
 
 1. sample的时候会把时间排序。 没法处理实时。 不断fine tune。不是stream的。
+1. TGL does not support distributed GPU clus- ters. The speedup of TGL on multiple GPUs in a single machine is also unsatisfactory, only achieving 2 − 3× speedup on 8 GPUs.  [disttgl]
 
 Reference：
 
