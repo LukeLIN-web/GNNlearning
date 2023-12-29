@@ -135,7 +135,7 @@ python train.py -d jodie-wiki --model <prefix> --gpu 0
 python inference.py -d jodie-wiki --model tgat --prefix test --opt-all --gpu 0
 ```
 
-论文里说几十秒就infer完成了. 
+论文里说30秒就infer完成了. 
 
 实测INFO:root:average runtime: 82.7851089797914 +/- 0.0 secs 
 
