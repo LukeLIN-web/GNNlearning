@@ -120,24 +120,45 @@ https://github.com/ADAPT-uiuc/tgopt
 
 Docker file 写的是 ` pip install torch==1.12.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu`
 
-为什么装cpu版本?  论文说在cpu上有卓越的性能. 因为有embedding存在CPU. 
+为什么装cpu版本?  论文说在cpu上有卓越的性能. 因为embedding位于CPU. 
 
 300行代码一个cpp文件就搞定了. 代码量小. 
 
+还是得装gpu,  因为GPU更快, 论文用的是cuda11.6,  Nvidia GPU (we tested on Tesla V100 16GB via an AWS instance).
+
+用torch11.6gpu的image
+
+```
+错误: 
+tgopt_ext.cpp:1:10: fatal error: tbb/concurrent_unordered_map.h: No such file or directory
+ #include <tbb/concurrent_unordered_map.h>
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+需要 sudo apt-get install libtbb
+```
+
+
+
 #### 数据
 
-jodie-wiki  533M 
+jodie-wiki  533M   有时候130s 有的时候88s  ,  gpu 11.3s
+
+jodie-mooc 39.5M   118s   
+
+snap-email 1.6M
+
+snap-msg  337K
 
 ```
-python data-reformat.py -d jodie-wiki 就是把snap的文件转换为jodie 格式. 
+./data-download.sh  snap-email jodie-mooc
+python data-reformat.py -d  snap-email  snap-msg  就是把snap的文件转换为jodie 格式. 
 python data-process.py -d jodie-wiki 也是数据对齐. 
 python train.py -d jodie-wiki --model <prefix> --gpu 0
-python inference.py -d jodie-wiki --model tgat --prefix test --opt-all --gpu 0
+python inference.py -d jodie-wiki --model tgat --prefix test --opt-all 
 ```
 
-论文里说30秒就infer完成了. 
+论文里说30秒就infer完成了. 但是我测130s,  用了 7个CPU, vscode serever/htop要占据一个cpu.
 
-实测INFO:root:average runtime: 82.7851089797914 +/- 0.0 secs 
+睡前把 所有数据集都下载了. 
 
 dedup_src_ts 是什么用? 
 
