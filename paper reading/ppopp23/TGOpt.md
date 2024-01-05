@@ -1,10 +1,8 @@
-Charith Mendis  教授, 主要是做 ai  编译的.
-
-
+Charith Mendis  教授, 主要是做 ai  编译的. 作者uiuc mscs 直接去特斯拉工作了, 还搞了TGLite, 但是好像没中. 
 
 问题
 
-1.  inference 放在training 还work吗？ 论文只有inference, 没有training, 为什么?     model parameters and weights 会 change. 所以embedding就不一样. 
+1.  inference 放在training 还work吗？ 论文只有inference, 没有training, 为什么?     因为训练的时候model parameters and weights 会 change. 所以embedding就不一样.  inference可以存储embedding
 2. semantic-preserving什么意思? 
 
 ## 摘要
@@ -80,6 +78,8 @@ speedups of 4.9× on CPU and 2.9× on GPU
 
 baseline 用TGL.
 
+table5 证明 GPU搬运 embedding很花时间, 所以 存在CPU.   figure5我成功复现了.
+
 ## 6Related Work
 
 之前有人precomputing a time-encoding lookup table, which is hardcoded to 128 intervals
@@ -124,7 +124,7 @@ Docker file 写的是 ` pip install torch==1.12.0+cpu --extra-index-url https://
 
 300行代码一个cpp文件就搞定了. 代码量小. 
 
-还是得装gpu,  因为GPU更快, 论文用的是cuda11.6,  Nvidia GPU (we tested on Tesla V100 16GB via an AWS instance).
+还是得装gpu,  因为GPU更快, 论文用的是cuda11.6,  Nvidia GPU (we tested on Tesla V100 16GB via an AWS instance). 
 
 用torch11.6gpu的image
 
@@ -136,31 +136,50 @@ tgopt_ext.cpp:1:10: fatal error: tbb/concurrent_unordered_map.h: No such file or
 需要 sudo apt-get install libtbb
 ```
 
-
-
 #### 数据
 
-jodie-wiki  533M   有时候130s 有的时候88s  ,  gpu 11.3s
+Model tgat, 论文其实训练了tgat的模型
 
-jodie-mooc 39.5M   118s   
 
-snap-email 1.6M
 
-snap-msg  337K
+train时间
+
+| dataset    | size                                                         | cpu(s) | 1gpu(s) |
+| ---------- | ------------------------------------------------------------ | ------ | ------- |
+| jodie-wiki | 533M  INFO:root:num of instances: 157474.  INFO:root:num of batches: 788 | 89     | 11.3    |
+| jodie-mooc | 39.5M INFO:root:num of instances: 411749.  INFO:root:num of batches: 2059 | 33     | 22      |
+| snap-email | 1.6M INFO:root:num of instances: 332334.  INFO:root:num of batches: 1662 | 85     | 22      |
+| snap-msg   | 337K INFO:root:num of instances: 59835. INFO:root:num of batches: 300 | 15     | 4       |
+
+
+
+inference  old node. 
+
+| dataset    | size                             | 1gpu(s) | 1gpu(s)  optimize |
+| ---------- | -------------------------------- | ------- | ----------------- |
+| jodie-wiki | 533M  , num_test_instance: 23621 | 22.6,   | 19.0              |
+| jodie-mooc | 39.5M num_test_instance: 61763   | 37.3    | 34.8              |
+| snap-email | 1.6M                             | 41      | 33.8              |
+| snap-msg   | 337K                             | 8.4     | 8.49 (old)        |
+
+
+
+提升没有好几倍. 
+
+snap-msg,  old node没有加速, new node加速了40%, 为什么? 
 
 ```
 ./data-download.sh  snap-email jodie-mooc
 python data-reformat.py -d  snap-email  snap-msg  就是把snap的文件转换为jodie 格式. 
 python data-process.py -d jodie-wiki 也是数据对齐. 
-python train.py -d jodie-wiki --model <prefix> --gpu 0
-python inference.py -d jodie-wiki --model tgat --prefix test --opt-all 
+python inference.py -d snap-email  --model tgat --prefix test --opt-all 
+python inference.py -d snap-msg --model tgat --gpu 0
+python train.py -d snap-msg --model tgat --prefix test --opt-all --gpu 0
+python  e2einference.py -d snap-msg  --model tgat  --gpu 0
 ```
 
-论文里说30秒就infer完成了. 但是我测130s,  用了 7个CPU, vscode serever/htop要占据一个cpu.
-
-睡前把 所有数据集都下载了. 
+论文里说30秒就infer完成了. 但是我测130s 88s ,  用了 7个CPU, vscode serever/htop要占据一个cpu.
 
 dedup_src_ts 是什么用? 
 
-
-
+val for new nodes 和val for old node 是啥意思?  train时见过的就是old, new就是没有train的. 

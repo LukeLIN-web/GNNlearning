@@ -92,7 +92,7 @@ and 𝑗 represents how many epochs to train in parallel for each copy of node m
 
 #### contribution:  怎么解决提出的问题.
 
-1. enhances the node memory in M-TGNNs by introducing additional static node memory,   优化了 accuracy and convergence rate 
+1. enhances the node memory in M-TGNNs by introducing additional static node memory,   优化了 accuracy and convergence rate   (是否给每个gpu 一个static?)
 2. introduces two novel parallel training strategies - epoch parallelism and memory parallelism.   还有  heuristic guidelines to determine the optimal training configurations based on the dataset and hardware characteristics.
 3. adopting prefetching and pipelining techniques to minimize the mini-batch generation overhead. It serializes the memory operations on the node memory and efficiently executes them by an independent daemon process -- >  解决 complex and expensive synchronizations
 
