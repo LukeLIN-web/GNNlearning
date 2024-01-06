@@ -64,5 +64,5 @@ quiver latency 就是测 sample +  to device + forward的时间. thoughtput  就
 
 
 
-
+如果临时输出较大就可以算子融合。 对于dense layer, 可以堆叠batch 处理.
 

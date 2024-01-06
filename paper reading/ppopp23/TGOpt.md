@@ -176,6 +176,7 @@ python inference.py -d snap-email  --model tgat --prefix test --opt-all
 python inference.py -d snap-msg --model tgat --gpu 0
 python train.py -d snap-msg --model tgat --prefix test --opt-all --gpu 0
 python  e2einference.py -d snap-msg  --model tgat  --gpu 0
+py-spy record -o profile.svg -- python e2einference.py -d snap-msg  --model tgat  
 ```
 
 论文里说30秒就infer完成了. 但是我测130s 88s ,  用了 7个CPU, vscode serever/htop要占据一个cpu.
