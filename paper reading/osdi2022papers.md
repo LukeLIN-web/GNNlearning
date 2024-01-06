@@ -38,13 +38,19 @@ Orca 不是等到批处理中的每个序列都完成生成，而是实现了迭
 
 *request-level batching, where an LLM inference server uses a static batch whose size is chosen when the current batch has completely finished generation.* 
 
+
+
 input 2D tensor [total_num_tokens, hidden_size]就行，attention 计算那块mask掉不同sequences 之间dependence 就可以了
 
-所以他们是没有依赖? 
+所以他们是没有依赖? 有依赖的, Q2 计算依赖Q1. 需要concat一下. 
+
+#### selective batching. 
+
+他们解决了不同的sequence长度 batching 的问题.  linear层就flattented 2Dtensor without batch dimension, attention 层就, split 计算attn, 然后merge. 
 
 
 
-他们解决了不同的sequence长度 batching 的问题. 
+把每个layer 切成两半 分给同一个worker的两个GPU.
 
-selective batching. 
+
 
