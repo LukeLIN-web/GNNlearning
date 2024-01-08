@@ -10,10 +10,6 @@ Alpas 是一个编译器,  automates model-parallel training generating executio
 
 FlexFlow属于automatic, intra-op 并行, 但是没考虑inter-op 并行, Alpa说自己考虑了. 
 
-
-
-
-
 ## Orca
 
 Orca: A Distributed Serving System for Transformer-Based Generative Models
@@ -38,8 +34,6 @@ Orca 不是等到批处理中的每个序列都完成生成，而是实现了迭
 
 *request-level batching, where an LLM inference server uses a static batch whose size is chosen when the current batch has completely finished generation.* 
 
-
-
 input 2D tensor [total_num_tokens, hidden_size]就行，attention 计算那块mask掉不同sequences 之间dependence 就可以了
 
 所以他们是没有依赖? 有依赖的, Q2 计算依赖Q1. 需要concat一下. 
@@ -48,9 +42,16 @@ input 2D tensor [total_num_tokens, hidden_size]就行，attention 计算那块ma
 
 他们解决了不同的sequence长度 batching 的问题.  linear层就flattented 2Dtensor without batch dimension, attention 层就, split 计算attn, 然后merge. 
 
-
+- 给定形状为 `[(s1, h), (s2, h), ...]` 的输入，我们将它们堆叠成一个形状为 `(sum(si), h)` 的大矩阵。
+- 对这个堆叠矩阵应用密集层。
+- 将密集层的结果分割回 `[(s1, h), (s2, h), ...]`。
+- 对每个序列进行自注意力计算。
 
 把每个layer 切成两半 分给同一个worker的两个GPU.
 
+### 缺点
 
+**ORCA** 使用**first-come-first-served (FCFS)** 处理推理作业, 计划任务持续运行直至完成。 由于 GPU 内存容量有限以及推理对延时敏感，无法通过任意数量的传入函数来增加处理，由此可能会导致队列阻塞。
+
+**FastServe** 使用 **preemptive scheduling**，通过新颖的**0** 程序来最小化延时。 基于 LLM 推理的长度无法确定，调度程序利用输入长度信息来分配适当的初始值每个到达作业要加入的队列。 较高优先级队列跳过加入的队列以减少降级。 设计高效的GPU内存管理机制主动下载和上传 GPU 内存和主机内存之间的中间状态，以进行 LLM 推理。
 

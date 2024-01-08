@@ -1,3 +1,5 @@
+# TGOpt: Redundancy-Aware Optimizations for Temporal Graph Attention Networks
+
 Charith Mendis  教授, 主要是做 ai  编译的. 作者uiuc mscs 直接去特斯拉工作了, 还搞了TGLite, 但是好像没中. 
 
 问题
@@ -184,3 +186,11 @@ py-spy record -o profile.svg -- python e2einference.py -d snap-msg  --model tgat
 dedup_src_ts 是什么用? 
 
 val for new nodes 和val for old node 是啥意思?  train时见过的就是old, new就是没有train的. 
+
+a unified framework for tgnn framework
+
+pos_score 和  neg_score 相加为什么不为1？   因为score不是 probabilities. pos和neg是独立的. 
+
+这个forward和contrast有什么区别? contrast有对于Background的对比. 太奇怪了, 这个forward好像没有用到, tgopt. 
+
+缺点: 他不是end to end 的.
