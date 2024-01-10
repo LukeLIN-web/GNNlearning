@@ -24,6 +24,10 @@ We observe and leverage redundancies in temporal embedding and time-encoding com
 
 ## 2 Background
 
+TGAT dataset ,  They store the edge linkages, edge features and node features respectively. https://github.com/StatsDLMathsRecomSys/Inductive-representation-learning-on-temporal-graphs
+
+可以处理节点分类和 link prediction. 归纳推断新节点和观察到的节点的嵌入
+
 It learns a function Φ   that maps a time value to a 𝑑𝑡 -dimensional vector. This time-encoding technique allows it to capture temporal patterns of the graph. The time-encoding vector 输入 the input features of a GNN operator, thereby incorporated into the output embeddings.
 
 temporal neighborhood :  tj >t
@@ -179,6 +183,9 @@ python inference.py -d snap-msg --model tgat --gpu 0
 python train.py -d snap-msg --model tgat --prefix test --opt-all --gpu 0
 python  e2einference.py -d snap-msg  --model tgat  --gpu 0
 py-spy record -o profile.svg -- python e2einference.py -d snap-msg  --model tgat  
+python benchmark/benchmark_latency.py -d snap-msg  --model tgat  --gpu 0
+
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --force-overwrite true -x true python benchmark/benchmark_latency.py -d snap-msg  --model tgat  --gpu 0
 ```
 
 论文里说30秒就infer完成了. 但是我测130s 88s ,  用了 7个CPU, vscode serever/htop要占据一个cpu.
