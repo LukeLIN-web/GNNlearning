@@ -194,3 +194,4 @@ pos_score 和  neg_score 相加为什么不为1？   因为score不是 probabili
 这个forward和contrast有什么区别? contrast有对于Background的对比. 太奇怪了, 这个forward好像没有用到, tgopt. 
 
 缺点: 他不是end to end 的.
+
