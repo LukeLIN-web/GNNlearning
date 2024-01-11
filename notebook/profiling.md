@@ -40,6 +40,8 @@ https://github.com/nicolargo/nvidia-ml-py3
 
 ## Nsight
 
+nsight system是总体的, nsight computing对cuda更深入分析. *nsys* 之前的名称叫做*nvprof*.
+
 英伟达 https://developer.nvidia.com/nsight-systems
 
 ### 安装
@@ -56,31 +58,32 @@ https://docs.nvidia.com/nsight-systems/UserGuide/index.html#linux-launch-process
 
 要改container的sshd_config，因为22端口可能被host占用
 
-
-
 `nvprof` is a legacy tool and will not be receiving new features. 
 
-
-
-在 iter开始和结束的位置打一个标签,TORCH.CUDA.NVTX.RANGE_PUSH   refer:  1
-
-1. PyTorch训练加速的量化分析 - 风车车车的文章 - 知乎 https://zhuanlan.zhihu.com/p/416942523
-2. https://dev-discuss.pytorch.org/t/using-nsight-systems-to-profile-gpu-workload/59
+在 iter开始和结束的位置打一个标签,`TORCH.CUDA.NVTX.RANGE_PUSH `  
 
 ```bash
-nsys profile -w true -t cuda,nvtx,cudnn,cublas --capture-range=cudaProfilerApi --force-overwrite true -x true -o 512 python ladies_e2e.py
-nsys profile -w true -t cuda,nvtx,cudnn,cublas --capture-range=cudaProfilerApi --force-overwrite true -x true -o ugache python dgl_sample.py 
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --force-overwrite true -x true -o wikitgn python train.py --data WIKI --config ./config/TGN.yml
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --force-overwrite true -x true -o ugache python dgl_sample.py  --data WIKI --config ./config/TGN.yml 
+
+nsys profile -w true -t cuda,nvtx,cudnn,cublas  --force-overwrite true -x true -o disttgl torchrun --nnodes=1 --nproc_per_node=2 --rdzv_id=0 --rdzv_backend=c10d train.py --data WIKI --group 1 --minibatch_parallelism 2
 ```
-
-
 
 nsys-rep 可以在remote server 可视化吗? 
 
-WARNING: CPU context switch tracing not supported, disabling.
-Try the 'nsys status --environment' command to learn more.
+Generated: 没有生成文件是为啥? 你里面都没有Cuda profile API，没有
 
-WARNING: CPU sampling not supported, disabling.
-Try the 'nsys status --environment' command to learn more.
+
+
+torch.cuda.cudart().cudaProfilerStart() 就不会开始测. 
+
+#### 怎么分析nsys-rep?
+
+分析3个相邻iteration, 
+
+看SM资源是否有满. 
+
+GPU utilization是要手动计算的, 用了的SM / 总的SM. 不能只看时间的占用率. 
 
 
 
@@ -88,3 +91,11 @@ Try the 'nsys status --environment' command to learn more.
 
 可以本地下载gui , 然后ssh连接
 
+#### cudaprofileapi
+
+
+
+refer:
+
+1. PyTorch训练加速的量化分析 - 风车车车的文章 - 知乎 https://zhuanlan.zhihu.com/p/416942523
+2. https://dev-discuss.pytorch.org/t/using-nsight-systems-to-profile-gpu-workload/59

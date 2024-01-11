@@ -17,7 +17,7 @@ calculat CV for each group streaming, 100-1000个stream, 就会比较稳定而�
 
 有两种,  forward inference-based (inf-based) approach and backend update based (upd-based) approach. 来更新dynamic graphs.
 
-inf base, 只在 收到的时候改变图结构. aligraph.
+inf base, 只在收到的时候改变图结构. aligraph.
 
 https://github.com/zheng-yp/DecoupledDGNN
 
@@ -58,11 +58,9 @@ figure1 说明subgraph construction 占据了50%.
 
 figure3 说明受影响的只有1%. 但是只算 affected area 也要几秒.
 
+https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9644829  PCGraph. 也是加速gnn inference.
+
 survey : https://arxiv.org/pdf/2306.14052.pdf   . A Survey on Graph Neural Network Acceleration: Algorithms, Systems, and Customized Hardware
-
-
-
-
 
 #### workload调查
 
@@ -77,8 +75,11 @@ survey : https://arxiv.org/pdf/2306.14052.pdf   . A Survey on Graph Neural Netwo
 7. **DGI: Easy and Efficient Inference for GNNs** 也就是静态的数据集. 他提出了快速翻译代码到layer wise.和我们是正交的. 
 8. SERVING GRAPH COMPRESSION FOR GRAPH NEURAL NETWORKS 也是静态的数据集. 他们证明acc loss不大. 
 
-   
+<<<<<<< HEAD
 
+
+=======
+>>>>>>> 5dd5f7008f02d81036dc63ce27c4f2931748cb95
 #### GNN serving in a cluster 
 
 好像没有讨论过
@@ -86,4 +87,10 @@ survey : https://arxiv.org/pdf/2306.14052.pdf   . A Survey on Graph Neural Netwo
 quiver有 cluster, 三个server,  their scalability becomes limited by these network bottlenecks.
 
 quiver latency 就是测 sample +  to device + forward的时间. thoughtput  就是batch size / 最后的end time- 第一个end time.
+
+### serving+速的方法
+
+
+
+如果临时输出较大就可以算子融合。 对于dense layer, 可以堆叠batch 处理.
 

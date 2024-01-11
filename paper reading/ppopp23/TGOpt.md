@@ -1,13 +1,15 @@
-Charith Mendis  教授, 主要是做 ai  编译的.
+# TGOpt: Redundancy-Aware Optimizations for Temporal Graph Attention Networks
+
+Charith Mendis  教授, 主要是做 ai  编译的. 作者uiuc mscs 直接去特斯拉工作了, 还搞了TGLite, 但是好像没中. 
 
 问题
 
-1.  inference 放在training 还work吗？ 论文只有inference, 没有training, 为什么?     model parameters and weights 会 change. 所以embedding就不一样. 
+1.  inference 放在training 还work吗？ 论文只有inference, 没有training, 为什么?     因为训练的时候model parameters and weights 会 change. 所以embedding就不一样.  inference可以存储embedding
 2. semantic-preserving什么意思? 
 
 ## 摘要
 
-
+加速inference, proposes to accelerate TGNN inference by de-duplication, memorization, and pre-computation.
 
 ## 1 introduction
 
@@ -21,6 +23,10 @@ We observe and leverage redundancies in temporal embedding and time-encoding com
 - The time-encoding operation in TGAT is frequently invoked with the same time delta values
 
 ## 2 Background
+
+TGAT dataset ,  They store the edge linkages, edge features and node features respectively. https://github.com/StatsDLMathsRecomSys/Inductive-representation-learning-on-temporal-graphs
+
+可以处理节点分类和 link prediction. 归纳推断新节点和观察到的节点的嵌入
 
 It learns a function Φ   that maps a time value to a 𝑑𝑡 -dimensional vector. This time-encoding technique allows it to capture temporal patterns of the graph. The time-encoding vector 输入 the input features of a GNN operator, thereby incorporated into the output embeddings.
 
@@ -70,13 +76,15 @@ precomputes time-encoding vectors in advance before running inference.
 
 优化了lookup 过程.
 
-什么是 time-encoding vectors? 
+什么是 time-encoding vectors? 就是把时间也编码作为一个变量. 
 
 ## 5 实验
 
 speedups of 4.9× on CPU and 2.9× on GPU
 
-baseline我们可以用TGL.
+baseline 用TGL.
+
+table5 证明 GPU搬运 embedding很花时间, 所以 存在CPU.   figure5我成功复现了.
 
 ## 6Related Work
 
@@ -88,7 +96,7 @@ baseline我们可以用TGL.
 
 #### dynaGraph 
 
-存中间embedding, 只支持DTDG. 我们可以做CTDG
+存中间embedding, 只支持DTDG.   所以做CTDG.
 
 #### HAG abstraction. 
 
@@ -110,23 +118,87 @@ tensorcore能用在这里吗,  可以同时计算16*16 *16 的三维的.
 
 A100支持block is sparse. 
 
-### 代码
+## 代码
 
 https://github.com/ADAPT-uiuc/tgopt
 
 #### 环境
 
-` pip install torch==1.12.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu`
+Docker file 写的是 ` pip install torch==1.12.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu`
 
-为什么装cpu版本. 
+为什么装cpu版本?  论文说在cpu上有卓越的性能. 因为embedding位于CPU. 
 
-300行代码一个cpp文件就搞定了. 
+300行代码一个cpp文件就搞定了. 代码量小. 
+
+还是得装gpu,  因为GPU更快, 论文用的是cuda11.6,  Nvidia GPU (we tested on Tesla V100 16GB via an AWS instance). 
+
+用torch11.6gpu的image
+
+```
+错误: 
+tgopt_ext.cpp:1:10: fatal error: tbb/concurrent_unordered_map.h: No such file or directory
+ #include <tbb/concurrent_unordered_map.h>
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+需要 sudo apt-get install libtbb
+```
+
+#### 数据
+
+Model tgat, 论文其实训练了tgat的模型
 
 
 
+train时间
+
+| dataset    | size                                                         | cpu(s) | 1gpu(s) |
+| ---------- | ------------------------------------------------------------ | ------ | ------- |
+| jodie-wiki | 533M  INFO:root:num of instances: 157474.  INFO:root:num of batches: 788 | 89     | 11.3    |
+| jodie-mooc | 39.5M INFO:root:num of instances: 411749.  INFO:root:num of batches: 2059 | 33     | 22      |
+| snap-email | 1.6M INFO:root:num of instances: 332334.  INFO:root:num of batches: 1662 | 85     | 22      |
+| snap-msg   | 337K INFO:root:num of instances: 59835. INFO:root:num of batches: 300 | 15     | 4       |
 
 
-#### dedup_src_ts
+
+inference  old node. 
+
+| dataset    | size                             | 1gpu(s) | 1gpu(s)  optimize |
+| ---------- | -------------------------------- | ------- | ----------------- |
+| jodie-wiki | 533M  , num_test_instance: 23621 | 22.6,   | 19.0              |
+| jodie-mooc | 39.5M num_test_instance: 61763   | 37.3    | 34.8              |
+| snap-email | 1.6M                             | 41      | 33.8              |
+| snap-msg   | 337K                             | 8.4     | 8.49 (old)        |
 
 
+
+提升没有好几倍. 
+
+snap-msg,  old node没有加速, new node加速了40%, 为什么? 
+
+```
+./data-download.sh  snap-email jodie-mooc
+python data-reformat.py -d  snap-email  snap-msg  就是把snap的文件转换为jodie 格式. 
+python data-process.py -d jodie-wiki 也是数据对齐. 
+python inference.py -d snap-email  --model tgat --prefix test --opt-all 
+python inference.py -d snap-msg --model tgat --gpu 0
+python train.py -d snap-msg --model tgat --prefix test --opt-all --gpu 0
+python  e2einference.py -d snap-msg  --model tgat  --gpu 0
+py-spy record -o profile.svg -- python e2einference.py -d snap-msg  --model tgat  
+python benchmark/benchmark_latency.py -d snap-msg  --model tgat  --gpu 0
+
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --force-overwrite true -x true python benchmark/benchmark_latency.py -d snap-msg  --model tgat  --gpu 0
+```
+
+论文里说30秒就infer完成了. 但是我测130s 88s ,  用了 7个CPU, vscode serever/htop要占据一个cpu.
+
+dedup_src_ts 是什么用? 
+
+val for new nodes 和val for old node 是啥意思?  train时见过的就是old, new就是没有train的. 
+
+a unified framework for tgnn framework
+
+pos_score 和  neg_score 相加为什么不为1？   因为score不是 probabilities. pos和neg是独立的. 
+
+这个forward和contrast有什么区别? contrast有对于Background的对比. 太奇怪了, 这个forward好像没有用到, tgopt. 
+
+缺点: 他不是end to end 的.
 

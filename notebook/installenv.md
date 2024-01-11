@@ -19,9 +19,7 @@ https://packaging.python.org/en/latest/guides/distributing-packages-using-setupt
 
 把egg info删除了, pip list就找不到了. 
 
-conda list 不能识别pip安装的软件. 
-
-用mamba会快很多. 
+conda list 不能识别pip安装的软件.  用mamba会快很多. 
 
 #### 安装PyG
 
@@ -85,19 +83,6 @@ pip install dgl==0.9.1 默认是 cpu版本的.
 
 源码编译0.6.1
 
-Traceback (most recent call last):
-  File "/opt/conda/lib/python3.7/site-packages/setuptools/sandbox.py", line 156, in save_modules
-    yield saved
-  File "/opt/conda/lib/python3.7/site-packages/setuptools/sandbox.py", line 198, in setup_context
-    yield
-  File "/opt/conda/lib/python3.7/site-packages/setuptools/sandbox.py", line 259, in run_setup
-    _execfile(setup_script, ns)
-  File "/opt/conda/lib/python3.7/site-packages/setuptools/sandbox.py", line 46, in _execfile
-    exec(code, globals, locals)
-  File "/tmp/easy_install-u1abq5yx/scipy-1.11.0rc2/setup.py", line 33, in <module>
-    lib_path = libinfo['find_lib_path']()
-RuntimeError: Python version >= 3.9 required.
-
 Scipy 1.11 太高了, 1.7.0差不多. Apr 8, 2021
 
 自己安装scipy1.7
@@ -111,8 +96,6 @@ dgl 0.7需要 python3.8
 用torch 1.10.0-cuda11.3-cudnn8的镜像, 删除torch 重装. 参考https://malloc-42.github.io/intro/2021/07/25/Installing-PyTorch/
 
 ```
-pip uninstall -y torch torchelastic torchtext torchvision
-conda uninstall pytorch-mutex
 conda install numpy ninja pyyaml mkl mkl-include setuptools cmake cffi typing_extensions future six requests dataclasses
 export  $LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 确认path有/usr/local/cuda/bin

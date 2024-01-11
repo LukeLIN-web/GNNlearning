@@ -1,4 +1,4 @@
-TEMPORAL GRAPH NETWORKS FOR DEEP LEARNING ON DYNAMIC GRAPHS 
+paper: Temporal Graph Networks for Deep Learning on Dynamic Graphs
 
  TemporalDataLoader是根据时间顺序排列的吗? 
 
