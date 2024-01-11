@@ -25,6 +25,18 @@ memory-based TGNNs:  DistTGL , tgn
 1. Aligraph , It provides a performance guarantee of sampling P99 latency in 20ms on large-scale dynamic graphs.   几百个worker, 在淘宝数据集上,  他们有很多模型, 测了模型精度.
 2. https://github.com/zheng-yp/DecoupledDGNN  人大的论文,  vldb23 ,只是可用不能复现.  统一了连续 和离散dgnn.
 
+
+
+
+
+kairos
+
+看起来是把图处理系统的idea搬到tgnn中。 不是gnn。 是构建了一个DB 树类似的数据结构
+
+
+
+
+
 #### 没有代码
 
 1. Efficient Scaling of Dynamic Graph Neural Networks. SC'21
