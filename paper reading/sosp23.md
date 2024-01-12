@@ -2,12 +2,6 @@
 
 允许 KV 缓存（在上面讨论的“预填充”阶段计算的内容）通过在固定大小的“页面”或块中分配内存来保持不连续。然后可以重写注意力机制，使其对块对齐的输入进行操作，从而允许在不连续的内存范围内执行注意力。
 
-怎么测的latency 和吞吐量? 
-
-prompt是哪里输入的? 
-
-Hugging face好像会自动调取. 
-
 ## Paella
 
  Low-latency Model Serving with Software-defined GPU Scheduling

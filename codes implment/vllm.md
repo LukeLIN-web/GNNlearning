@@ -2,6 +2,8 @@
 
 不同的tensor 大小不同,  内存占用大, 所以 gpu内存分配碎片化, 占用大量gpu 内存.  
 
+Continuous  batching,要点就是, 不同的sequence完成的时间是差距很大, 所以有机会. 
+
 #### 安装
 
 需要升级pip到23.0.
@@ -12,6 +14,14 @@ SamplingParams 是什么, 有什么用? 就是管理参数
 
 vLLM框架top down概览  - 知乎
 https://zhuanlan.zhihu.com/p/645251151
+
+怎么测的latency 和吞吐量? 
+
+prompt是哪里输入的? 
+
+Hugging face好像会自动调取. 
+
+
 
 ## PagedAttention
 
@@ -110,20 +120,6 @@ key是啥?  value是啥?
 
 为什么他不做training呢? 
 
-### 我们的方案
-
-#### motivation
-
-之前, 我们分配子图的embedding,  导致 fragmentation and over-reservation.
-
-用vllm的方法, 有一些节点重用的, 就不用换出.  我们考虑GCN , full graph, 因为节点重复的多, 而且内存消耗大. 
-
-但是他考虑的是 It allows the system to batch more sequences. 但是我们full graph应该就不会很多graph, 所以还是要graphsage? graphsage肯定不对, 因为图很小不会爆.
-
-老师有啥gnn inference的论文吗?   这个可以用在gnn training吗? 
-
-node就是token .  sequence 就是graph,  KVcache对应啥呢? 
-
 怎么做一个最小的模型呢? 抽象很难, 还是直接做embedding 的方案吧. 因为没有一个方案能覆盖所有. 
 
 - myEngine：是整个系统的入口，其内部组合了一个Scheduler和一组Worker。 
@@ -156,20 +152,11 @@ BGL: GPU-Efficient GNN Training by Optimizing Graph Data I/O and Preprocessing
 
 是否有case, 多个graph同时保存在GPU?
 
-inference 场合.
-
 他们的场合很有挑战, 他们会有很多 request, 不能预测多少request, 需要多少内存. 我们的场合都是静态的，内存都是可以计算出来的。
-
-link predict. 可以吗? https://arxiv.org/abs/1802.09691 
-
-how quiver do memory management and whether it becomes a bottleneck
-
-quiver就是hot的在GPU中.  cpu part 在shared memory. 
 
 他们是怎么换出的呢? 是LRU还是FIFO? 
 
 他们是怎么快速Detect有哪些Embedding已经在了?
 
-https://github.com/quiver-team/torch-quiver/blob/7765b373010d01e3596db3b329b78b656057ac8d/srcs/python/quiver/serving.py#L195 They simply move target nodes to GPU, sample subgraph in GPU, load.
 
-把tgopt, 一个batch中复用.  改进成多个batch复用. 
+

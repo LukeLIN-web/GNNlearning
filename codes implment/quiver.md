@@ -237,6 +237,8 @@ sampling的时间应该比较大.
 
 太复杂了, 还是从单进程重写吧, 别人的多进程代码想改也太难了. 
 
+https://github.com/quiver-team/torch-quiver/blob/7765b373010d01e3596db3b329b78b656057ac8d/srcs/python/quiver/serving.py#L195 They simply move target nodes to GPU, sample subgraph in GPU, load.
+
 
 
 

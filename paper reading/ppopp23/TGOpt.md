@@ -185,7 +185,7 @@ python  e2einference.py -d snap-msg  --model tgat  --gpu 0
 py-spy record -o profile.svg -- python e2einference.py -d snap-msg  --model tgat  
 python benchmark/benchmark_latency.py -d snap-msg  --model tgat  --gpu 0
 
-nsys profile -w true -t cuda,nvtx,cudnn,cublas --force-overwrite true -x true python benchmark/benchmark_latency.py -d snap-msg  --model tgat  --gpu 0
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --cuda-memory-usage=true --force-overwrite true -x true python benchmark/benchmarktgat.py -d snap-msg
 ```
 
 论文里说30秒就infer完成了. 但是我测130s 88s ,  用了 7个CPU, vscode serever/htop要占据一个cpu.

@@ -60,6 +60,8 @@ https://docs.nvidia.com/nsight-systems/UserGuide/index.html#linux-launch-process
 
 `nvprof` is a legacy tool and will not be receiving new features. 
 
+好像V100不支持 --gpu-metrics-device=0
+
 在 iter开始和结束的位置打一个标签,`TORCH.CUDA.NVTX.RANGE_PUSH `  
 
 ```bash
@@ -71,11 +73,17 @@ nsys profile -w true -t cuda,nvtx,cudnn,cublas  --force-overwrite true -x true -
 
 nsys-rep 可以在remote server 可视化吗? 
 
-Generated: 没有生成文件是为啥? 你里面都没有Cuda profile API，没有
+Generated: 没有生成文件是为啥? 你里面都没有Cuda profile API. 没有torch.cuda.cudart().cudaProfilerStart() 就不会开始测. 
 
 
 
-torch.cuda.cudart().cudaProfilerStart() 就不会开始测. 
+SM Occupancy是什么
+
+occupancy定义为**SM上的活跃warp与SM支持的最大活跃warp数之比**  活跃并不代表他fully utilize了. 
+
+最好是按照当前计算的TFLOPS和执行时间算出来一个利用率，Occupancy是有其他意义的，不能作为Utilization，SM Instruction也是一样的，重要的是Cuda Core或者Tensor Core这些计算单元的利用率
+
+
 
 #### 怎么分析nsys-rep?
 
