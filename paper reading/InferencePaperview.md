@@ -1,8 +1,14 @@
 https://jeongseob.github.io/readings_mlsys.html
 
-### SHEPHERD: Serving DNNs in the Wild
+Flash-LLM: Enabling Cost-Effective and Highly-Efficient Large Generative Model Inference with Unstructured Sparsity  阿里巴巴和悉尼大学的VLDB24
 
-nsdi 2023 , 一作张弘. 延迟要求: 50-500ms
+四个矩阵乘法, 用unstructured weight pruning来降低内存消耗.
+
+先把稀疏的变成dense的. For each iteration, each thread block loads 𝐴𝑇𝑖𝑙𝑒 (shape [𝑀, 𝐾]) in sparse format and 𝐵𝑇𝑖𝑙𝑒 (shape [𝐾, 𝑁]) in dense format from global memory. 𝐴𝑇𝑖𝑙𝑒 is then transformed to dense format with our efficient *Sparse-to-Dense Transformation* strategy.   Finally, each thread block consumes the dense data in shared memory and generates the output tile through tensor core computations.
+
+---
+
+SHEPHERD: Serving DNNs in the Wild , nsdi 2023 , 一作张弘. 延迟要求: 50-500ms
 
 NSDI 2023有哪些值得关注的文章？ - 孙挺Sunt的回答 - 知乎
 https://www.zhihu.com/question/543376768/answer/3119939466
@@ -50,8 +56,6 @@ https://arxiv.org/pdf/2309.11071.pdf
 
 tgnn benchmark。
 
-
-
 #### 介绍
 
 figure1 说明subgraph construction 占据了50%.
@@ -75,11 +79,6 @@ survey : https://arxiv.org/pdf/2306.14052.pdf   . A Survey on Graph Neural Netwo
 7. **DGI: Easy and Efficient Inference for GNNs** 也就是静态的数据集. 他提出了快速翻译代码到layer wise.和我们是正交的. 
 8. SERVING GRAPH COMPRESSION FOR GRAPH NEURAL NETWORKS 也是静态的数据集. 他们证明acc loss不大. 
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 5dd5f7008f02d81036dc63ce27c4f2931748cb95
 #### GNN serving in a cluster 
 
 好像没有讨论过
@@ -89,8 +88,6 @@ quiver有 cluster, 三个server,  their scalability becomes limited by these net
 quiver latency 就是测 sample +  to device + forward的时间. thoughtput  就是batch size / 最后的end time- 第一个end time.
 
 ### serving+速的方法
-
-
 
 如果临时输出较大就可以算子融合。 对于dense layer, 可以堆叠batch 处理.
 
