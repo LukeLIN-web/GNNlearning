@@ -8,6 +8,22 @@ Flash-LLM: Enabling Cost-Effective and Highly-Efficient Large Generative Model I
 
 ---
 
+ ICML'23 BPipe: Memory-Balanced Pipeline Parallelism for Training Large Language Models  在GPU之间传输 activation. 
+
+FlexGen: High-Throughput Generative Inference of Large Language Models with a Single GPU  , 可以搜索 存储和访问tensor的方式. 
+
+GPipe 可以解决单卡显存不足的问题。 
+
+PipeDream 通过快速反向传播, 节省显存, 缺点是需要维护多个版本的模型参数, 不适合参数多的LLM模型. 
+
+Megatron-LM的第二篇论文, 给device 1分配 层1\2\9\10, 而不是1-4层, 降低bubble 率. [*Memory*-Efficient *Pipeline*-Parallel DNN Training](https://zhuanlan.zhihu.com/p/650744349)  
+
+
+
+
+
+
+
 SHEPHERD: Serving DNNs in the Wild , nsdi 2023 , 一作张弘. 延迟要求: 50-500ms
 
 NSDI 2023有哪些值得关注的文章？ - 孙挺Sunt的回答 - 知乎

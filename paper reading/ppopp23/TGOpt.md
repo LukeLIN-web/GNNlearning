@@ -155,7 +155,7 @@ train时间
 | jodie-wiki | 533M  INFO:root:num of instances: 157474.  INFO:root:num of batches: 788 | 89     | 11.3    |
 | jodie-mooc | 39.5M INFO:root:num of instances: 411749.  INFO:root:num of batches: 2059 | 33     | 22      |
 | snap-email | 1.6M INFO:root:num of instances: 332334.  INFO:root:num of batches: 1662 | 85     | 22      |
-| snap-msg   | 337K INFO:root:num of instances: 59835. INFO:root:num of batches: 300 | 15     | 4       |
+| snap-msg   | 337K INFO:root:num of instances: 59835. INFO:root:num of batches: 300 | 15     | 4,3.5   |
 
 
 
@@ -184,7 +184,7 @@ python train.py -d snap-msg --model tgat --prefix test --opt-all --gpu 0
 python  e2einference.py -d snap-msg  --model tgat  --gpu 0
 py-spy record -o profile.svg -- python benchmark/benchmarktgat.py .py -d jodie-wiki 
 
-python benchmark/benchmarktgat.py .py -d jodie-wiki --model tgat  --gpu 0
+python benchmark/benchmarktgat.py -d snap-msg  --model tgat  --gpu 0
 
 nsys profile -w true -t cuda,nvtx,cudnn,cublas --cuda-memory-usage=true --force-overwrite true -x true python benchmark/benchmarktgat.py -d snap-msg
 ```
