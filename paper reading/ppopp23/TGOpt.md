@@ -28,6 +28,16 @@ TGAT dataset ,  They store the edge linkages, edge features and node features re
 
 可以处理节点分类和 link prediction. 归纳推断新节点和观察到的节点的嵌入
 
+Layer 和静态的什么区别? 
+
+mj(t) = msg(出节点的老h ,  入节点的老h, 边的特征)  感觉也差不多? 就是要多迭代几次time.  
+
+ri 就是一样, 把msg 用summation 等函数 来aggr, hi也是一样, 叠加NN.   h就是temporal embeddings.
+
+是对于每个eij 都要做一次gnn操作吗? 
+
+RandEdgeSampler, 有什么用?  就是随机找几个边作为background对比. 
+
 It learns a function Φ   that maps a time value to a 𝑑𝑡 -dimensional vector. This time-encoding technique allows it to capture temporal patterns of the graph. The time-encoding vector 输入 the input features of a GNN operator, thereby incorporated into the output embeddings.
 
 temporal neighborhood :  tj >t
@@ -38,7 +48,7 @@ temporal neighborhood :  tj >t
 
 ### 3.1 Duplication From Batched Edges
 
-nodes often share common neighbors and this can lead to duplicate ⟨𝑖, 𝑡 ⟩ pairs.   比如同一时刻 a->c , b->c. 那么就有两个<c,t>
+nodes often share common neighbors and this can lead to duplicate ⟨𝑖, 𝑡 ⟩ pairs.   比如同一时刻 a->c , b->c. 那么就有两个<c,t>  
 
 ### 3.2Temporally Redundant Embedding Calculations
 
@@ -60,13 +70,19 @@ nodes often share common neighbors and this can lead to duplicate ⟨𝑖, 𝑡 
 
 ### 4.2 Memoization of Embeddings
 
+为什么要ComputeKeys?  是根据key来找重复的.  The inputs will generally be combined into a single key value by hashing. the ComputeKeys operation can be performed in parallel across the pairs, 是可以并行的
+
 也是pull 和push embedding. 
 
 the list of neighbors, their edge timestamps, edge features, and 𝐻 (𝑙 −1) as inputs.
 
 combined into a single key value by hash
 
-Storage Memory Location: 在CPU
+Storage Memory Location: 在CPU. 所以要 move 𝐻 𝑚 to CPU device;?
+
+We also note that each of the keys can be operated on independently, so the main loop in both CacheStore and CacheLookup can be parallelized, given that TGOpt uses a concurrent hash table implementation. We selectively paral- lelize these operations depending on the hardware.  
+
+`    #ifndef tgopt_1t_cache_lookup`  
 
 ### 4.3 Precomputing Time Encodings
 
@@ -85,6 +101,8 @@ speedups of 4.9× on CPU and 2.9× on GPU
 baseline 用TGL.
 
 table5 证明 GPU搬运 embedding很花时间, 所以 存在CPU.   figure5我成功复现了.
+
+
 
 ## 6Related Work
 
