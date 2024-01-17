@@ -10,7 +10,7 @@ Flash-LLM: Enabling Cost-Effective and Highly-Efficient Large Generative Model I
 
  ICML'23 BPipe: Memory-Balanced Pipeline Parallelism for Training Large Language Models  在GPU之间传输 activation. 
 
-FlexGen: High-Throughput Generative Inference of Large Language Models with a Single GPU  , 可以搜索 存储和访问tensor的方式. 
+FlexGen: High-Throughput Generative Inference of Large Language Models with a Single GPU  , 可以搜索 存储和访问tensor的方式.  **GPU端仅仅进行一个Transformer layer的计算，一旦计算完成就对KVcache、激活、weight权重参数进行checkpoint，也是流水化overlapping的将数据转移到CPU DRAM和磁盘**   推理延迟已经拉长到3.3个小时了（这也限制它的使用场景，仅适合离线批量计算场景）对细节的持续思考（比如进一步量化压缩改进CPU-GPU访存带宽、设计自动方法寻找最优的优化参数）来改进系统
 
 GPipe 可以解决单卡显存不足的问题。 
 
@@ -24,7 +24,7 @@ Megatron-LM的第二篇论文, 给device 1分配 层1\2\9\10, 而不是1-4层, �
 
 
 
-SHEPHERD: Serving DNNs in the Wild , nsdi 2023 , 一作张弘. 延迟要求: 50-500ms
+SHEPHERD: Serving DNNs in the Wild , nsdi 2023 , 一作张弘. 延迟要求: 50-500ms 
 
 NSDI 2023有哪些值得关注的文章？ - 孙挺Sunt的回答 - 知乎
 https://www.zhihu.com/question/543376768/answer/3119939466
