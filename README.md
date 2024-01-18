@@ -8,15 +8,8 @@ Lectures can be found here [CS224W: Machine Learning with Graphs Video Lectures]
 
 我的笔记 ：斯坦福cs224w图机器学习课程lec1-8笔记  https://zhuanlan.zhihu.com/p/479505721
 
-
-Literature ： 
-https://docs.google.com/document/d/1WXY1e7Ij9MUd2juXUkNdE8TdTpAqx3pwETMZQTj2rYE/edit?usp=sharing
-
-
-
 Visualiztion:  https://distill.pub/2021/gnn-intro/ . 
 
-http://web.stanford.edu/class/cs224w/  
 colab答案https://github.com/hdvvip/CS224W_Winter2021 
 
 https://sands.kaust.edu.sa/classes/CS294E/F21/schedule.html

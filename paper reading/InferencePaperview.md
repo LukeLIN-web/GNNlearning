@@ -1,8 +1,30 @@
 https://jeongseob.github.io/readings_mlsys.html
 
-### SHEPHERD: Serving DNNs in the Wild
+Flash-LLM: Enabling Cost-Effective and Highly-Efficient Large Generative Model Inference with Unstructured Sparsity  阿里巴巴和悉尼大学的VLDB24
 
-nsdi 2023 , 一作张弘. 延迟要求: 50-500ms
+四个矩阵乘法, 用unstructured weight pruning来降低内存消耗.
+
+先把稀疏的变成dense的. For each iteration, each thread block loads 𝐴𝑇𝑖𝑙𝑒 (shape [𝑀, 𝐾]) in sparse format and 𝐵𝑇𝑖𝑙𝑒 (shape [𝐾, 𝑁]) in dense format from global memory. 𝐴𝑇𝑖𝑙𝑒 is then transformed to dense format with our efficient *Sparse-to-Dense Transformation* strategy.   Finally, each thread block consumes the dense data in shared memory and generates the output tile through tensor core computations.
+
+---
+
+ ICML'23 BPipe: Memory-Balanced Pipeline Parallelism for Training Large Language Models  在GPU之间传输 activation. 
+
+FlexGen: High-Throughput Generative Inference of Large Language Models with a Single GPU  , 可以搜索 存储和访问tensor的方式.  **GPU端仅仅进行一个Transformer layer的计算，一旦计算完成就对KVcache、激活、weight权重参数进行checkpoint，也是流水化overlapping的将数据转移到CPU DRAM和磁盘**   推理延迟已经拉长到3.3个小时了（这也限制它的使用场景，仅适合离线批量计算场景）对细节的持续思考（比如进一步量化压缩改进CPU-GPU访存带宽、设计自动方法寻找最优的优化参数）来改进系统
+
+GPipe 可以解决单卡显存不足的问题。 
+
+PipeDream 通过快速反向传播, 节省显存, 缺点是需要维护多个版本的模型参数, 不适合参数多的LLM模型. 
+
+Megatron-LM的第二篇论文, 给device 1分配 层1\2\9\10, 而不是1-4层, 降低bubble 率. [*Memory*-Efficient *Pipeline*-Parallel DNN Training](https://zhuanlan.zhihu.com/p/650744349)  
+
+
+
+
+
+
+
+SHEPHERD: Serving DNNs in the Wild , nsdi 2023 , 一作张弘. 延迟要求: 50-500ms 
 
 clock work osdi 2020,   online global policy. 
 
@@ -45,6 +67,8 @@ https://arxiv.org/pdf/2309.11071.pdf
 
 方法: 可以Incremental Update。 怎么incremental update？  只fetch 受影响的node。  快了300x， 感觉能中顶会。
 
+tgnn benchmark。
+
 #### 介绍
 
 figure1 说明subgraph construction 占据了50%.
@@ -77,8 +101,6 @@ quiver有 cluster, 三个server,  their scalability becomes limited by these net
 quiver latency 就是测 sample +  to device + forward的时间. thoughtput  就是batch size / 最后的end time- 第一个end time.
 
 ### serving+速的方法
-
-
 
 如果临时输出较大就可以算子融合。 对于dense layer, 可以堆叠batch 处理.
 

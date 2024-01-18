@@ -83,6 +83,8 @@ occupancy定义为**SM上的活跃warp与SM支持的最大活跃warp数之比** 
 
 最好是按照当前计算的TFLOPS和执行时间算出来一个利用率，Occupancy是有其他意义的，不能作为Utilization，SM Instruction也是一样的，重要的是Cuda Core或者Tensor Core这些计算单元的利用率
 
+手动计算The formula is: **Cores x Clock Speed in Hertz x Floating Point Operations per clock cycle / One Trillion**.    TFLOPS其实一般是自己根据当前的计算算出来的，比如说我们做一个矩阵乘法，MxN, NxK，那一般的话是FlOPS是2MNK
+
 
 
 #### 怎么分析nsys-rep?
