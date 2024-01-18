@@ -4,9 +4,6 @@ https://jeongseob.github.io/readings_mlsys.html
 
 nsdi 2023 , 一作张弘. 延迟要求: 50-500ms
 
-NSDI 2023有哪些值得关注的文章？ - 孙挺Sunt的回答 - 知乎
-https://www.zhihu.com/question/543376768/answer/3119939466
-
 clock work osdi 2020,   online global policy. 
 
 nexus , 周期性的, per-stream policy.
@@ -46,11 +43,7 @@ https://arxiv.org/pdf/2309.11071.pdf
 
 问题: 改了之后再fetch neighbor 内存不够.
 
-方法: 可以Incremental Update。 怎么incremental update？  只fetch 受影响的node。  快了300x， 感觉能中顶会。 
-
-tgnn benchmark。
-
-
+方法: 可以Incremental Update。 怎么incremental update？  只fetch 受影响的node。  快了300x， 感觉能中顶会。
 
 #### 介绍
 
@@ -75,11 +68,6 @@ survey : https://arxiv.org/pdf/2306.14052.pdf   . A Survey on Graph Neural Netwo
 7. **DGI: Easy and Efficient Inference for GNNs** 也就是静态的数据集. 他提出了快速翻译代码到layer wise.和我们是正交的. 
 8. SERVING GRAPH COMPRESSION FOR GRAPH NEURAL NETWORKS 也是静态的数据集. 他们证明acc loss不大. 
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 5dd5f7008f02d81036dc63ce27c4f2931748cb95
 #### GNN serving in a cluster 
 
 好像没有讨论过
