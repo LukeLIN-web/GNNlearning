@@ -67,15 +67,12 @@ https://docs.nvidia.com/nsight-systems/UserGuide/index.html#linux-launch-process
 ```bash
 nsys profile -w true -t cuda,nvtx,cudnn,cublas --force-overwrite true -x true -o wikitgn python train.py --data WIKI --config ./config/TGN.yml
 nsys profile -w true -t cuda,nvtx,cudnn,cublas --force-overwrite true -x true -o ugache python dgl_sample.py  --data WIKI --config ./config/TGN.yml 
-
-nsys profile -w true -t cuda,nvtx,cudnn,cublas  --force-overwrite true -x true -o disttgl torchrun --nnodes=1 --nproc_per_node=2 --rdzv_id=0 --rdzv_backend=c10d train.py --data WIKI --group 1 --minibatch_parallelism 2
+nsys profile -w true -t cuda,nvtx,cudnn,cublas  --force-overwrite true -x true -o disttgl torchrun --nnodes=1 --nproc_per_node=2 --rdzv_id=0 --rdzv_backend=c10d train.py --data WIKI --group 1 --minibatch_parallelism 2 
 ```
 
 nsys-rep 可以在remote server 可视化吗? 
 
 Generated: 没有生成文件是为啥? 你里面都没有Cuda profile API. 没有torch.cuda.cudart().cudaProfilerStart() 就不会开始测. 
-
-
 
 SM Occupancy是什么
 
@@ -85,8 +82,6 @@ occupancy定义为**SM上的活跃warp与SM支持的最大活跃warp数之比** 
 
 手动计算The formula is: **Cores x Clock Speed in Hertz x Floating Point Operations per clock cycle / One Trillion**.    TFLOPS其实一般是自己根据当前的计算算出来的，比如说我们做一个矩阵乘法，MxN, NxK，那一般的话是FlOPS是2MNK
 
-
-
 #### 怎么分析nsys-rep?
 
 分析3个相邻iteration, 
@@ -95,15 +90,11 @@ occupancy定义为**SM上的活跃warp与SM支持的最大活跃warp数之比** 
 
 GPU utilization是要手动计算的, 用了的SM / 总的SM. 不能只看时间的占用率. 
 
-
-
 #### Nsight gui 怎么在容器中启动?
 
 可以本地下载gui , 然后ssh连接
 
 #### cudaprofileapi
-
-
 
 refer:
 

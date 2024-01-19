@@ -18,11 +18,13 @@ PipeDream 通过快速反向传播, 节省显存, 缺点是需要维护多个版
 
 Megatron-LM的第二篇论文, 给device 1分配 层1\2\9\10, 而不是1-4层, 降低bubble 率. [*Memory*-Efficient *Pipeline*-Parallel DNN Training](https://zhuanlan.zhihu.com/p/650744349)  
 
+INFaaS: Automated Model-less Inference Serving  
 
+[FasterTransformer](https://link.zhihu.com/?target=https%3A//github.com/NVIDIA/FasterTransformer) by NVIDIA  层优化：融合进单一kernel；activation cache；重用每一层activate/output的内存buffer；tensor并行和pipeline并行、通信优化；MatMul底层实现方式自动调整；
 
+STI: Turbocharge NLP Inference at the Edge via Elastic Pipelining, ASPLOS 23, University of Virginia  fleix xiaozhu lin.   模型分片。STI 将模型参数作为独立可调的分片进行管理，并分析它们对准确性的重要性。其次，使用预加载缓冲区进行弹性管道规划。STI 实例化 IO/计算管道，并使用一个小缓冲区进行预加载分片，以引导执行，而不会在早期阶段停滞;它根据分片对资源弹性执行的重要性明智地选择、调整和组装分片，从而最大限度地提高推理准确性。   we implement the decompression in separate 200 SLOC of C code using OpenMP
 
-
-
+ 
 
 SHEPHERD: Serving DNNs in the Wild , nsdi 2023 , 一作张弘. 延迟要求: 50-500ms 
 

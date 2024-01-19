@@ -186,7 +186,7 @@ inference  old node.
 | snap-email | 1.6M                             | 41      | 33.8              |
 | snap-msg   | 337K                             | 8.4     | 8.49 (old)        |
 
-
+ datasetTotal num_test_instance   snap-email  49850snap-msg   8976  jodie-mooc  61763  jodie-wiki23621 
 
 提升没有好几倍. 
 
@@ -202,9 +202,9 @@ python train.py -d snap-msg --model tgat --prefix test --opt-all --gpu 0
 python  e2einference.py -d snap-msg  --model tgat  --gpu 0
 py-spy record -o profile.svg -- python benchmark/benchmarktgat.py .py -d jodie-wiki 
 
-python benchmark/benchmarktgat.py -d snap-msg  --model tgat  --gpu 0
+python benchmark/benchmarktgat.py -d jodie-mooc  --model tgat  --gpu 0
 
-nsys profile -w true -t cuda,nvtx,cudnn,cublas --cuda-memory-usage=true --force-overwrite true -x true python benchmark/benchmarktgat.py -d snap-msg
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --cuda-memory-usage=true --force-overwrite true -x true python benchmark/benchmarktgat.py -d jodie-mooc  --model tgat 
 ```
 
 论文里说30秒就infer完成了. 但是我测130s 88s ,  用了 7个CPU, vscode serever/htop要占据一个cpu.
@@ -220,4 +220,14 @@ pos_score 和  neg_score 相加为什么不为1？   因为score不是 probabili
 这个forward和contrast有什么区别? contrast有对于Background的对比. 太奇怪了, 这个forward好像没有用到, tgopt. 
 
 缺点: 他不是end to end 的.
+
+开两个stream没啥用. 
+
+
+
+先 开多个stream, 
+
+然后改tensor ,
+
+最后看看deduplication.
 
