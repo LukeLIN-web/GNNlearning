@@ -131,12 +131,8 @@ TensorPtr Tensor::CopyToExternal{
     Device::Get(working_ctx)->CopyDataFromTo(source->_data, 0, tensor->_data, 0,nbytes, source->_ctx, tensor->_ctx, stream);//copy的话 cpu gpu都有， 看是什么working ctx
   Device::Get(working_ctx)->StreamSync(working_ctx, stream);//StreamSync 应该是gpu 做
   }
-定义了一个enum DeviceType { kMMAP = 0, kCPU = 1, kGPU = 2, kGPU_UM = 3}; 会比较Context 优先级, 好像是哪个优先级大就用哪个设备发起传输.  为啥kmmap 比kcpu还小? 
-    
-    
+定义了一个enum DeviceType { kMMAP = 0, kCPU = 1, kGPU = 2, kGPU_UM =3}; 会比较Context 优先级, 好像是哪个优先级大就用哪个设备发起传输.  为啥kmmap 比kcpu还小? 
 ```
-
-
 
 他是怎么输出求解器的解的呢?  怎么输出placement策略
 
@@ -147,16 +143,15 @@ TensorPtr Tensor::CopyToExternal{
 ```
 bash /tmp/setup_docker.sh
 bash /tmp/setup_docker.gnn.sh
-
 ```
 
 安装挺慢的, 大概需要20分钟-30分钟. 
 
-
-
 ## Gsampler
 
 https://github.com/gsampler9/gSampler
+
+中科大做的。 gSampler 使用通用的 4 步提取-计算-选择-最终确定 （ECSF） 编程模型对图形采样进行建模，提出了一组以矩阵为中心的 API，可以轻松表达复杂的图形采样算法，并结合了数据流中间表示 （IR），用于转换高级 API 代码以实现高效的 GPU 执行。我们证明了使用 gSampler 实现图形采样算法既简单又直观。我们还对 7 种算法、4 个图形数据集和 2 种硬件配置进行了广泛的实验。结果表明，与最先进的基于 GPU 的图形采样系统（如 DGL）相比×，gSampler 引入了 1.14--32.7 的采样加速和 6.54× 的平均加速，这意味着图形学习的总时间减少了 40% 以上
 
 
 
