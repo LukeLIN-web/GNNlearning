@@ -21,3 +21,9 @@ figure3 说明受影响的只有1%. 但是只算 affected area 也要几秒.
 学习  T-gcn: A sampling based streaming graph neural network system with hybrid architecture
 
 随机选时间戳. 
+
+
+
+
+
+GraphTensor: Comprehensive GNN-Acceleration Framework for Efficient Parallel Processing of Massive Datasets

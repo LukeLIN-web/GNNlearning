@@ -164,8 +164,6 @@ tgopt_ext.cpp:1:10: fatal error: tbb/concurrent_unordered_map.h: No such file or
 
 Model tgat, 论文其实训练了tgat的模型
 
-
-
 train时间
 
 | dataset    | size                                                         | cpu(s) | 1gpu(s) |
@@ -179,12 +177,13 @@ train时间
 
 inference  old node. 
 
-| dataset    | size                             | 1gpu(s) | 1gpu(s)  optimize |
-| ---------- | -------------------------------- | ------- | ----------------- |
-| jodie-wiki | 533M  , num_test_instance: 23621 | 22.6,   | 19.0              |
-| jodie-mooc | 39.5M num_test_instance: 61763   | 37.3    | 34.8              |
-| snap-email | 1.6M                             | 41      | 33.8              |
-| snap-msg   | 337K                             | 8.4     | 8.49 (old)        |
+| dataset      | size                           | 1gpu(s) | 1gpu(s)  optimize |
+| ------------ | ------------------------------ | ------- | ----------------- |
+| jodie-wiki   | 533M                           | 22.6,   | 19.0              |
+| jodie-mooc   | 39.5M                          | 37.3    | 34.8              |
+| snap-email   | 1.6M                           | 41      | 33.8              |
+| snap-msg     | 337K                           | 8.4     | 8.49 (old)        |
+| jodie-lastfm | 36.9M    num_instance: 1293103 |         |                   |
 
  datasetTotal num_test_instance   snap-email  49850snap-msg   8976  jodie-mooc  61763  jodie-wiki23621 
 
@@ -199,12 +198,12 @@ python data-process.py -d jodie-wiki 也是数据对齐.
 python inference.py -d snap-email  --model tgat --prefix test --opt-all 
 python inference.py -d snap-msg --model tgat --gpu 0
 python train.py -d snap-msg --model tgat --prefix test --opt-all --gpu 0
-python  e2einference.py -d snap-msg  --model tgat  --gpu 0
+python e2einference.py -d snap-msg  --model tgat  --gpu 0
 py-spy record -o profile.svg -- python benchmark/benchmarktgat.py .py -d jodie-wiki 
 
 python benchmark/benchmarktgat.py -d jodie-mooc  --model tgat  --gpu 0
 
-nsys profile -w true -t cuda,nvtx,cudnn,cublas --cuda-memory-usage=true --force-overwrite true -x true python benchmark/benchmarktgat.py -d jodie-mooc  --model tgat 
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --cuda-memory-usage=true --force-overwrite true -x true python benchmark/benchmarktgat.py -d jodie-mooc --model tgat 
 ```
 
 论文里说30秒就infer完成了. 但是我测130s 88s ,  用了 7个CPU, vscode serever/htop要占据一个cpu.
@@ -222,8 +221,6 @@ pos_score 和  neg_score 相加为什么不为1？   因为score不是 probabili
 缺点: 他不是end to end 的.
 
 开两个stream没啥用. 
-
-
 
 先 开多个stream, 
 
