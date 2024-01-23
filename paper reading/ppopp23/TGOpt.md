@@ -102,8 +102,6 @@ baseline 用TGL.
 
 table5 证明 GPU搬运 embedding很花时间, 所以 存在CPU.   figure5我成功复现了.
 
-
-
 ## 6Related Work
 
 之前有人precomputing a time-encoding lookup table, which is hardcoded to 128 intervals
