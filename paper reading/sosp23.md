@@ -153,8 +153,6 @@ https://github.com/gsampler9/gSampler
 
 中科大做的。 gSampler 使用通用的 4 步提取-计算-选择-最终确定 （ECSF） 编程模型对图形采样进行建模，提出了一组以矩阵为中心的 API，可以轻松表达复杂的图形采样算法，并结合了数据流中间表示 （IR），用于转换高级 API 代码以实现高效的 GPU 执行。我们证明了使用 gSampler 实现图形采样算法既简单又直观。我们还对 7 种算法、4 个图形数据集和 2 种硬件配置进行了广泛的实验。结果表明，与最先进的基于 GPU 的图形采样系统（如 DGL）相比×，gSampler 引入了 1.14--32.7 的采样加速和 6.54× 的平均加速，这意味着图形学习的总时间减少了 40% 以上
 
-
-
 不能控制sample id. 
 
 ### 代码
@@ -163,16 +161,15 @@ https://github.com/gsampler9/gSampler
 
 
 
-
-
 为什么`num_batches = int((batch_size + small_batch_size - 1) / small_batch_size)` 需要两个batch size? 
-
-
-
-
-
-
 
 #### ladies算法
 
 forward GPU 利用率这么低, 为什么? 
+
+
+
+```
+nsys profile -w true -t cuda,nvtx,cudnn,cublas --cuda-memory-usage=true --force-overwrite true -x true python graphsage_e2e.py
+```
+

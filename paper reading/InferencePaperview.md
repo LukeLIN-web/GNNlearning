@@ -18,17 +18,19 @@ PipeDream 通过快速反向传播, 节省显存, 缺点是需要维护多个版
 
 Megatron-LM的第二篇论文, 给device 1分配 层1\2\9\10, 而不是1-4层, 降低bubble 率. [*Memory*-Efficient *Pipeline*-Parallel DNN Training](https://zhuanlan.zhihu.com/p/650744349)  
 
-INFaaS: Automated Model-less Inference Serving  
+INFaaS: Automated Model-less Inference Serving  ,Stanford  , 动态地选择不同属性、大小的模型model-level autoscaling，利用[VM-level horizontal autoscaling]. 
 
 [FasterTransformer](https://link.zhihu.com/?target=https%3A//github.com/NVIDIA/FasterTransformer) by NVIDIA  层优化：融合进单一kernel；activation cache；重用每一层activate/output的内存buffer；tensor并行和pipeline并行、通信优化；MatMul底层实现方式自动调整；
 
-STI: Turbocharge NLP Inference at the Edge via Elastic Pipelining, ASPLOS 23, University of Virginia  fleix xiaozhu lin.   模型分片。STI 将模型参数作为独立可调的分片进行管理，并分析它们对准确性的重要性。其次，使用预加载缓冲区进行弹性管道规划。STI 实例化 IO/计算管道，并使用一个小缓冲区进行预加载分片，以引导执行，而不会在早期阶段停滞;它根据分片对资源弹性执行的重要性明智地选择、调整和组装分片，从而最大限度地提高推理准确性。   we implement the decompression in separate 200 SLOC of C code using OpenMP
+STI: Turbocharge NLP Inference at the Edge via Elastic Pipelining, ASPLOS 23, UVA  fleix xiaozhu lin.   模型分片。STI 将模型参数作为独立可调的分片进行管理，并分析它们对准确性的重要性。其次，使用预加载缓冲区进行弹性管道规划。STI 实例化 IO/计算管道，并使用一个小缓冲区进行预加载分片，以引导执行，而不会在早期阶段停滞;它根据分片对资源弹性执行的重要性明智地选择、调整和组装分片，从而最大限度地提高推理准确性。   we implement the decompression in separate 200 SLOC of C code using OpenMP
 
- 
+Serving DNNs like Clockwork: Performance Predictability from the Bottom Up, osdi 2020,   online global policy. 
+
+ MnnFast: a fast and scalable system architecture for memory-augmented neural networks 为了减少内存带宽消耗，我们提出了一种新的基于列的流式算法，该算法最大限度地减少了数据溢出的大小，并隐藏了大部分片外内存访问开销。其次，为了降低高昂的计算开销，我们提出了一种零跳跃优化来绕过大量的输出计算。最后，为了消除缓存争用，我们提出了一个专门用于高效缓存嵌入矩阵的嵌入缓存 在FPGA上. 
+
+
 
 SHEPHERD: Serving DNNs in the Wild , nsdi 2023 , 一作张弘. 延迟要求: 50-500ms 
-
-clock work osdi 2020,   online global policy. 
 
 nexus , 周期性的, per-stream policy.
 
