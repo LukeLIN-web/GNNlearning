@@ -28,16 +28,6 @@ Serving DNNs like Clockwork: Performance Predictability from the Bottom Up, osdi
 
  MnnFast: a fast and scalable system architecture for memory-augmented neural networks 为了减少内存带宽消耗，我们提出了一种新的基于列的流式算法，该算法最大限度地减少了数据溢出的大小，并隐藏了大部分片外内存访问开销。其次，为了降低高昂的计算开销，我们提出了一种零跳跃优化来绕过大量的输出计算。最后，为了消除缓存争用，我们提出了一个专门用于高效缓存嵌入矩阵的嵌入缓存 在FPGA上. 
 
-
-
-SHEPHERD: Serving DNNs in the Wild , nsdi 2023 , 一作张弘. 延迟要求: 50-500ms 
-
-nexus , 周期性的, per-stream policy.
-
-calculat CV for each group streaming, 100-1000个stream, 就会比较稳定而且可以预测到达pattern.
-
-怎么group呢? 等吗?   在每个group 中 online serving. 
-
 有两种,  forward inference-based (inf-based) approach and backend update based (upd-based) approach. 来更新dynamic graphs.
 
 inf base, 只在收到的时候改变图结构. aligraph.
