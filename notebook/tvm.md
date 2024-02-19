@@ -125,7 +125,18 @@ s[packedB].parallel(bigN) # 没啥用
 
 
 
-lambda不能写这么复杂的函数.  tvm写function.怎么写? 
+
+
+```
+B = te.compute((n,), lambda i: te.sum(A[i, k], axis=k), name="B")
+就是对于每一行i,都做一个lambda, 就是做一个te.sum(A[i, k], axis=k). 根据k来规约.
+他会自动初始化, 做 B[i] = B[i] + A[i][k];
+
+怎么一行行加上去呢。        
+C[k] = te.compute((1, n//2), lambda j:C[k] + m1_delta[j] + m4_delta[j] - m5_delta[j] + m7_delta[j], name="C11")
+如果整个的话,我不确定顺序. 
+
+```
 
 
 
