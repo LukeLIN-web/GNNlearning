@@ -22,22 +22,11 @@ cmake .. -G Ninja
 ninja
 
 默认没有打开llvm编译开关.
-
-
 ```
 
 https://tvm.apache.org/docs/how_to/optimize_operators/opt_gemm.html
 
-一开始是Numpy running time: 0.015463
-Baseline: 1.414840
-
-32 blocking 稳定是0.15,快了10倍. 16 blocking 是0.10,更快了, 64也是  0.10
-
 Vectorization  速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为第一种优化方法[blocking]产生的代码 被编译器自动优化了 相当于做了矢量优化 
-
-T.Broadcast 是啥?  
-
-
 
 ## TIR
 
@@ -65,7 +54,6 @@ A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平.
    B = np.sum(A, axis=1) 好像是把第一维消除的意思. 
   reduce_axis是一个列表,  axis 也是一个列表. 
   reduce_axis是用在B.op, lambda i: te.sum(A[i, k], axis=k)里,  axis是split的时候用. 
-  
 ```
 
 ## tile技术
@@ -77,8 +65,7 @@ tile技术, 太复杂了 , 看不懂了.
 1. 循环优化之循环分块（loop tiling） https://zhuanlan.zhihu.com/p/292539074
 
 2. https://aijishu.com/a/1060000000381408
-
-
+3. 推荐看 https://halide-lang.org/ 
 
 #### reorder
 
@@ -123,20 +110,23 @@ s[C].vectorize(nii)  #可以更快
 s[packedB].parallel(bigN) # 没啥用
 ```
 
+https://tvm.hyper.ai/docs/0.10.0/how_to/te_schedules/compute_reduce/
 
+虽然一次 batch 操作会有多个输出，但它们只能一起调度。 就是说调度一个的时候`s[B0].compute_at(s[C], C.op.axis[0])` 另一个也会做同样的调度.
 
+一个cm1是对的， 但是tuple的时候会报错InternalError: Check failed: (ReduceEqual(reduce, reduce_)) is false: The Reduce inputs of ComputeOp should have the same attribute except value_index 为啥呢。
 
+最笨的办法。你去ReduceEqual里面。把它的每一个condition打出来。 看区别是啥。
 
+func = tvm.build(s, [A, B, out], target=target)
+
+InternalError: Check failed: (!out_dom_map->count(this->reduce_axis[i])) is false:  是为啥? 
+
+之前算了te.sum, 后面不能直接加起来? 不是,  是因为 `k = te.reduce_axis((0, recur), "k")` ， 一个k 同时传入多个te.compute就容易不满足他的assumption check. 同一个句柄认为这两个op不一样, 
+
+```python
+C.op.axis 是[T.iter_var(i, T.Range(0, m), "DataPar", "")]  # 真是抽象啊. 不知道多个axis是啥样的. 
+# axis可以理解为循环
+s[B].compute_at(s[C], C.op.axis[0]) # 实际上是把B的计算移动到C的第一个循环
 ```
-B = te.compute((n,), lambda i: te.sum(A[i, k], axis=k), name="B")
-就是对于每一行i,都做一个lambda, 就是做一个te.sum(A[i, k], axis=k). 根据k来规约.
-他会自动初始化, 做 B[i] = B[i] + A[i][k];
-
-怎么一行行加上去呢。        
-C[k] = te.compute((1, n//2), lambda j:C[k] + m1_delta[j] + m4_delta[j] - m5_delta[j] + m7_delta[j], name="C11")
-如果整个的话,我不确定顺序. 
-
-```
-
-
 
