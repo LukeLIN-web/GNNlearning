@@ -22,6 +22,11 @@ cmake .. -G Ninja
 ninja
 
 默认没有打开llvm编译开关.
+
+# RuntimeError: Distributed package doesn't have NCCL built in
+
+https://download.llamameta.net/*?Policy=eyJTdGF0ZW1lbnQiOlt7InVuaXF1ZV9oYXNoIjoicDIwaWMwNGRkbGVkdDVmMWN1dG5pcm54IiwiUmVzb3VyY2UiOiJodHRwczpcL1wvZG93bmxvYWQubGxhbWFtZXRhLm5ldFwvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTcwODk1ODQxNn19fV19&Signature=F9S62rlAoXtU4woDuX5-jwyQINILB-Jx2m0aly3sdu7DO2T-RQm9G3WR-OpYIXoUQzR213zCskvXCegN3mclhpqccWCHkhxgtcKrBcHZIsxS9PdB7Ynpx-bnRoqAswOKSt9np3wuQsSewfPVBuw0Xvdz9OMgIZpd57vnIlnTlo-57PkrWDBA9KasZFoQzSnrpvmZU0e2bq5mXyn6gv0YUZpxoNqYBgMBV9xIzaFge6wck%7EGKM2FfRkWJpWQ2e6ocncmOtZQofIOksXXTkB9FvYqQI3Y0%7E2m2NZHprwnYkzjpLU6kUcrBsWVrIE9OQp2Dpn69PWw9yb9OSZgSdZ0vmQ__&Key-Pair-Id=K15QRJLYKIFSLZ&Download-Request-ID=1083881392818407
+
 ```
 
 https://tvm.apache.org/docs/how_to/optimize_operators/opt_gemm.html
@@ -29,6 +34,8 @@ https://tvm.apache.org/docs/how_to/optimize_operators/opt_gemm.html
 Vectorization  速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为第一种优化方法[blocking]产生的代码 被编译器自动优化了 相当于做了矢量优化 
 
 ## TIR
+
+tvm很难debug, 肉眼看tir 非常困难.
 
 学习 https://tvm.hyper.ai/docs/how_to/te_schedules/primitive/
 
