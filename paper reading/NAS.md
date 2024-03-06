@@ -20,7 +20,7 @@ weight sharing加速validation的[Efficient Neural Architecture Search via Param
 
 谷歌 [MnasNet: Platform-Aware Neural Architecture Search for Mobile](https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1807.11626)[CVPR'19]用来魔改MobileNetV2里面的layer数/卷积操作/加[attention](https://www.zhihu.com/search?q=attention&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"answer"%2C"sourceId"%3A"922467317"})等等，然后用之前同样的RNN+policy gradient的方式来优化
 
-Once-for-All: Train One Network and Specialize it for Efficient Deployment  ICLR2020 直接train一个大网络，需要哪种网络直接去里面取就可以，将训练过程和搜索的过程解耦开来，相当于只需要train一次。 比较神奇的地方在于训完了之后不需要fine-tune就能取得很好的结果，和progressive shrinking的训练方式相关。如果再fine-tune精度会更高
+Once-for-All: Train One Network and Specialize it for Efficient Deployment  ICLR2020 直接train一个大网络，需要哪种网络直接去里面取就可以，将训练过程和搜索的过程解耦开来，相当于只需要train一次。 比较神奇的地方在于训完了之后不需要fine-tune就能取得很好的结果，和progressive shrinking的训练方式相关。如果再fine-tune精度会更高.
 
 在现在，更多的架构调整其实解决两个问题，更小（从MHA到[MQA](https://www.zhihu.com/search?q=MQA&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"answer"%2C"sourceId"%3A3329996852})到GQA/local attention），更长（[位置编码](https://www.zhihu.com/search?q=位置编码&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"answer"%2C"sourceId"%3A3329996852})）。
 当然也有很多基于架构解决其他问题的工作，解决[hallucination](https://www.zhihu.com/search?q=hallucination&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"answer"%2C"sourceId"%3A3329996852})（个人觉得不够本质），白盒[transformer](https://www.zhihu.com/search?q=transformer&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"answer"%2C"sourceId"%3A3329996852})……
