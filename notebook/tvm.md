@@ -137,3 +137,17 @@ C.op.axis 是[T.iter_var(i, T.Range(0, m), "DataPar", "")]  # 真是抽象啊. �
 s[B].compute_at(s[C], C.op.axis[0]) # 实际上是把B的计算移动到C的第一个循环
 ```
 
+https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
+
+`block = s[B].fuse(x,y)` 在cpu上好像不能加速.`AA = s.cache_read(A,"shared",[B])` 用了反而更慢了. 
+
+不要cache read, 只要cache write.
+
+GPU 有48KB ,可以32KB scratch pad, 16KB cache, 编译器也可以决定划分成32KB的cache. 
+
+CPU  512 bit, 每次取32bit, 可以用cache read 来处理这种情况,但是一般编译器都处理的很好了. 所以cache read没啥用. 
+
+cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就开一个 flatten的 C' 1x256, cache write 回C矩阵. 
+
+
+
