@@ -149,5 +149,11 @@ CPU  512 bit, 每次取32bit, 可以用cache read 来处理这种情况,但是�
 
 cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就开一个 flatten的 C' 1x256, cache write 回C矩阵. 
 
+```
+(a11[i, k*2+1] + a22[i, k]) * (b11[k, j] + b22[k, j]) 是可以的, 但是为啥 
+(atrans[i, k * 4] + atrans[i, k * 4 + 3])就会报错, IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices
+
+```
+
 
 
