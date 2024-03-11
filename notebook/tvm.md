@@ -31,7 +31,7 @@ https://download.llamameta.net/*?Policy=eyJTdGF0ZW1lbnQiOlt7InVuaXF1ZV9oYXNoIjoi
 
 https://tvm.apache.org/docs/how_to/optimize_operators/opt_gemm.html
 
-Vectorization  速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为第一种优化方法[blocking]产生的代码 被编译器自动优化了 相当于做了矢量优化 
+Vectorization  速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为第一种优化方法[blocking]产生的代码 被编译器自动优化了 相当于做了矢量优化 . `s[C].vectorize(ni)`可以加速十几倍. 
 
 ## TIR
 
@@ -95,11 +95,9 @@ print(tvm.lower(s, [A, B, C], simple_mode=True))
 func = tvm.build(s, [A, B, C], target=target, name="mmult")
 ```
 
-
+C.op.axis[0] 和 C.op.axis[1] 区别是啥? 好像 一个是行, 一个是列
 
  `s[packedB].vectorize(littleN)` 没啥用.去掉反而更快. 因为 llvm会帮你做规整的vectorization.
-
-
 
 packing之后好像可以快两倍。 
 
