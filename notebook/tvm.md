@@ -149,3 +149,5 @@ cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就�
 
 
 
+可以把每个中间变量打印出来.
+
