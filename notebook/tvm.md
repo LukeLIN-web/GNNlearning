@@ -63,14 +63,14 @@ A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平.
   reduce_axis是用在B.op, lambda i: te.sum(A[i, k], axis=k)里,  axis是split的时候用. 
 ```
 
-## tile技术
+## tile
 
 tile技术, 太复杂了 , 看不懂了.  
 
 参考
 
-1. 循环优化之循环分块（loop tiling） https://zhuanlan.zhihu.com/p/292539074
-
+1. 循环优化之循环分块（loop tiling） https://zhuanlan.zhihu.com/p/292539074  和
+   https://zhuanlan.zhihu.com/p/403163009
 2. https://aijishu.com/a/1060000000381408
 3. 推荐看 https://halide-lang.org/ 
 
@@ -102,17 +102,9 @@ C.op.axis[0] 和 C.op.axis[1] 区别是啥? 好像 一个是行, 一个是列
 packing之后好像可以快两倍。 
 
 ```python
-# packedB = te.compute(
-#     (N / bn, K, bn), lambda bigN, k, littleN: B[k, bigN * bn + littleN], name="packedB"
-# )
-
-# C = te.compute(
-#     (M, N),
-#     lambda m, n: te.sum(A[m, k] * packedB[n // bn, k, tvm.tir.indexmod(n, bn)], axis=k),
-#     name="C",
-# )
 s[C].vectorize(nii)  #可以更快
 s[packedB].parallel(bigN) # 没啥用
+s[c1].reorder(c1.op.axis[0], c1.op.axis[1],s[c1].op.reduce_axis[0], c1.op.axis[2], c1.op.axis[3]) # reduce axis也是可以reorder的
 ```
 
 https://tvm.hyper.ai/docs/0.10.0/how_to/te_schedules/compute_reduce/
@@ -123,17 +115,34 @@ https://tvm.hyper.ai/docs/0.10.0/how_to/te_schedules/compute_reduce/
 
 最笨的办法。你去ReduceEqual里面。把它的每一个condition打出来。 看区别是啥。
 
-func = tvm.build(s, [A, B, out], target=target)
+#### compute at
+
+```python
+C.op.axis 是[T.iter_var(i, T.Range(0, m), "DataPar", "")]  # 真是抽象啊. 不知道多个axis是啥样的. 
+s[B].compute_at(s[C], C.op.axis[0]) # 可以在一个循环做多个事情.  实际上是把B的计算移动到C的第一个循环, axis可以理解为循环
+s[B].compute_inline() # 可以省掉变量B. 可读性变差, 代码行数变少. 
+s[B].compute_root() #类似于compute at的逆操作, 提回到root.
+```
+
+我懂了, compute at 其实是一个对齐的过程
+
+` (n // block, n // block, block, block),`  
+
+```python
+cm1 (n // block, n // block, n // block, block // 2, block // 2),
+c1  (n // block, n // block, block, block)
+c11  (n // block, n // block, n // block, block // 2, block // 2),
+s[c11].compute_at(s[c1], c1.op.axis[1]) # 就是把前两个对齐
+s[cm1].compute_at(s[c11], c11.op.axis[4]) # 前4个都对齐. 
+```
+
+
+
+
 
 InternalError: Check failed: (!out_dom_map->count(this->reduce_axis[i])) is false:  是为啥? 
 
 之前算了te.sum, 后面不能直接加起来? 不是,  是因为 `k = te.reduce_axis((0, recur), "k")` ， 一个k 同时传入多个te.compute就容易不满足他的assumption check. 同一个句柄认为这两个op不一样, 
-
-```python
-C.op.axis 是[T.iter_var(i, T.Range(0, m), "DataPar", "")]  # 真是抽象啊. 不知道多个axis是啥样的. 
-# axis可以理解为循环
-s[B].compute_at(s[C], C.op.axis[0]) # 实际上是把B的计算移动到C的第一个循环
-```
 
 https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
 
@@ -147,7 +156,36 @@ CPU  512 bit, 每次取32bit, 可以用cache read 来处理这种情况,但是�
 
 cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就开一个 flatten的 C' 1x256, cache write 回C矩阵. 
 
-
-
 可以把每个中间变量打印出来.
+
+你要去看每一个schedule api的语义 .  知道每个api能干什么
+
+怎么reorder reduce轴? 
+
+#### topi
+
+https://tvm.hyper.ai/docs/tutorial/TOPI
+
+```python
+C = topi.sum(A, axis=1) 
+topi.broadcast_add,   topi.broadcast_mul
+topi.nn.softmax(tarray)
+可将 topi.nn.conv2d 和 topi.nn.relu 融合在一起。
+```
+
+### 卷积
+
+https://tvm.apache.org/docs/how_to/optimize_operators/opt_conv_cuda.html 
+
+batch  =1 很快, batch = 128 会很慢, 可能是不能并行. 
+
+cache read没啥用, 因为cpu没有share memory
+
+报错很不友好, TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  不会告诉你没有GPU. 
+
+
+
+
+
+
 
