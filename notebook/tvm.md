@@ -1,3 +1,5 @@
+ansor也是一个 dnn 自动编译器. ion和zhuodan yang他们做的. 
+
 ### 安装
 
 ```bash
