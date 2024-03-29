@@ -1,5 +1,9 @@
 ansor也是一个 dnn 自动编译器. ion和zhuodan yang他们做的. 
 
+tvm 前身halide, 是mit 图形学的教授组, 发明 split这一套抽象.谷歌在用halide.
+
+
+
 ### 安装
 
 ```bash
@@ -56,7 +60,7 @@ T.grid
 也可用 `nparts` 来拆分 axis，它拆分 axis 的方式与 `factor` 相反。  factor是 inner loop 32, nparts是outer part 32. 
 
 ```python
-C.op.axis[0], C.op.axis[1] 为什么没有op.axis[2]?
+C.op.axis[0], C.op.axis[1] 为什么没有op.axis[2]
 A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平. 
    ko, ki = s[C].split(kaxis, factor=kfactor) #因为有k, 所以需要split
    ko, ki = s[C].split(s[C].op.reduce_axis[0], factor=kfactor)  #  op.reduce_axis[0]是什么? 
@@ -187,7 +191,17 @@ cache read没啥用, 因为cpu没有share memory
 
 
 
+怎么在te compute中计算一些中间变量? 定义一个函数即可. 注意参数要对齐数量
 
+```python
+def c1_compute(io, jo): # 注意参数要对齐数量
+	tmp = io +1 # 计算一些中间变量
+	return (
+    )
+  c1 = te.compute((n // block, n // block,), c1_compute)
+```
 
+#### unroll
 
+减少分支预测失败，如果循环体内语句没有数据相关，增加了并发执行的机会，也有利于指令流水线的调度
 
