@@ -2,6 +2,8 @@ ansor也是一个 dnn 自动编译器. ion和zhuodan yang他们做的.
 
 tvm 前身halide, 是mit 图形学的教授组, 发明 split这一套抽象.谷歌在用halide.
 
+毕竟tvm是前llm时代的东西,性能和好用很多时候只能二选一。tvm之前用的是compile到那种小设备上的,比如音箱。llm不能塞这些小设备. 
+
 
 
 ### 安装
