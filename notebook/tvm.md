@@ -24,12 +24,13 @@ conda activate tvm-build
 
 mkdir build
 cp cmake/config.cmake build
+# 默认没有打开llvm编译开关., 把llvm和 metal 设置为ON.
 
 cd build
 cmake .. -G Ninja
 ninja
 
-默认没有打开llvm编译开关.
+
 
 # RuntimeError: Distributed package doesn't have NCCL built in
 
@@ -41,7 +42,7 @@ https://tvm.apache.org/docs/how_to/optimize_operators/opt_gemm.html
 
 Vectorization  速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为第一种优化方法[blocking]产生的代码 被编译器自动优化了 相当于做了矢量优化 . `s[C].vectorize(ni)`可以加速十几倍. 
 
-## TIR
+## TIR语法
 
 tvm很难debug, 肉眼看tir 非常困难.
 
@@ -61,7 +62,24 @@ T.grid
 
 也可用 `nparts` 来拆分 axis，它拆分 axis 的方式与 `factor` 相反。  factor是 inner loop 32, nparts是outer part 32. 
 
+怎么在te compute中计算一些中间变量? 定义一个函数即可. 注意参数要对齐数量
+
 ```python
+def c1_compute(io, jo): # 注意参数要对齐数量
+	tmp = io +1 # 计算一些中间变量
+	return (
+    )
+  c1 = te.compute((n // block, n // block,), c1_compute)
+```
+
+#### reduce 
+
+```python
+B = te.compute((n,), lambda i: te.sum(A[i, k], axis=k), name="B")
+就是对于每一行i,都做一个lambda, 就是做一个te.sum(A[i, k], axis=k). 根据k来规约.
+他会自动初始化, 做 B[i] = B[i] + A[i][k];
+axis的是reduction的, lambda后面的是data parallel的.
+
 C.op.axis[0], C.op.axis[1] 为什么没有op.axis[2]
 A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平. 
    ko, ki = s[C].split(kaxis, factor=kfactor) #因为有k, 所以需要split
@@ -70,6 +88,50 @@ A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平.
   reduce_axis是一个列表,  axis 也是一个列表. 
   reduce_axis是用在B.op, lambda i: te.sum(A[i, k], axis=k)里,  axis是split的时候用. 
 ```
+
+## GPU
+
+报错很不友好, TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  不会告诉你没有GPU. 
+
+https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
+
+`block = s[B].fuse(x,y)` 在cpu上好像不能加速.`AA = s.cache_read(A,"shared",[B])` 用了反而更慢了. 
+
+不要cache read, 只要cache write.
+
+GPU 有48KB ,可以32KB scratch pad, 16KB cache, 编译器也可以决定划分成32KB的cache. 
+
+CPU  512 bit, 每次取32bit, 可以用cache read 来处理这种情况,但是一般编译器都处理的很好了. 所以cache read没啥用. 
+
+cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就开一个 flatten的 C' 1x256, cache write 回C矩阵. 
+
+### 卷积
+
+https://tvm.apache.org/docs/how_to/optimize_operators/opt_conv_cuda.html 
+
+batch  =1 很快, batch = 128 会很慢, 可能是不能并行. 
+
+cache read没啥用, 因为cpu没有share memory
+
+### METAL
+
+苹果 能的。你理论上tvm把target改成metal就行.
+
+https://github.com/octoml/Apple-M1-BERT
+
+https://youtu.be/Jrn2RrwgHAI?si=4-vRAIqCQSSYinxH
+
+```
+tvm._ffi.base.TVMError: Traceback (most recent call last):
+  Did you forget to bind?
+    Variable `C` is directly accessed by host memory (it is not contained in a thread environment or in the function arguments.
+```
+
+因为没有生成计划. 
+
+编译tvm的metal.
+
+
 
 ## tile
 
@@ -132,7 +194,7 @@ s[B].compute_inline() # 可以省掉变量B. 可读性变差, 代码行数变少
 s[B].compute_root() #类似于compute at的逆操作, 提回到root.
 ```
 
-我懂了, compute at 其实是一个对齐的过程
+compute at 其实是一个对齐的过程.
 
 ` (n // block, n // block, block, block),`  
 
@@ -144,25 +206,9 @@ s[c11].compute_at(s[c1], c1.op.axis[1]) # 就是把前两个对齐
 s[cm1].compute_at(s[c11], c11.op.axis[4]) # 前4个都对齐. 
 ```
 
+InternalError: Check failed: (!out_dom_map->count(this->reduce_axis[i])) is false:  是为啥?  之前算了te.sum, 后面不能直接加起来? 不是,  是因为 `k = te.reduce_axis((0, recur), "k")` ， 一个reduce_axis 同时传入多个te.compute就容易不满足他的assumption check. 同一个句柄认为这两个op不一样. 所以要新建多个reduce axis,可以在函数里新建.
 
 
-
-
-InternalError: Check failed: (!out_dom_map->count(this->reduce_axis[i])) is false:  是为啥? 
-
-之前算了te.sum, 后面不能直接加起来? 不是,  是因为 `k = te.reduce_axis((0, recur), "k")` ， 一个k 同时传入多个te.compute就容易不满足他的assumption check. 同一个句柄认为这两个op不一样, 
-
-https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
-
-`block = s[B].fuse(x,y)` 在cpu上好像不能加速.`AA = s.cache_read(A,"shared",[B])` 用了反而更慢了. 
-
-不要cache read, 只要cache write.
-
-GPU 有48KB ,可以32KB scratch pad, 16KB cache, 编译器也可以决定划分成32KB的cache. 
-
-CPU  512 bit, 每次取32bit, 可以用cache read 来处理这种情况,但是一般编译器都处理的很好了. 所以cache read没啥用. 
-
-cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就开一个 flatten的 C' 1x256, cache write 回C矩阵. 
 
 可以把每个中间变量打印出来.
 
@@ -170,7 +216,7 @@ cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就�
 
 怎么reorder reduce轴? 
 
-#### topi
+## topi
 
 https://tvm.hyper.ai/docs/tutorial/TOPI
 
@@ -181,29 +227,17 @@ topi.nn.softmax(tarray)
 可将 topi.nn.conv2d 和 topi.nn.relu 融合在一起。
 ```
 
-### 卷积
-
-https://tvm.apache.org/docs/how_to/optimize_operators/opt_conv_cuda.html 
-
-batch  =1 很快, batch = 128 会很慢, 可能是不能并行. 
-
-cache read没啥用, 因为cpu没有share memory
-
-报错很不友好, TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  不会告诉你没有GPU. 
-
-
-
-怎么在te compute中计算一些中间变量? 定义一个函数即可. 注意参数要对齐数量
-
-```python
-def c1_compute(io, jo): # 注意参数要对齐数量
-	tmp = io +1 # 计算一些中间变量
-	return (
-    )
-  c1 = te.compute((n // block, n // block,), c1_compute)
-```
-
-#### unroll
+## unroll
 
 减少分支预测失败，如果循环体内语句没有数据相关，增加了并发执行的机会，也有利于指令流水线的调度
+
+TVM 怎么写递归或者循环呢? 没法写, 只能手工用compute op unroll. 
+
+`te.const(0, "int8")` 但是为什么还是出现了float32?
+
+
+
+
+
+
 
