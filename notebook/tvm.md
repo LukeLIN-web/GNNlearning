@@ -1,8 +1,10 @@
+#### 未来替代
+
 ansor也是一个 dnn 自动编译器. ion和zhuodan yang他们做的. 
 
-tvm 前身halide, 是mit 图形学的教授组, 发明 split这一套抽象.谷歌在用halide.
+tvm 前身halide, 是mit 图形学的教授组, 发明 split这一套抽象.谷歌在用halide. 毕竟tvm是前llm时代的东西,性能和好用很多时候只能二选一。tvm之前用的是compile到那种小设备上的,比如音箱。llm不能塞这些小设备. 
 
-毕竟tvm是前llm时代的东西,性能和好用很多时候只能二选一。tvm之前用的是compile到那种小设备上的,比如音箱。llm不能塞这些小设备. 
+cutlass 是英伟达新官方cpp 模板库, gemm比tvm快很多. 
 
 
 
@@ -113,6 +115,18 @@ batch  =1 很快, batch = 128 会很慢, 可能是不能并行.
 
 cache read没啥用, 因为cpu没有share memory
 
+Cooperative Fetching 好像没啥用,  Memory Hierarchy cache read write 也没啥用, 这些去掉反而更快了,  为什么?
+
+如果不bind block的话, 会非常慢. 
+
+thread_axis最多有几个? 无数个? 还是最多xyz. 那我有超过3个维度怎么办?
+
+
+
+
+
+
+
 ### METAL
 
 苹果 能的。你理论上tvm把target改成metal就行.
@@ -127,9 +141,11 @@ tvm._ffi.base.TVMError: Traceback (most recent call last):
     Variable `C` is directly accessed by host memory (it is not contained in a thread environment or in the function arguments.
 ```
 
-因为没有生成计划. 
+因为没有生成计划.  
 
-编译tvm的metal.
+
+
+
 
 
 
