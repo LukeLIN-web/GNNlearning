@@ -71,3 +71,8 @@ The sample period may be between 1 second and 1/6 second depending on the produc
 RuntimeError: CUDA out of memory. Tried to allocate 318.00 MiB (GPU 0; 15.78 GiB total capacity; 11.61 GiB already allocated; 255.62 MiB free; 11.65 GiB reserved in total by PyTorch) 为什么这样会爆显存呢? 
 ```
 
+
+
+#### GPU虚拟化
+
+ampere 有 MIG，但是不知道对性能影响怎么样. MIG 可以切GPC和 memory. 按GPC graphics processing clusters分. 

@@ -6,21 +6,15 @@ tvm 前身halide, 是mit 图形学的教授组, 发明 split这一套抽象.谷�
 
 cutlass 是英伟达新官方cpp 模板库, gemm比tvm快很多. 
 
-
-
 ### 安装
 
 ```bash
-git clone --recursive https://github.com/apache/tvm tvm
+git clone --recursive https://github.com/apache/tvm
 
-brew install miniforge
-conda init
-conda create --name tvm python=3.8
-conda activate tvm
-
-或者可以通过conda 直接建依赖
+brew install miniforge # macbook需要
+可以通过conda 直接建依赖
 # Create a conda environment with the dependencies specified by the yaml
-conda env create --file conda/build-environment.yaml# 大概半个多小时.
+conda env create --file conda/build-environment.yaml# m1 半个多小时.服务器15-20分钟. 
 # Activate the created environment
 conda activate tvm-build
 
@@ -32,25 +26,23 @@ cd build
 cmake .. -G Ninja
 ninja
 
-
-
-# RuntimeError: Distributed package doesn't have NCCL built in
-
-https://download.llamameta.net/*?Policy=eyJTdGF0ZW1lbnQiOlt7InVuaXF1ZV9oYXNoIjoicDIwaWMwNGRkbGVkdDVmMWN1dG5pcm54IiwiUmVzb3VyY2UiOiJodHRwczpcL1wvZG93bmxvYWQubGxhbWFtZXRhLm5ldFwvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTcwODk1ODQxNn19fV19&Signature=F9S62rlAoXtU4woDuX5-jwyQINILB-Jx2m0aly3sdu7DO2T-RQm9G3WR-OpYIXoUQzR213zCskvXCegN3mclhpqccWCHkhxgtcKrBcHZIsxS9PdB7Ynpx-bnRoqAswOKSt9np3wuQsSewfPVBuw0Xvdz9OMgIZpd57vnIlnTlo-57PkrWDBA9KasZFoQzSnrpvmZU0e2bq5mXyn6gv0YUZpxoNqYBgMBV9xIzaFge6wck%7EGKM2FfRkWJpWQ2e6ocncmOtZQofIOksXXTkB9FvYqQI3Y0%7E2m2NZHprwnYkzjpLU6kUcrBsWVrIE9OQp2Dpn69PWw9yb9OSZgSdZ0vmQ__&Key-Pair-Id=K15QRJLYKIFSLZ&Download-Request-ID=1083881392818407
-
+conda install conda-forge::ninja不行, pip就可以. 
+# then set python part so we can use in python, refer https://tvm.apache.org/docs/install/from_source.html#tvm-package
 ```
 
-https://tvm.apache.org/docs/how_to/optimize_operators/opt_gemm.html
 
-Vectorization  速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为第一种优化方法[blocking]产生的代码 被编译器自动优化了 相当于做了矢量优化 . `s[C].vectorize(ni)`可以加速十几倍. 
 
 ## TIR语法
 
 tvm很难debug, 肉眼看tir 非常困难.
 
+https://tvm.apache.org/docs/how_to/optimize_operators/opt_gemm.html
+
+Vectorization  速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为产生的代码 被编译器自动优化了 相当于做了矢量优化 .
+
 学习 https://tvm.hyper.ai/docs/how_to/te_schedules/primitive/
 
-T.grid  
+T.grid  的意思:
 
 ```cpp
   // for i_0 in T.serial(2):
@@ -93,6 +85,10 @@ A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平.
 
 ## GPU
 
+在 GPU 上，全局内存的工作方式类似于 CPU 内存。有constant 的内存，它是只读的。还有local 内存，它充当由一小群线程共享的快速暂存器。每个人对这个暂存器内存都有不同的名称。Intel称其为SLM（共享本地内存），Nvidia称其为Shared Memory，AMD称其为LDS（本地数据共享）。Apple 称其为 Tile Memory。为了简单起见，我们将使用 OpenCL 术语，并将其称为本地内存。
+
+
+
 报错很不友好, TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  不会告诉你没有GPU. 
 
 https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
@@ -119,7 +115,9 @@ Cooperative Fetching 好像没啥用,  Memory Hierarchy cache read write 也没�
 
 如果不bind block的话, 会非常慢. 
 
-thread_axis最多有几个? 无数个? 还是最多xyz. 那我有超过3个维度怎么办?
+thread_axis最多有几个? 无数个? 还是最多xyz. 那我有超过3个维度怎么办?是否就不能用GPU加速? 
+
+
 
 
 
@@ -257,3 +255,4 @@ TVM 怎么写递归或者循环呢? 没法写, 只能手工用compute op unroll.
 
 
 
+## Tensorize

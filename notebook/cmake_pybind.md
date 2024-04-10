@@ -8,6 +8,11 @@ cpp修改了, make了之后会在build生成.so , 但是不能直接用, 要重�
 
 1. https://github.com/pybind/pybind11/discussions/4345 
 
+conda环境
+cmake: error while loading shared libraries: librhash.so.0: cannot open shared object file: No such file or directory
+
+conda安装的很老, pip安装比较新. conda基本上只能做环境隔离用, 下载软件都用pip就好.   
+
 #### pybind 入门
 
 ```shell
