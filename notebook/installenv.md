@@ -7,25 +7,28 @@ dockerfile, 非常好用.可以看看经典仓库的dockerfile. 以后建环境�
 几个常用的参数: 
 
 ```cmd
--U, --upgrade Upgrade all specified packages to the newest available version. The handling of dependencies depends on the upgrade-strategy used.
---no-index 可以禁用pypi 
--e, --editable <path/url>
-Install a project in editable mode (i.e. setuptools “develop mode”) from a local project path or a VCS url.
+-U, --upgrade 
+--no-index # 可以禁用pypi 
+-e, --editable <path/url> #Install a project in editable mode 
 ```
-
-https://setuptools.pypa.io/en/latest/setuptools.html setup.py常用
 
 https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#working-in-development-mode  怎么可编辑模式
 
-把egg info删除了, pip list就找不到了. 
+把egg info删除了, pip list就找不到了.  pip安装的包，会以egg或者wheel文件的放在site-package里，egg本质是个zip包，内部的C++会编译成.so文件
 
-conda list 不能识别pip安装的软件.  用mamba会快很多. 
+#### Conda
+
+conda list 不能识别pip安装的软件.  
+
+mamba会快很多. 
+
+https://carpentries-incubator.github.io/introduction-to-conda-for-data-scientists/  conda 从入门到入土. 
 
 #### 安装PyG
 
 https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pyg 官方容器
 
-https://data.pyg.org/whl/ 可以找到对应的. 看别人的代码可以学会很多.
+https://data.pyg.org/whl/ 可以找到对应的. 
 
 ```
 python -c "import torch; print(torch.version.cuda)"
@@ -34,8 +37,6 @@ pip install torch-scatter -f https://data.pyg.org/whl/torch-1.12.0+cu113.html
 pip install torch-sparse -f https://data.pyg.org/whl/torch-1.12.1+cu113.html
 pip install torch-geometric
 ```
-
-https://carpentries-incubator.github.io/introduction-to-conda-for-data-scientists/  conda 从入门到入土. 
 
 卸载sparse重装. 参考 https://github.com/rusty1s/pytorch_scatter/issues/248 要卸载两次. 就是不要直接安装, 手动下载比较稳健.
 
@@ -47,15 +48,9 @@ https://carpentries-incubator.github.io/introduction-to-conda-for-data-scientist
 
 换一个docker . 用官方dockerfile来安装. 
 
-安装成功, 但是所有的quiver_sampler = quiver.pyg.GraphSageSampler(csr_topo, sizes=[25, 10],device=0, mode='GPU')  # Quiver 都会hang住.  因为 V100 编译的二进制机器码不能在A100上跑.
+安装成功, 但是所有的`quiver_sampler = quiver.pyg.GraphSageSampler(csr_topo, sizes=[25, 10],device=0, mode='GPU')  # Quiver` 都会hang住.  因为 V100 编译的二进制机器码不能在A100上跑.  用nvcc编译CUDA需要指定架构号. 所以还是要用和别人一模一样的设备.  GPU的架构 -> 驱动 -> CUDA tool kit -> nvcc -> pytorch 
 
-pip安装的包，会以egg或者wheel文件的放在site-package里，egg本质是个zip包，内部的C++会编译成.so文件
-
-用nvcc编译CUDA需要指定架构号. 所以还是要用和别人一模一样的设备. 
-
-GPU的架构 -> 驱动 -> CUDA tool kit -> nvcc -> pytorch 
-
-#### driver
+#### Nvidia driver
 
 ```shell
 cat /proc/driver/nvidia/version
@@ -91,13 +86,14 @@ dgl 0.7需要 python3.8
 
 ### 源码安装pytorch
 
-目标: 编译https://github.com/K-Wu/pytorch-direct
+编译https://github.com/K-Wu/pytorch-direct
 
 用torch 1.10.0-cuda11.3-cudnn8的镜像, 删除torch 重装. 参考https://malloc-42.github.io/intro/2021/07/25/Installing-PyTorch/
 
-```
+```bash
 conda install numpy ninja pyyaml mkl mkl-include setuptools cmake cffi typing_extensions future six requests dataclasses
-export  $LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+export $LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 确认path有/usr/local/cuda/bin
 ```
 

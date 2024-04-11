@@ -1,12 +1,16 @@
-#### 未来替代
+## 介绍
+
+tvm 前身halide, 是mit 图形学的教授组, 发明 split这一套抽象.谷歌在用halide. 毕竟tvm是前llm时代的东西,性能和好用很多时候只能二选一。tvm之前用的是compile到小设备上, 比如音箱。llm不能运行在这些小设备上. 
+
+### 替代方案
 
 ansor也是一个 dnn 自动编译器. ion和zhuodan yang他们做的. 
 
-tvm 前身halide, 是mit 图形学的教授组, 发明 split这一套抽象.谷歌在用halide. 毕竟tvm是前llm时代的东西,性能和好用很多时候只能二选一。tvm之前用的是compile到那种小设备上的,比如音箱。llm不能塞这些小设备. 
-
 cutlass 是英伟达新官方cpp 模板库, gemm比tvm快很多. 
 
-### 安装
+AITemplate  可以把DNN转换为 into CUDA/ HIP (AMD GPU) C++ code.
+
+## 安装
 
 ```bash
 git clone --recursive https://github.com/apache/tvm
@@ -256,3 +260,13 @@ TVM 怎么写递归或者循环呢? 没法写, 只能手工用compute op unroll.
 
 
 ## Tensorize
+
+
+
+```
+error: expected type
+define i32 @gemv_update(ptr noundef %0, ptr noundef %1, ptr noundef %2, i32 noundef %3, i32 noundef %4, i32 noundef %5) #0 {
+```
+
+
+
