@@ -9,6 +9,16 @@ conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit
 
 
 
+## Programming Model
+
+一个grid可以有多个thread block. On current GPUs, a thread block may contain up to 1024 threads.
+
+
+
+
+
+
+
 #### cpp是怎么编译的
 
 ```bash
@@ -33,7 +43,10 @@ a.out: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically link
 $ldd ./a.out  就可以看缺了哪些库.
 
 $LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/miniconda3/envs/condaexample/lib ldd ./a.out  就可以知道新的库链接关系
-nvcc gemmwmma.cu -o a.out -lcublas -lcurand -arch=sm_80 -L /miniconda3/envs/condaexample/lib # 是不行的,-I 目录：添加头文件搜索路径。 -L 目录：添加静态库文件搜索路径。 -l 库名：链接库文件。
+nvcc gemmwmma.cu -o a.out -lcublas -lcurand -arch=sm_80  # 是不行的,-I 目录：添加头文件搜索路径。 -L 目录：添加库文件搜索路径。 -l 添加需要搜索的库文件, 可以man ld 搜索--library.
+
+
+nvcc gemmwmma.cu -o a.out 
 -L只是告诉编译器去哪儿找so，看里面的符号. 没法告诉ld这件事. 你想hardcode so的路径,也有别的办法. 
 为什么他需要的是libcurand.so.10 不是12?  因为nvcc是cuda12.1
 ```
@@ -68,10 +81,6 @@ LD_LIBRARY_PATH 中的动态链接库拥有被调度的更高的优先级,有同
 ```
 
 
-
-
-
-https://github.com/NVIDIA/cuda-samples 讲解了各个api的例子. 
 
 
 
@@ -146,5 +155,11 @@ https://github.com/NVIDIA-developer-blog/code-samples/blob/master/posts/tensor-c
 
 编译失败, gemmwmma.cu(88): error: name followed by "::" must be a class or namespace name 因为没有指定 `-arch=sm_80`
 
-load_matrix_sync
+#### bank冲突
 
+shared memory, 连续的内存是分摊到每个bank的同一层中. 当同一个 warp 中的不同线程访问一个 bank 中的不同的地址时（访问同一个地址则会发生广播），就会发生 bank 冲突.
+
+## reference
+
+https://github.com/NVIDIA/cuda-samples 讲解了各个api的例子. 
+https://www.zhihu.com/question/26570985/answer/3247401363
