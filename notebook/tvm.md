@@ -10,6 +10,8 @@ cutlass 是英伟达新官方cpp 模板库, gemm比tvm快很多.
 
 AITemplate  可以把DNN转换为 into CUDA/ HIP (AMD GPU) C++ code.
 
+triton在GPU上写的快, 但是不能用在别的设备上. 
+
 ## 安装
 
 ```bash
@@ -91,8 +93,6 @@ A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平.
 
 在 GPU 上，全局内存的工作方式类似于 CPU 内存。有constant 的内存，它是只读的。还有local 内存，它充当由一小群线程共享的快速暂存器。每个人对这个暂存器内存都有不同的名称。Intel称其为SLM（共享本地内存），Nvidia称其为Shared Memory，AMD称其为LDS（本地数据共享）。Apple 称其为 Tile Memory。为了简单起见，我们将使用 OpenCL 术语，并将其称为本地内存。
 
-
-
 报错很不友好, TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  不会告诉你没有GPU. 
 
 https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
@@ -121,14 +121,6 @@ Cooperative Fetching 好像没啥用,  Memory Hierarchy cache read write 也没�
 
 thread_axis最多有几个? 无数个? 还是最多xyz. 那我有超过3个维度怎么办?是否就不能用GPU加速? 
 
-
-
-
-
-
-
-
-
 ### METAL
 
 苹果 能的。你理论上tvm把target改成metal就行.
@@ -144,12 +136,6 @@ tvm._ffi.base.TVMError: Traceback (most recent call last):
 ```
 
 因为没有生成计划.  
-
-
-
-
-
-
 
 ## tile
 
@@ -261,12 +247,26 @@ TVM 怎么写递归或者循环呢? 没法写, 只能手工用compute op unroll.
 
 ## Tensorize
 
-
+可以内联函数.利用硬件的某个指令。
 
 ```
 error: expected type
 define i32 @gemv_update(ptr noundef %0, ptr noundef %1, ptr noundef %2, i32 noundef %3, i32 noundef %4, i32 noundef %5) #0 {
 ```
+
+现在是否有更好的tensorize的方法? 
+
+Tensorize 其实是reduce的 vectorize, 一次vectorize 两个循环.
+
+vnni在tvm标准库中应该有, 去找,在哪里?
+
+tensorize 会把B broadcast , tensorize会找出A B C , 然后plugin进去. 
+
+
+
+
+
+
 
 
 

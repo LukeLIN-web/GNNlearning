@@ -113,13 +113,9 @@ https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html
 
 Similar to how threads in a thread block are guaranteed to be co-scheduled on a streaming multiprocessor, thread blocks in a cluster are also guaranteed to be co-scheduled on a GPU Processing Cluster (GPC) in the GPU.
 
+#### tensorcore cuda
 
-
-
-
-
-
-####  tensorcore cuda
+A100上的tc 可以fp16输入也可以fp32输入. 一代tc甚至只支持fp16xfp16+fp32=fp32. 
 
 https://github.com/Bruce-Lee-LY/cuda_hgemm/blob/10a8a8451f0dcd162b3790045cd7597cb48b8beb/src/wmma/wmma_naive.cu#L17
 
@@ -162,4 +158,8 @@ shared memory, 连续的内存是分摊到每个bank的同一层中. 当同一�
 ## reference
 
 https://github.com/NVIDIA/cuda-samples 讲解了各个api的例子. 
+
+https://github.com/DefTruth/CUDA-Learn-Notes  中文讲解各种例子. 
+
 https://www.zhihu.com/question/26570985/answer/3247401363
+
