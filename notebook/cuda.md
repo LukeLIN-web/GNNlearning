@@ -1,28 +1,22 @@
 ## 安装
 
-```
+```bash
+#conda的方法
 conda create -n condaexample python=3.11 #enter later python version if needed
 conda activate condaexample 
 # Full list at https://anaconda.org/nvidia/cuda-toolkit
 conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit
+
+下载torch cuda版本并不能拥有nvcc
 ```
 
-
-
-## Programming Model
+#### Programming Model
 
 一个grid可以有多个thread block. On current GPUs, a thread block may contain up to 1024 threads.
-
-
-
-
-
-
 
 #### cpp是怎么编译的
 
 ```bash
-
 用find找到缺失的库.  是在~/miniconda3/envs/condaexample/lib/ 里面
 ls /lib/ 里面有所有的cpp标准库. 
 cat /etc/ld.so.conf 里面存了ld的配置文件. 
@@ -84,13 +78,13 @@ LD_LIBRARY_PATH 中的动态链接库拥有被调度的更高的优先级,有同
 
 
 
-
+#### PTX
 
  CUDA instruction set architecture, called *PTX* ,Parallel Thread eXecution
 
-然后再编译成设备相关机器码SASS. [PTX](https://link.zhihu.com/?target=https%3A//docs.nvidia.com/cuda/parallel-thread-execution/index.html)在NVIDIA官网有官方的文档，但是SASS没有，只有一些零散的非官方资料。
+然后再编译成设备相关机器码SASS. [PTX](https://link.zhihu.com/?target=https%3A//docs.nvidia.com/cuda/parallel-thread-execution/index.html)在NVIDIA官网有官方的文档，但是SASS没有，只有一些零散的非官方资料。 
 
-
+the PTX cooperative thread array(CTA) is conceptually and functionally the same as a **block** in CUDA or a **workgroup** in OpenCL.
 
 ```
 __global__ void vector_add(float *out, float *a, float *b, int n) {
@@ -137,8 +131,6 @@ k就是整个, k1是右边,k2是左边.
 
 `__half` 是16bit浮点数. 
 
-
-
 wmma::fragment里面的WMMA_M,WMMA_N,WMMA_K必须是常数，不能是变量
 
 ```bash
@@ -162,4 +154,5 @@ https://github.com/NVIDIA/cuda-samples 讲解了各个api的例子.
 https://github.com/DefTruth/CUDA-Learn-Notes  中文讲解各种例子. 
 
 https://www.zhihu.com/question/26570985/answer/3247401363
+https://www.zhihu.com/question/26570985/answer/3465784970
 

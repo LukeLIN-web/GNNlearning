@@ -1,6 +1,6 @@
 ## 介绍
 
-tvm 前身halide, 是mit 图形学的教授组, 发明 split这一套抽象.谷歌在用halide. 毕竟tvm是前llm时代的东西,性能和好用很多时候只能二选一。tvm之前用的是compile到小设备上, 比如音箱。llm不能运行在这些小设备上. 
+tvm 前身halide, 是mit 图形学的教授组, 发明 split这一套抽象.谷歌在用halide. 毕竟tvm是前llm时代的东西,性能和好用很多时候只能二选一。tvm之前用的是compile到小设备上, 比如音箱。llm不能运行在这些小设备上.  tvm缺点是 debug 极其复杂, 多年积累学习成本高的离谱. 
 
 ### 替代方案
 
@@ -14,29 +14,51 @@ triton在GPU上写的快, 但是不能用在别的设备上.
 
 ## 安装
 
+#### CPU版
+
 ```bash
 git clone --recursive https://github.com/apache/tvm
 
 brew install miniforge # macbook需要
 可以通过conda 直接建依赖
 # Create a conda environment with the dependencies specified by the yaml
-conda env create --file conda/build-environment.yaml# m1 半个多小时.服务器15-20分钟. 
+conda env create --file conda/build-environment.yaml#  mbp半个多小时.服务器15-20分钟. 
+dependencies:
+  - python=3.7 # or 3.8. See https://github.com/apache/tvm/issues/8577 for more details on >= 3.9 您可以使用 3.9，但 TVM 的某些部分可能无法正常工作（例如 hybridscript）。
+  
 # Activate the created environment
 conda activate tvm-build
 
 mkdir build
 cp cmake/config.cmake build
-# 默认没有打开llvm编译开关., 把llvm和 metal 设置为ON.
+# 默认没有打开llvm编译开关, 把llvm和 metal/cuda 设置为ON.
 
 cd build
 cmake .. -G Ninja
 ninja
 
-conda install conda-forge::ninja不行, pip就可以. 
+conda install conda-forge::ninja不行, pip可以. 
 # then set python part so we can use in python, refer https://tvm.apache.org/docs/install/from_source.html#tvm-package
 ```
 
+#### with cuda 
 
+```bash
+conda activate tvm-build 然后 conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit 会找不到, conda 总是啥也找不到.
+
+试试直接在conda/build-environment.yaml 加上- cuda-toolkit试试
+Found conflicts! Looking for incompatible packages.
+
+conda create -n cu116tvm python=3.10
+conda install nvidia/label/cuda-11.6.0::cuda
+pip install apache-tvm-cu116 -f https://tlcpack.ai/wheels
+conda太慢了. 
+
+cuda环境直接装tvm的话, 不用llvm行不行?会 Warning: Cannot parse Arm(R)-based target features without LLVM support. Segmentation fault (core dumped)
+
+
+$docker pull tlcpack/ci-gpu:20240105-165030-51bdaec6# 会显示没有tvm
+```
 
 ## TIR语法
 
