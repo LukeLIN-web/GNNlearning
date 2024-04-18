@@ -14,6 +14,18 @@ triton在GPU上写的快, 但是不能用在别的设备上.
 
 ## 安装
 
+#### llvm
+
+```bash
+git clone --depth 1 https://github.com/llvm/llvm-project.git
+llvm-as --version
+cd llvm-project
+mkdir build
+cd build 
+cmake ../llvm -G Ninja -DCMAKE_INSTALL_PREFIX=/你的路径/llvm-project/build -DBUILD_SHARED_LIBS=on -DCMAKE_BUILD_TYPE="Debug" -DLLVM_ENABLE_PROJECTS=clang 
+cmake --build . # 此命令在底层运行Ninja，因为我们在配置步骤中告诉了CMake生成Ninja文件。
+```
+
 #### CPU版
 
 ```bash
@@ -44,18 +56,24 @@ conda install conda-forge::ninja不行, pip可以.
 #### with cuda 
 
 ```bash
-conda activate tvm-build 然后 conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit 会找不到, conda 总是啥也找不到.
+成功的方法:
+conda创建一个cuda环境,手动安装tvm和llvm.成功了. 
 
-试试直接在conda/build-environment.yaml 加上- cuda-toolkit试试
+失败的方法:
+conda activate tvm-build 然后 conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit 会找不到, conda 总是啥也找不到. 可以试试用mamba.
+ 一开始build就要指定所有, 否则之后install都是冲突.
+ 试试直接在conda/build-environment.yaml 加上- cuda-toolkit试试, 
 Found conflicts! Looking for incompatible packages.
 
 conda create -n cu116tvm python=3.10
 conda install nvidia/label/cuda-11.6.0::cuda
-pip install apache-tvm-cu116 -f https://tlcpack.ai/wheels
-conda太慢了. 
+pip install apache-tvm-cu116 -f https://tlcpack.ai/wheels 不行, conda太慢了. 
 
-cuda环境直接装tvm的话, 不用llvm行不行?会 Warning: Cannot parse Arm(R)-based target features without LLVM support. Segmentation fault (core dumped)
+cuda环境直接装tvm的话, 不用llvm行不行? 不行, Warning: Cannot parse Arm(R)-based target features without LLVM support. Segmentation fault (core dumped)
 
+config.cmake 有set(USE_LLVM OFF)
+他会被llvm.cmake用到, if(NOT ${USE_LLVM} MATCHES ${IS_FALSE_PATTERN})
+  find_llvm(${USE_LLVM})
 
 $docker pull tlcpack/ci-gpu:20240105-165030-51bdaec6# 会显示没有tvm
 ```
@@ -66,7 +84,7 @@ tvm很难debug, 肉眼看tir 非常困难.
 
 https://tvm.apache.org/docs/how_to/optimize_operators/opt_gemm.html
 
-Vectorization  速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为产生的代码 被编译器自动优化了 相当于做了矢量优化 .
+Vectorization 速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为产生的代码 被编译器自动优化了 相当于做了矢量优化 .
 
 学习 https://tvm.hyper.ai/docs/how_to/te_schedules/primitive/
 
@@ -113,7 +131,7 @@ A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平.
 
 ## GPU
 
-在 GPU 上，全局内存的工作方式类似于 CPU 内存。有constant 的内存，它是只读的。还有local 内存，它充当由一小群线程共享的快速暂存器。每个人对这个暂存器内存都有不同的名称。Intel称其为SLM（共享本地内存），Nvidia称其为Shared Memory，AMD称其为LDS（本地数据共享）。Apple 称其为 Tile Memory。为了简单起见，我们将使用 OpenCL 术语，并将其称为本地内存。
+local 内存，它充当由一小群线程共享的快速暂存器。每个人对这个暂存器内存都有不同的名称。Intel称其为SLM（共享本地内存），Nvidia称其为Shared Memory，AMD称其为LDS（本地数据共享）。Apple 称其为 Tile Memory。为了简单起见，我们将使用 OpenCL 术语，并将其称为本地内存。
 
 报错很不友好, TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  不会告诉你没有GPU. 
 
@@ -123,8 +141,6 @@ https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
 
 不要cache read, 只要cache write.
 
-GPU 有48KB ,可以32KB scratch pad, 16KB cache, 编译器也可以决定划分成32KB的cache. 
-
 CPU  512 bit, 每次取32bit, 可以用cache read 来处理这种情况,但是一般编译器都处理的很好了. 所以cache read没啥用. 
 
 cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就开一个 flatten的 C' 1x256, cache write 回C矩阵. 
@@ -133,19 +149,17 @@ cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就�
 
 https://tvm.apache.org/docs/how_to/optimize_operators/opt_conv_cuda.html 
 
-batch  =1 很快, batch = 128 会很慢, 可能是不能并行. 
+batch = 1 很快, batch = 128 会很慢, 可能是不能并行. 
 
 cache read没啥用, 因为cpu没有share memory
 
-Cooperative Fetching 好像没啥用,  Memory Hierarchy cache read write 也没啥用, 这些去掉反而更快了,  为什么?
-
 如果不bind block的话, 会非常慢. 
 
-thread_axis最多有几个? 无数个? 还是最多xyz. 那我有超过3个维度怎么办?是否就不能用GPU加速? 
+thread_axis最多有几个? 还是最多xyz. 那我有超过3个维度怎么办? 就只能控制其中3个维度.
 
 ### METAL
 
-苹果 能的。你理论上tvm把target改成metal就行.
+Cooperative Fetching 好像没啥用,  Memory Hierarchy cache read write 也没啥用, 这些去掉反而更快了,  为什么? 因为meta内存模型和cuda不同
 
 https://github.com/octoml/Apple-M1-BERT
 
@@ -158,6 +172,30 @@ tvm._ffi.base.TVMError: Traceback (most recent call last):
 ```
 
 因为没有生成计划.  
+
+#### Virtual Thread
+
+是什么? 
+
+陈天奇说是we create inner-most serial loops to simulate concurrent execution of the threads. Because vthread executes in the same thread, the vthread lowering will perform optimization to detect sharable computation among different vthread and only compute once.
+
+Such compound effect is useful to create shared stridded access patterns such as those in gemm
+
+但是还是看不太懂.  
+
+不用管它.就没啥用. 
+
+#### A100
+
+tvm/src/target/parsers/aprofile.cc:118: Warning: Cannot parse Arm(R)-based target features without LLVM support.
+
+Segmentation fault (core dumped) `func = tvm.build(s, [A, W, B], "cuda")`
+
+还是要装llvm.  因为main 还是llvm写的.
+
+可以 get source.  cpu 会get到llvm module, 这个module 直接就是它的host. 
+
+get  imported module才是cuda kernel 的module, 对这个module get source可以拿到cuda 的source. 
 
 ## tile
 
@@ -172,11 +210,9 @@ tile技术, 太复杂了 , 看不懂了.
 
 #### reorder
 
-为什么会TVMError: Operate on iter var T.iter_var(j_outer, None, "DataPar", "")that has already been split
+TVMError: Operate on iter var T.iter_var(j_outer, None, "DataPar", "")that has already been split. 
 
 因为 你下面的reorder里面有mi & ni ,  但是下面它们已经被拆成nio mio了。
-
-tvm写了一下, 64 效果最好. 写一个 32 x32 , 然后 128 x128, 写了 . 效果不好. 因为没有reorder
 
 ```
 mo,mi = s[C].split(C.op.axis[0], factor=bn)

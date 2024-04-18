@@ -20,10 +20,6 @@ A100, 40 MB L2 cache ,  SRAM就是cache, L1数据高速缓存和共享内存的�
 
 triton怎么写递归呢?  可以matmul_kernel 中调用leak. 但是不能调用自己. 
 
-
-
-
-
 #### 语法
 
 ```python

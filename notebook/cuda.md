@@ -10,6 +10,26 @@ conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit
 下载torch cuda版本并不能拥有nvcc
 ```
 
+#### 内存模型
+
+![](https://github.com/dmlc/web-data/raw/main/tvm/tutorial/gpu_memory_hierarchy.png)
+
+constant memory 是只读的。  scratchpad 也叫 shared memory.
+
+每个SM里有专属的L1cache, shared memory和constant memory
+
+多个SM共享L2 cache. A100  L1 cache 128 KB ,  L2 cache , 2 MB to 6 MB.
+
+GPU 有48KB的l1 cache ,可以32KB scratchpad, 16KB cache, 编译器也可以决定划分成32KB的cache.  cache.大小是会根据编译器变化的？那怎么确定呢
+
+cudaMalloc 是在哪里分配内存? 是在gpu dram.
+
+以`__device__ __shared__`为关键词声明的变量会被分配至SM上的shared memory， 可以由block内的全部线程所共享，生命周期也随着block的结束而结束。
+
+
+
+refer : https://courses.grainger.illinois.edu/cs484/sp2020/24_gpgpus.pdf
+
 #### Programming Model
 
 一个grid可以有多个thread block. On current GPUs, a thread block may contain up to 1024 threads.
@@ -40,7 +60,7 @@ $LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/miniconda3/envs/condaexample/lib ldd ./a.out
 nvcc gemmwmma.cu -o a.out -lcublas -lcurand -arch=sm_80  # 是不行的,-I 目录：添加头文件搜索路径。 -L 目录：添加库文件搜索路径。 -l 添加需要搜索的库文件, 可以man ld 搜索--library.
 
 
-nvcc gemmwmma.cu -o a.out 
+nvcc gemmwmma.cu -o a.out  
 -L只是告诉编译器去哪儿找so，看里面的符号. 没法告诉ld这件事. 你想hardcode so的路径,也有别的办法. 
 为什么他需要的是libcurand.so.10 不是12?  因为nvcc是cuda12.1
 ```
@@ -146,6 +166,25 @@ https://github.com/NVIDIA-developer-blog/code-samples/blob/master/posts/tensor-c
 #### bank冲突
 
 shared memory, 连续的内存是分摊到每个bank的同一层中. 当同一个 warp 中的不同线程访问一个 bank 中的不同的地址时（访问同一个地址则会发生广播），就会发生 bank 冲突.
+
+
+
+cuda怎么生成随机int?
+
+#### 时间测试
+
+cpu 测大部分都是launch kernel的时间了.
+
+launch kernel大概需要150us -250us.  GPU 底层机制分析：kernel launch 开销 - lychee的文章 - 知乎
+https://zhuanlan.zhihu.com/p/544492099
+
+
+
+
+
+#### debug
+
+
 
 ## reference
 

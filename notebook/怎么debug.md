@@ -14,3 +14,16 @@
 #### Cpp
 
 1. Segmentation fault (core dumped) ,gdb python opt_conv_cuda.py 看看. 
+
+
+
+#### python调用cpp断点
+
+可以attach进程  https://zhuanlan.zhihu.com/p/106640360
+
+从 python 进入 c++ 后端的代码，你需要编译时候配置debug 信息，并切爆链接到 debug 版本 so 文件
+c++后端 调试 ： CXXFLAGS <- -g -O0
+cuda 设备代码调试： CUDA_NVCC_FLAGS <- -g;-G;-Xptxas;-dlcm=ca
+
+注意gdb打断点的路径是你编译时候source 文件的绝对路径
+
