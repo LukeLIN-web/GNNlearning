@@ -70,7 +70,7 @@ conda install nvidia/label/cuda-11.6.0::cuda
 pip install apache-tvm-cu116 -f https://tlcpack.ai/wheels 不行, conda太慢了. 
 
 cuda环境直接装tvm的话, 不用llvm行不行? 不行, Warning: Cannot parse Arm(R)-based target features without LLVM support. Segmentation fault (core dumped)
-
+还是要装llvm.  因为main module 还是llvm写的.
 config.cmake 有set(USE_LLVM OFF)
 他会被llvm.cmake用到, if(NOT ${USE_LLVM} MATCHES ${IS_FALSE_PATTERN})
   find_llvm(${USE_LLVM})
@@ -79,6 +79,8 @@ $docker pull tlcpack/ci-gpu:20240105-165030-51bdaec6# 会显示没有tvm
 ```
 
 ## TIR语法
+
+先看 https://www.cnblogs.com/whiteBear/p/16756035.html
 
 tvm很难debug, 肉眼看tir 非常困难.
 
@@ -131,27 +133,35 @@ A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平.
 
 ## GPU
 
-local 内存，它充当由一小群线程共享的快速暂存器。每个人对这个暂存器内存都有不同的名称。Intel称其为SLM（共享本地内存），Nvidia称其为Shared Memory，AMD称其为LDS（本地数据共享）。Apple 称其为 Tile Memory。为了简单起见，我们将使用 OpenCL 术语，并将其称为本地内存。
+#### cache read/write
 
-报错很不友好, TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  不会告诉你没有GPU. 
+那cache_read(Apad, "shared", 和s.cache_write(B, "local")  这个local又是什么呢?
 
-https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
+local是  local registers.
 
-`block = s[B].fuse(x,y)` 在cpu上好像不能加速.`AA = s.cache_read(A,"shared",[B])` 用了反而更慢了. 
+`AA = s.cache_read(A, "shared", [B])`）  会先将A的数据load到shared memory中，然后计算B。在这里，我们需要引入一个stage的概念，一个op对应一个stage，也就是通过cache_read会新增一个stage。
 
-不要cache read, 只要cache write.
+CPU 不要cache read, 只要cache write. cache read没啥用, 因为cpu没有share memory
 
 CPU  512 bit, 每次取32bit, 可以用cache read 来处理这种情况,但是一般编译器都处理的很好了. 所以cache read没啥用. 
 
-cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就开一个 flatten的 C' 1x256, cache write 回C矩阵. 
+cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就开一个 flatten的 C' 1x256, cache write 回memory
 
-### 卷积
+#### Virtual Thread
+
+是什么? 
+
+陈天奇说是we create inner-most serial loops to simulate concurrent execution of the threads. Because vthread executes in the same thread, the vthread lowering will perform optimization to detect sharable computation among different vthread and only compute once.
+
+Such compound effect is useful to create shared stridded access patterns such as those in gemm
+
+但是还是看不太懂.    不用管它.就没啥用. 
+
+#### 卷积
 
 https://tvm.apache.org/docs/how_to/optimize_operators/opt_conv_cuda.html 
 
 batch = 1 很快, batch = 128 会很慢, 可能是不能并行. 
-
-cache read没啥用, 因为cpu没有share memory
 
 如果不bind block的话, 会非常慢. 
 
@@ -165,37 +175,56 @@ https://github.com/octoml/Apple-M1-BERT
 
 https://youtu.be/Jrn2RrwgHAI?si=4-vRAIqCQSSYinxH
 
+### A100
+
+local 内存，它充当由一小群线程共享的快速暂存器。每个人对这个暂存器内存都有不同的名称。Intel称其为SLM（共享本地内存），Nvidia称其为Shared Memory，AMD称其为LDS（本地数据共享）。Apple 称其为 Tile Memory。为了简单起见，我们将使用 OpenCL 术语，并将其称为本地内存。
+
+报错很不友好, TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  不会告诉你没有GPU. 
+
+https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
+
+`block = s[B].fuse(x,y)` 在cpu上好像不能加速.`AA = s.cache_read(A,"shared",[B])` 用了反而更慢了. 
+
+gpu可以用vectorize, 但是只有2. 也可以用unroll。
+
+没装llvm会报错,  tvm/src/target/parsers/aprofile.cc:118: Warning: Cannot parse Arm(R)-based target features without LLVM support.  Segmentation fault (core dumped) `func = tvm.build(s, [A, W, B], "cuda")` 
+
+```python
+ # cpu 会get到llvm module, 这个module 直接就是它的host.  
+ fadd.get_source())
 ```
-tvm._ffi.base.TVMError: Traceback (most recent call last):
-  Did you forget to bind?
-    Variable `C` is directly accessed by host memory (it is not contained in a thread environment or in the function arguments.
+
+Print GPU代码,  imported module才是cuda kernel 的module, 对这个module get source可以拿到cuda 的source代码.
+
+```python
+func = tvm.build(s, [A, B, C], target="cuda")
+dev_module = func.imported_modules[0]
+print(dev_module.get_source())
 ```
 
-因为没有生成计划.  
+一般是外loop bind "blockIdx.x", 内loop bind "threadIdx.x"
 
-#### Virtual Thread
+#### 报错
 
-是什么? 
+InternalError: Check failed: (match) is false: T.iter_var(blockIdx_y, None, "ThreadIndex", "blockIdx.y") domain already inferred, cannot prove their extents are the same 1024 vs 4
 
-陈天奇说是we create inner-most serial loops to simulate concurrent execution of the threads. Because vthread executes in the same thread, the vthread lowering will perform optimization to detect sharable computation among different vthread and only compute once.
+意思是说你bind了这个thread axis两次, 一个是1024一次是4。
 
-Such compound effect is useful to create shared stridded access patterns such as those in gemm
+InternalError: Check failed: iv->iter_type == kDataPar (2 vs. 0) : Can only relayout with in data parallel dimensions
 
-但是还是看不太懂.  
+不知道
 
-不用管它.就没啥用. 
+TVMError: Assert fail: T.tvm_struct_get(A, 0, 10, "int32") == 2, Argument mmult.A.device_type has an unsatisfied constraint: 2 == T.tvm_struct_get(A, 0, 10, "int32")
 
-#### A100
+意思是没有to device, 报错不告诉你要to cuda. 从tvm.nd.array(a)改成了 tvm.nd.array(a,dev)   就对了.
 
-tvm/src/target/parsers/aprofile.cc:118: Warning: Cannot parse Arm(R)-based target features without LLVM support.
 
-Segmentation fault (core dumped) `func = tvm.build(s, [A, W, B], "cuda")`
 
-还是要装llvm.  因为main 还是llvm写的.
+#### tensorcore
 
-可以 get source.  cpu 会get到llvm module, 这个module 直接就是它的host. 
+https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms
 
-get  imported module才是cuda kernel 的module, 对这个module get source可以拿到cuda 的source. 
+ 
 
 ## tile
 

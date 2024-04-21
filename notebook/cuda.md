@@ -94,10 +94,6 @@ LD_LIBRARY_PATH 中的动态链接库拥有被调度的更高的优先级,有同
 
 ```
 
-
-
-
-
 #### PTX
 
  CUDA instruction set architecture, called *PTX* ,Parallel Thread eXecution

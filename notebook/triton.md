@@ -27,3 +27,9 @@ grid = lambda META: (triton.cdiv(n, META['BLOCK_SIZE_N']) * triton.cdiv(n, META[
 懂了, 就是triton.autotune里的
 ```
 
+
+
+refer:
+
+1. Triton Compiler - 花椒拌饭的文章 - 知乎
+   https://zhuanlan.zhihu.com/p/691376998
