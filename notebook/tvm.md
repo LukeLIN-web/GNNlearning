@@ -204,31 +204,32 @@ print(dev_module.get_source())
 
 一般是外loop bind "blockIdx.x", 内loop bind "threadIdx.x"
 
+`thread_x = te.thread_axis((0, num_thread), "threadIdx.x")` 中num_thread是  warp的数量吗? 不是,就是并行度. 类似于split.  
+
 #### 报错
 
-InternalError: Check failed: (match) is false: T.iter_var(blockIdx_y, None, "ThreadIndex", "blockIdx.y") domain already inferred, cannot prove their extents are the same 1024 vs 4
+1. InternalError: Check failed: (match) is false: T.iter_var(blockIdx_y, None, "ThreadIndex", "blockIdx.y") domain already inferred, cannot prove their extents are the same 1024 vs 4
 
 意思是说你bind了这个thread axis两次, 一个是1024一次是4。
 
-InternalError: Check failed: iv->iter_type == kDataPar (2 vs. 0) : Can only relayout with in data parallel dimensions
+2. InternalError: Check failed: iv->iter_type == kDataPar (2 vs. 0) : Can only relayout with in data parallel dimensions
 
 不知道
 
-TVMError: Assert fail: T.tvm_struct_get(A, 0, 10, "int32") == 2, Argument mmult.A.device_type has an unsatisfied constraint: 2 == T.tvm_struct_get(A, 0, 10, "int32")
+3. TVMError: Assert fail: T.tvm_struct_get(A, 0, 10, "int32") == 2, Argument mmult.A.device_type has an unsatisfied constraint: 2 == T.tvm_struct_get(A, 0, 10, "int32")
 
 意思是没有to device, 报错不告诉你要to cuda. 从tvm.nd.array(a)改成了 tvm.nd.array(a,dev)   就对了.
 
+4. 尝试bind reduce轴 ki, `s[C].bind(ki, thread_z)`  ptxas error   : Entry function 'default_function_kernel_1' uses too much shared data (0x10000 bytes, 0xc000 max)
 
+超出共享内存限制.  0xc000 就是 49152 就是 shared memory最大 48K. 
 
 #### tensorcore
 
-https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms
-
- 
+1. https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms
+2.  tvm算子优化schedule（二）--GPU篇 - https://zhuanlan.zhihu.com/p/403370698
 
 ## tile
-
-tile技术, 太复杂了 , 看不懂了.  
 
 参考
 

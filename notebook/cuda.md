@@ -18,7 +18,7 @@ constant memory 是只读的。  scratchpad 也叫 shared memory.
 
 每个SM里有专属的L1cache, shared memory和constant memory
 
-多个SM共享L2 cache. A100  L1 cache 128 KB ,  L2 cache , 2 MB to 6 MB.
+多个SM共享L2 cache. A100  L1 cache 128 KB ,  L2 cache , 2 MB to 6 MB. 
 
 GPU 有48KB的l1 cache ,可以32KB scratchpad, 16KB cache, 编译器也可以决定划分成32KB的cache.  cache.大小是会根据编译器变化的？那怎么确定呢
 
@@ -26,13 +26,17 @@ cudaMalloc 是在哪里分配内存? 是在gpu dram.
 
 以`__device__ __shared__`为关键词声明的变量会被分配至SM上的shared memory， 可以由block内的全部线程所共享，生命周期也随着block的结束而结束。
 
-
-
 refer : https://courses.grainger.illinois.edu/cs484/sp2020/24_gpgpus.pdf
 
 #### Programming Model
 
 一个grid可以有多个thread block. On current GPUs, a thread block may contain up to 1024 threads.
+
+一个*CUDA core*可以执行一个thread，一个SM的*CUDA core*会分成几个*warp* ,由*warp* scheduler负责调度. GPU有几万个cuda core, 但是太小的矩阵几个warp就够了.  
+
+单个block中的所有thread将在同一个SM中执行.
+
+我们在 GPU 可以对各个block执行parallelization，对于block内部的thread可以执行vectorization
 
 #### cpp是怎么编译的
 
@@ -112,7 +116,7 @@ __global__ void vector_add(float *out, float *a, float *b, int n) {
     }
 }
     vector_add<<<1,256>>>(d_out, d_a, d_b, N);
-//一次就有256个同时进行,index = threadIdx.x=0 到index = 255 . blockDim.x = block的大小 = 256
+//一次就有256个线程同时进行,index = threadIdx.x=0 到index = 255 . blockDim.x = 每个block中的线程数 = 256
 
 int tid = blockIdx.x * blockDim.x + threadIdx.x;
 ```
@@ -163,8 +167,6 @@ https://github.com/NVIDIA-developer-blog/code-samples/blob/master/posts/tensor-c
 
 shared memory, 连续的内存是分摊到每个bank的同一层中. 当同一个 warp 中的不同线程访问一个 bank 中的不同的地址时（访问同一个地址则会发生广播），就会发生 bank 冲突.
 
-
-
 cuda怎么生成随机int?
 
 #### 时间测试
@@ -174,13 +176,7 @@ cpu 测大部分都是launch kernel的时间了.
 launch kernel大概需要150us -250us.  GPU 底层机制分析：kernel launch 开销 - lychee的文章 - 知乎
 https://zhuanlan.zhihu.com/p/544492099
 
-
-
-
-
 #### debug
-
-
 
 ## reference
 
