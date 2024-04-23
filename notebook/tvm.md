@@ -133,6 +133,18 @@ A_1 = T.Buffer((1048576,), data=A.data) # loop的buffer 会先展平.
 
 ## GPU
 
+### METAL
+
+Cooperative Fetching 好像没啥用,  Memory Hierarchy cache read write 也没啥用, 这些去掉反而更快了,  为什么? 因为meta内存模型和cuda不同
+
+https://github.com/octoml/Apple-M1-BERT
+
+https://youtu.be/Jrn2RrwgHAI?si=4-vRAIqCQSSYinxH
+
+### A100
+
+local 内存，它充当由一小群线程共享的快速暂存器。每个人对这个暂存器内存都有不同的名称。Intel称其为SLM（共享本地内存），Nvidia称其为Shared Memory，AMD称其为LDS（本地数据共享）。Apple 称其为 Tile Memory。为了简单起见，我们将使用 OpenCL 术语，并将其称为本地内存。
+
 #### cache read/write
 
 那cache_read(Apad, "shared", 和s.cache_write(B, "local")  这个local又是什么呢?
@@ -155,7 +167,7 @@ cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就�
 
 Such compound effect is useful to create shared stridded access patterns such as those in gemm
 
-但是还是看不太懂.    不用管它.就没啥用. 
+但是还是看不太懂.    也有人说不用管它.就没啥用.  可以用来放置bank conflict.
 
 #### 卷积
 
@@ -163,27 +175,11 @@ https://tvm.apache.org/docs/how_to/optimize_operators/opt_conv_cuda.html
 
 batch = 1 很快, batch = 128 会很慢, 可能是不能并行. 
 
-如果不bind block的话, 会非常慢. 
-
 thread_axis最多有几个? 还是最多xyz. 那我有超过3个维度怎么办? 就只能控制其中3个维度.
-
-### METAL
-
-Cooperative Fetching 好像没啥用,  Memory Hierarchy cache read write 也没啥用, 这些去掉反而更快了,  为什么? 因为meta内存模型和cuda不同
-
-https://github.com/octoml/Apple-M1-BERT
-
-https://youtu.be/Jrn2RrwgHAI?si=4-vRAIqCQSSYinxH
-
-### A100
-
-local 内存，它充当由一小群线程共享的快速暂存器。每个人对这个暂存器内存都有不同的名称。Intel称其为SLM（共享本地内存），Nvidia称其为Shared Memory，AMD称其为LDS（本地数据共享）。Apple 称其为 Tile Memory。为了简单起见，我们将使用 OpenCL 术语，并将其称为本地内存。
-
-报错很不友好, TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  不会告诉你没有GPU. 
 
 https://sandeep06011991.github.io/papers/2021-3-10-TVM-Scheduling/
 
-`block = s[B].fuse(x,y)` 在cpu上好像不能加速.`AA = s.cache_read(A,"shared",[B])` 用了反而更慢了. 
+`block = s[B].fuse(x,y)` 在cpu上好像不能加速.
 
 gpu可以用vectorize, 但是只有2. 也可以用unroll。
 
@@ -222,12 +218,64 @@ print(dev_module.get_source())
 
 4. 尝试bind reduce轴 ki, `s[C].bind(ki, thread_z)`  ptxas error   : Entry function 'default_function_kernel_1' uses too much shared data (0x10000 bytes, 0xc000 max)
 
-超出共享内存限制.  0xc000 就是 49152 就是 shared memory最大 48K. 
+超出共享内存限制.  0xc000 就是 49152 就是 shared memory, 在每一个SM里面最大 48K. 
+
+5. TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  
+
+其实是没有GPU. 报错不友好.
 
 #### tensorcore
 
-1. https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms
-2.  tvm算子优化schedule（二）--GPU篇 - https://zhuanlan.zhihu.com/p/403370698
+https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms
+
+```python
+block_row_warps =4 # 每个块包含 2x4 个 warps
+block_col_warps = 2 
+warp_row_tiles = 2 # 每个 warp 调用 4x2 TensorCore 指令, 一个输出是16x16,所以一个warp输出是64x32, 一个block输出刚好128x128.由于共享内存空间的限制，我们一次只加载 2 个块（2x128x128 tile）。
+warp_col_tiles = 4
+chunk = 2
+所有 TensorCore 指令都是 warp 级指令，这意味着 warp 中的所有 32 个线程都应该同时执行此指令.
+使 threadIdx.x extent=32 是解决此问题的最简单方法之一。  extent=32是啥意思? 
+就是 warp_size = 32 
+to, ti = s[AS].split(t, factor=warp_size)
+s[AS].bind(ti, thread_x)
+
+然后，我们可以将 threadIdx.x 绑定到任何循环，但那些直接或间接包含 TensorCore 内部函数的循环除外.
+我们唯一应该做的就是确保 warp 中的所有线程都可以同时调用 TensorCore。
+```
+
+其实就是nc拆成3个轴, block_i, nc ,nci. 他的命名一直叫nc容易让人误会.  block_i 就是 block数量, nc最后是warps的数量, nci是tensorcore 也就是tile的数量. oc 同理. block_j是oc block数量, oc是 output channel warp数量, oci是tile数量.  把oc和nc bind 上thread.
+
+`s[ConvF].compute_at(s[Conv], oc)`, 为什么share memory bind oc warp数量而不是nc warps数量呢? 
+
+Tensorcore, we need to use a special instruction to  Write back from register to global memory (or shared).
+
+
+
+把filter的大小改成1x1然后ic oc(还是height weight? )就是改成你的矩阵的大小。你就可以用conv做mm。反正gemm是conv的一个特殊形式。那这是多大的矩阵? batch size个矩阵? 
+
+
+
+#### TIR gemm
+
+复现https://leiblog.wang/tir-effcient-gemm/ 
+
+0. native gemm,  average time cost of 10 runs = 0.840806 ms, 2554.08 GFLOPS.
+
+tir有 two primitive `compute_at` and `reverse_compute_at` while `te` mixes two primtives into one `compute_at`
+
+`reverse_compute_at` 是 **TVM** 中的一个调度操作，用于将一个消费者块（consumer block）移动到特定循环下，并重新生成由该块引发的循环，以便消费者块消耗的缓冲区区域可以覆盖给定循环下其生产者块产生的区域
+
+- `preserve_unit_loops`：是否保留范围为1的微不足道的循环。
+
+- `index = -1` 表示插入到最后一个可能的插入点；
+- `index = -2` 表示插入到第一个可能的插入点；
+
+
+
+### refer
+
+1.  tvm算子优化schedule（二）--GPU篇 - https://zhuanlan.zhihu.com/p/403370698
 
 ## tile
 
@@ -300,13 +348,16 @@ s[cm1].compute_at(s[c11], c11.op.axis[4]) # 前4个都对齐.
 
 InternalError: Check failed: (!out_dom_map->count(this->reduce_axis[i])) is false:  是为啥?  之前算了te.sum, 后面不能直接加起来? 不是,  是因为 `k = te.reduce_axis((0, recur), "k")` ， 一个reduce_axis 同时传入多个te.compute就容易不满足他的assumption check. 同一个句柄认为这两个op不一样. 所以要新建多个reduce axis,可以在函数里新建.
 
-
-
 可以把每个中间变量打印出来.
 
 你要去看每一个schedule api的语义 .  知道每个api能干什么
 
-怎么reorder reduce轴? 
+怎么reorder reduce轴?  一样的. 
+
+preserve_unit_loops是什么? 
+
+- fused loop will retain any unit loops (loops with a single iteration) from the original loops.
+- Essentially, it ensures that if any of the original loops had a unit iteration (meaning it runs only once), that property is preserved in the fused loop.
 
 ## topi
 

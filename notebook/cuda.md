@@ -176,6 +176,8 @@ cpu 测大部分都是launch kernel的时间了.
 launch kernel大概需要150us -250us.  GPU 底层机制分析：kernel launch 开销 - lychee的文章 - 知乎
 https://zhuanlan.zhihu.com/p/544492099
 
+时间太短的话, 计时函数分辨率有限, 所以可以让他算10遍算总时间. 
+
 #### debug
 
 ## reference
