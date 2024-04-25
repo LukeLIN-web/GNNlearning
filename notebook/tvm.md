@@ -159,6 +159,21 @@ CPU  512 bit, 每次取32bit, 可以用cache read 来处理这种情况,但是�
 
 cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就开一个 flatten的 C' 1x256, cache write 回memory
 
+block , 多个SM 共享share memory, 会有barrier sync一下,  thread级别就是每个SM自己管自己.
+
+share memory 都要bind thread和block.
+
+对cache read不懂, 先做最简单的 A= B, 先fetch到local再fetch到 share. tvm的例子不好, 因为卷积太复杂了. 
+
+#### bind
+
+`thread_x = te.thread_axis("threadIdx.x")`  thread数量是tvm自动选择的.
+
+- 绑定轴到线程轴会影响每个线程使用的寄存器数量。
+- 如果绑定轴增加了寄存器压力（例如由于更多的局部变量或复杂的计算），可能会影响性能。
+
+绑定最里面的yi最快, 因为内存访问是连续的.如果 `xi` 和 `yi` 的范围较大，绑定线程束到这些坐标轴可能导致性能下降。这是因为线程束的数量是有限的，如果范围较大，那么每个线程束需要处理更多的迭代次数，从而导致较长的执行时间。
+
 #### Virtual Thread
 
 是什么? 
@@ -202,6 +217,8 @@ print(dev_module.get_source())
 
 `thread_x = te.thread_axis((0, num_thread), "threadIdx.x")` 中num_thread是  warp的数量吗? 不是,就是并行度. 类似于split.  
 
+可以每个阶段都`write_code(str(tvm.lower(s, [A, B, C], simple_mode=True)), "progress/2.split_i.cu")` 保存一下看差距
+
 #### 报错
 
 1. InternalError: Check failed: (match) is false: T.iter_var(blockIdx_y, None, "ThreadIndex", "blockIdx.y") domain already inferred, cannot prove their extents are the same 1024 vs 4
@@ -223,6 +240,15 @@ print(dev_module.get_source())
 5. TVMError: not implemented .`print(tvm.lower(s, [A,W, B], simple_mode=True))`  
 
 其实是没有GPU. 报错不友好.
+
+6 TVMError: CUDALaunch Error: CUDA_ERROR_INVALID_VALUE
+ grid=(2048,1,1),  block=(2048,1,1)
+
+因为element数量要大于thread数量. 相等都不行. 
+
+7. InternalError: Check failed: (found_attach || stage_attach.size() == 0) is false: Invalid Schedule, cannot find the producer compute(A.shared, body=[A[ax0, ax1]], axis=[T.iter_var(ax0, T.Range(0, 4096), "DataPar", ""), T.iter_var(ax1, T.Range(0, 4096), "DataPar", "")], reduce_axis=[], tag=, attrs={}) along the loop nest specified by compute_at of consumer compute(A.shared.local, body=[A.shared[ax0, ax1]], axis=[T.iter_var(ax0, T.Range(0, 4096), "DataPar", ""), T.iter_var(ax1, T.Range(0, 4096), "DataPar", "")], reduce_axis=[], tag=, attrs={})
+
+loopnest, 循环嵌套, 一般来说一个算子就是一个loopnest, 比如C = te.compute((m, n) 就是两层循环的loopnest.
 
 #### tensorcore
 
@@ -261,6 +287,7 @@ Tensorcore, we need to use a special instruction to  Write back from register to
 复现https://leiblog.wang/tir-effcient-gemm/ 
 
 0. native gemm,  average time cost of 10 runs = 0.840806 ms, 2554.08 GFLOPS.
+1.  block gemm ,  average time cost of 1 runs = 2460.17 ms, 3575.41 GFLOPS.
 
 tir有 two primitive `compute_at` and `reverse_compute_at` while `te` mixes two primtives into one `compute_at`
 
@@ -271,7 +298,9 @@ tir有 two primitive `compute_at` and `reverse_compute_at` while `te` mixes two 
 - `index = -1` 表示插入到最后一个可能的插入点；
 - `index = -2` 表示插入到第一个可能的插入点；
 
+没看懂和普通compute at有啥区别.
 
+`block` in tir but `stage` in te; `lazy mode` in te and `interactive mode` in tir. 交互模式要求在每个步骤中进行验证检查，这意味着操作顺序很重要。但是，TE 使用lazy模式。我们可以改变原语的顺序。 
 
 ### refer
 

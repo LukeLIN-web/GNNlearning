@@ -163,9 +163,15 @@ https://github.com/NVIDIA-developer-blog/code-samples/blob/master/posts/tensor-c
 
 编译失败, gemmwmma.cu(88): error: name followed by "::" must be a class or namespace name 因为没有指定 `-arch=sm_80`
 
+https://mp.weixin.qq.com/s/uvlKg_n0XvTBn4W2WAr3DA
+
+https://mp.weixin.qq.com/s/Gi8ExdfErUkfWu3oRyKvBw
+
 #### bank冲突
 
 shared memory, 连续的内存是分摊到每个bank的同一层中. 当同一个 warp 中的不同线程访问一个 bank 中的不同的地址时（访问同一个地址则会发生广播），就会发生 bank 冲突.
+
+https://zhuanlan.zhihu.com/p/681966685 
 
 cuda怎么生成随机int?
 
@@ -182,10 +188,11 @@ https://zhuanlan.zhihu.com/p/544492099
 
 ## reference
 
-https://github.com/NVIDIA/cuda-samples 讲解了各个api的例子. 
+1. https://github.com/NVIDIA/cuda-samples 讲解了各个api的例子. 
 
-https://github.com/DefTruth/CUDA-Learn-Notes  中文讲解各种例子. 
+2. https://github.com/DefTruth/CUDA-Learn-Notes  中文讲解各种例子. 
 
-https://www.zhihu.com/question/26570985/answer/3247401363
-https://www.zhihu.com/question/26570985/answer/3465784970
+3. https://www.zhihu.com/question/26570985/answer/3247401363
+   https://www.zhihu.com/question/26570985/answer/3465784970
 
+   CUDA练手小项目——Parallel Prefix Sum (Scan) -  https://zhuanlan.zhihu.com/p/661460705
