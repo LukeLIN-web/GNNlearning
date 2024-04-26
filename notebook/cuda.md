@@ -10,11 +10,11 @@ conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit
 下载torch cuda版本并不能拥有nvcc
 ```
 
-#### 内存模型
+### 内存模型
 
 ![](https://github.com/dmlc/web-data/raw/main/tvm/tutorial/gpu_memory_hierarchy.png)
 
-constant memory 是只读的。  scratchpad 也叫 shared memory.
+constant memory 是只读的。  scratchpad 也叫 shared memory. 
 
 每个SM里有专属的L1cache, shared memory和constant memory
 
@@ -24,19 +24,55 @@ GPU 有48KB的l1 cache ,可以32KB scratchpad, 16KB cache, 编译器也可以决
 
 cudaMalloc 是在哪里分配内存? 是在gpu dram.
 
+#### share memory
+
+DDR复制到share memory和share memory写回DDR 都是需要手动操作的. 
+
 以`__device__ __shared__`为关键词声明的变量会被分配至SM上的shared memory， 可以由block内的全部线程所共享，生命周期也随着block的结束而结束。
 
 refer : https://courses.grainger.illinois.edu/cs484/sp2020/24_gpgpus.pdf
 
-#### Programming Model
+### Programming Model
 
-一个grid可以有多个thread block. On current GPUs, a thread block may contain up to 1024 threads.
+从大到小
 
-一个*CUDA core*可以执行一个thread，一个SM的*CUDA core*会分成几个*warp* ,由*warp* scheduler负责调度. GPU有几万个cuda core, 但是太小的矩阵几个warp就够了.  
+硬件: GPU -> SM ->  warp-> cuda core
+
+CUDA:  Grid-> block -> thread 
+
+#### **Grid**
+
+- **Grid** 是一个由多个**线程块（blocks）**组成的二维结构。
+- 当主机CPU上的CUDA程序调用一个**kernel**时，会启动一个**grid**。
+- 每个**线程block**都是**grid**的一部分。
+
+grid_size是用来描述Grid的三个维度的大小。例如，如果一个Grid在每个维度上都有10个 block，则其grid_size为(10, 10, 10)。
+
+#### block
+
+ 一个SM可能有多个block.  On current GPUs, a thread block may contain up to 1024 threads. 一个*CUDA core*可以执行一个thread，
+
+一个SM的*CUDA core*会分成几个*warp* ,由*warp* scheduler负责调度. 但是太小的矩阵几个warp就够了.  
+
+在NVIDIA A100 GPU中，一个SM包含6912个CUDA核心.
 
 单个block中的所有thread将在同一个SM中执行.
 
 我们在 GPU 可以对各个block执行parallelization，对于block内部的thread可以执行vectorization
+
+一个block中一般用128或者256个thread.
+
+"block_size"是每个线程块的大小，通常也是一个由三个整数值组成的元组，用来描述线程块在每个维度上的大小。例如，如果一个线程块在每个维度上都有256个线程，则其block_size为(256, 1, 1)。
+
+#### warp
+
+一个warp是一组连续的线程，通常包含32个线程。这些线程在执行时会以SIMD（单指令多数据）的方式并行执行相同的指令，称为"同步线程束执行"。
+
+Warp tile是在算法设计中，将问题分割成小块，每个块的大小等于一个warp的大小。这种设计可以带来一些优势:
+
+1. **数据并行性**：将问题分解成warp tile可以更好地利用这种并行性，每个warp中的线程可以同时处理一个tile中的不同数据。
+2. **访存效率**：通过让每个warp共享一个内存请求，可以减少访存的总次数。因为warp中的线程通常访问的是连续的内存地址，所以在访存时可以利用缓存的局部性。
+3. **线程同步**：warp内的线程可以非常高效地进行同步，因为它们执行相同的指令。这使得在warp内进行同步操作时，不需要额外的开销。
 
 #### cpp是怎么编译的
 
@@ -183,6 +219,12 @@ launch kernel大概需要150us -250us.  GPU 底层机制分析：kernel launch �
 https://zhuanlan.zhihu.com/p/544492099
 
 时间太短的话, 计时函数分辨率有限, 所以可以让他算10遍算总时间. 
+
+#### 带宽测量
+
+之前用 nvprof, 现在用nsight, 
+
+
 
 #### debug
 
