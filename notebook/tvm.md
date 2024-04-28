@@ -82,8 +82,6 @@ $docker pull tlcpack/ci-gpu:20240105-165030-51bdaec6# 会显示没有tvm
 
 先看 https://www.cnblogs.com/whiteBear/p/16756035.html
 
-tvm很难debug, 肉眼看tir 非常困难.
-
 https://tvm.apache.org/docs/how_to/optimize_operators/opt_gemm.html
 
 Vectorization 速度没有变快.  `C_1[cse_var_1:cse_var_1 + 64] `   是因为产生的代码 被编译器自动优化了 相当于做了矢量优化 .
@@ -113,6 +111,8 @@ def c1_compute(io, jo): # 注意参数要对齐数量
     )
   c1 = te.compute((n // block, n // block,), c1_compute)
 ```
+
+split之后, s[C].op.axis好像不会显示拆开的,还是显示原来的. 
 
 #### reduce 
 
@@ -176,23 +176,13 @@ share好像就是要配合local, 只有share 就效果很差.
 
 绑定最里面的yi最快, 因为内存访问是连续的.如果 `xi` 和 `yi` 的范围较大，绑定线程束到这些坐标轴可能导致性能下降。这是因为线程束的数量是有限的，如果范围较大，那么每个线程束需要处理更多的迭代次数，从而导致较长的执行时间。
 
-AL = s.cache_read(A, "local", [C]) s.cache_write(C, "local") 好像没啥用，可能nvcc已经优化了
-
-share memory 没有reuse, 所以share的没用.  你需要扫描多次, reuse,  同时也可以用nvprof观察.
-
-
-
-
-
 #### Virtual Thread
 
-是什么? 
+是什么? 陈天奇说是we create inner-most serial loops to simulate concurrent execution of the threads. Because vthread executes in the same thread, the vthread lowering will perform optimization to detect sharable computation among different vthread and only compute once.
 
-陈天奇说是we create inner-most serial loops to simulate concurrent execution of the threads. Because vthread executes in the same thread, the vthread lowering will perform optimization to detect sharable computation among different vthread and only compute once.
+Such compound effect is useful to create shared stridded access patterns such as those in gemm. 目的是为了缓解bank conflict.
 
-Such compound effect is useful to create shared stridded access patterns such as those in gemm
-
-但是还是看不太懂.    也有人说不用管它.就没啥用.  可以用来放置bank conflict.
+但是还是看不太懂.    也有教授说不用管它.就没啥用.  
 
 #### 卷积
 
@@ -225,11 +215,7 @@ print(dev_module.get_source())
 
 一般是外loop bind "blockIdx.x", 内loop bind "threadIdx.x"
 
-
-
 `thread_x = te.thread_axis((0, num_thread), "threadIdx.x")` 中num_thread是  warp的数量吗? 不是,就是并行度. 类似于split.  因为一个warp 有32个thread, 所以  threadIdx.x 最好是32的整数.
-
-
 
 可以每个阶段都`write_code(str(tvm.lower(s, [A, B, C], simple_mode=True)), "progress/2.split_i.cu")` 保存一下看差距
 
@@ -258,13 +244,11 @@ print(dev_module.get_source())
 6 TVMError: CUDALaunch Error: CUDA_ERROR_INVALID_VALUE
  grid=(2048,1,1),  block=(2048,1,1)
 
-因为element数量要大于thread数量. 相等都不行. 
+因为单个block里的thread总数 <= 1024.
 
 7. InternalError: Check failed: (found_attach || stage_attach.size() == 0) is false: Invalid Schedule, cannot find the producer compute(A.shared, body=[A[ax0, ax1]], axis=[T.iter_var(ax0, T.Range(0, 4096), "DataPar", ""), T.iter_var(ax1, T.Range(0, 4096), "DataPar", "")], reduce_axis=[], tag=, attrs={}) along the loop nest specified by compute_at of consumer compute(A.shared.local, body=[A.shared[ax0, ax1]], axis=[T.iter_var(ax0, T.Range(0, 4096), "DataPar", ""), T.iter_var(ax1, T.Range(0, 4096), "DataPar", "")], reduce_axis=[], tag=, attrs={})
 
 loopnest, 循环嵌套, 一般来说一个算子就是一个loopnest, 比如C = te.compute((m, n) 就是两层循环的loopnest.
-
-
 
 #### tensorcore
 
@@ -292,11 +276,7 @@ s[AS].bind(ti, thread_x)
 
 Tensorcore, we need to use a special instruction to  Write back from register to global memory (or shared).
 
-
-
 把filter的大小改成1x1然后ic oc(还是height weight? )就是改成你的矩阵的大小。你就可以用conv做mm。反正gemm是conv的一个特殊形式。那这是多大的矩阵? batch size个矩阵? 
-
-
 
 #### TIR gemm
 
@@ -422,12 +402,6 @@ topi.nn.softmax(tarray)
 TVM 怎么写递归或者循环呢? 没法写, 只能手工用compute op unroll. 
 
 `te.const(0, "int8")` 但是为什么还是出现了float32?
-
-
-
-
-
-
 
 ## Tensorize
 

@@ -50,11 +50,13 @@ grid_size是用来描述Grid的三个维度的大小。例如，如果一个Grid
 
 #### block
 
+block size最大可以取1024.
+
  一个SM可能有多个block.  On current GPUs, a thread block may contain up to 1024 threads. 一个*CUDA core*可以执行一个thread，
 
 一个SM的*CUDA core*会分成几个*warp* ,由*warp* scheduler负责调度. 但是太小的矩阵几个warp就够了.  
 
-在NVIDIA A100 GPU中，一个SM包含6912个CUDA核心.
+在NVIDIA A100 GPU中，包含6912个CUDA核心.  一个SM有64个cuda core和4个tensorcore, 108 个SM.
 
 单个block中的所有thread将在同一个SM中执行.
 
@@ -73,6 +75,18 @@ Warp tile是在算法设计中，将问题分割成小块，每个块的大小�
 1. **数据并行性**：将问题分解成warp tile可以更好地利用这种并行性，每个warp中的线程可以同时处理一个tile中的不同数据。
 2. **访存效率**：通过让每个warp共享一个内存请求，可以减少访存的总次数。因为warp中的线程通常访问的是连续的内存地址，所以在访存时可以利用缓存的局部性。
 3. **线程同步**：warp内的线程可以非常高效地进行同步，因为它们执行相同的指令。这使得在warp内进行同步操作时，不需要额外的开销。
+
+只有一个warp是最小并行单位. 不同的warp直接会切换来隐藏延迟. 
+
+https://www.kdocs.cn/l/caT5nb73SO1Z?f=201&share_style=h5_card   可以看figure7. SM的结构.  
+
+a100, 是四个sub partition, 每个partition能放一个warp. warp是有状态的,可以说真正一个clock执行的就4个, 但是准备用来切换的warp是很多的.
+
+For a block whose size is not a multiple of 32, the last warp will be padded with inactive threads to fill up the 32 thread positions.
+
+对于if else,  GPU可能会做两次pass. The cost of divergence是 execution resources that are consumed by the inactive threads in each pass. 不过 From the Volta architecture onwards, the passes may be executed concurrently. 叫做 independent thread scheduling.
+
+就是当一个 warp 中需要进行 global memory access 这类型的耗时操作时，这个 warp 就会被换下，执行其他的 warp； 和 CPU 中的逻辑类似；  因为有这个调度, 所以 A100 GPU, an SM has 64 cores but can have up to 2048 threads assigned to it at the same time.
 
 #### cpp是怎么编译的
 
@@ -207,9 +221,15 @@ https://mp.weixin.qq.com/s/Gi8ExdfErUkfWu3oRyKvBw
 
 shared memory, 连续的内存是分摊到每个bank的同一层中. 当同一个 warp 中的不同线程访问一个 bank 中的不同的地址时（访问同一个地址则会发生广播），就会发生 bank 冲突.
 
-https://zhuanlan.zhihu.com/p/681966685 
-
 cuda怎么生成随机int?
+
+https://on-demand.gputechconf.com/gtc/2018/presentation/s81006-volta-architecture-and-performance-optimization.pdf  66页讲的很清楚. 
+
+友好的方式: 每个线程访问 32bit数据, 每个线程并没有与bank一一对应，但每个线程都会对应一个唯一的bank，也不会产生bank冲突。
+
+访问步长(stride)为2，线性访问方式，造成了线程0与线程16都访问到了bank 0，线程1与线程17都访问到了bank 2...，于是就造成了2路的bank冲突。
+
+当一个warp中的所有线程访问一个bank中的**同一个字(word)地址**时，就会向所有的线程广播这个word，这种情况并不会发生bank冲突。
 
 #### 时间测试
 
@@ -228,13 +248,16 @@ https://zhuanlan.zhihu.com/p/544492099
 
 #### debug
 
+#### vectorize
+
+从global memory读取数据可以使用lgd.128指令，一次读4个float32的数据，从share memory 读取数据，可以用lgs.128. 首先需要从循环中把可以vectorize的shape手动拆出来，再进行向量化
+
+
+
 ## reference
 
 1. https://github.com/NVIDIA/cuda-samples 讲解了各个api的例子. 
-
 2. https://github.com/DefTruth/CUDA-Learn-Notes  中文讲解各种例子. 
+3. https://www.zhihu.com/question/26570985
 
-3. https://www.zhihu.com/question/26570985/answer/3247401363
-   https://www.zhihu.com/question/26570985/answer/3465784970
-
-   CUDA练手小项目——Parallel Prefix Sum (Scan) -  https://zhuanlan.zhihu.com/p/661460705
+4. 强烈建议你看一下massively 那本书,  前6章就好,可以当工具书查,  看完之后看一下b站关于ncu和nsys的分析kernel的视频 https://www.bilibili.com/video/BV13w411o7cu/?vd_source=c8fbfaa03f04095bf6cd95630d210cc5
