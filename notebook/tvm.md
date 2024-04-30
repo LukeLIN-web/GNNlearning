@@ -145,6 +145,8 @@ https://youtu.be/Jrn2RrwgHAI?si=4-vRAIqCQSSYinxH
 
 local 内存，它充当由一小群线程共享的快速暂存器。每个人对这个暂存器内存都有不同的名称。Intel称其为SLM（共享本地内存），Nvidia称其为Shared Memory，AMD称其为LDS（本地数据共享）。Apple 称其为 Tile Memory。为了简单起见，我们将使用 OpenCL 术语，并将其称为本地内存。
 
+https://leiblog.wang/tir-effcient-gemm/ 跟着这个写.  https://zhuanlan.zhihu.com/p/560729749
+
 #### cache read/write
 
 那cache_read(Apad, "shared", 和s.cache_write(B, "local")  这个local又是什么呢?
@@ -223,7 +225,7 @@ print(dev_module.get_source())
 
 1. InternalError: Check failed: (match) is false: T.iter_var(blockIdx_y, None, "ThreadIndex", "blockIdx.y") domain already inferred, cannot prove their extents are the same 1024 vs 4
 
-意思是说你bind了这个thread axis两次, 一个是1024一次是4。
+意思是说你bind了这个blockIdx.y  两次, 但是thread 数量不一致,  一个是1024一次是4。 解决方法:  轴要对齐, 在第几个也要一样, 然后 thread.y 或者blockIdx.y 数量要一样.
 
 2. InternalError: Check failed: iv->iter_type == kDataPar (2 vs. 0) : Can only relayout with in data parallel dimensions
 
@@ -252,7 +254,7 @@ loopnest, 循环嵌套, 一般来说一个算子就是一个loopnest, 比如C = 
 
 #### tensorcore
 
-https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms
+https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms  如何使用TensorCores优化卷积 - 吴建明wujianming的文https://zhuanlan.zhihu.com/p/338608677
 
 ```python
 block_row_warps =4 # 每个块包含 2x4 个 warps
@@ -261,8 +263,9 @@ warp_row_tiles = 2 # 每个 warp 调用 4x2 TensorCore 指令, 一个输出是16
 warp_col_tiles = 4
 chunk = 2
 所有 TensorCore 指令都是 warp 级指令，这意味着 warp 中的所有 32 个线程都应该同时执行此指令.
-使 threadIdx.x extent=32 是解决此问题的最简单方法之一。  extent=32是啥意思? 
-就是 warp_size = 32 
+使 threadIdx.x 范围32 是解决此问题的最简单方法之一。 就是 warp_size = 32, threadIdx.x =32  
+
+warp_size=32, 是为了让 share memory也是32x32 . 方便读取, 解决bank conflict.
 to, ti = s[AS].split(t, factor=warp_size)
 s[AS].bind(ti, thread_x)
 
@@ -277,6 +280,8 @@ s[AS].bind(ti, thread_x)
 Tensorcore, we need to use a special instruction to  Write back from register to global memory (or shared).
 
 把filter的大小改成1x1然后ic oc(还是height weight? )就是改成你的矩阵的大小。你就可以用conv做mm。反正gemm是conv的一个特殊形式。那这是多大的矩阵? batch size个矩阵? 
+
+
 
 #### TIR gemm
 

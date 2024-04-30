@@ -14,9 +14,9 @@ conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit
 
 ![](https://github.com/dmlc/web-data/raw/main/tvm/tutorial/gpu_memory_hierarchy.png)
 
-constant memory 是只读的。  scratchpad 也叫 shared memory. 
+constant memory 是只读的。  scratchpad 也叫 shared memory. shared和local都是scratchpad.
 
-每个SM里有专属的L1cache, shared memory和constant memory
+每个SM里有专属的L1cache, shared memory和constant memory.
 
 多个SM共享L2 cache. A100  L1 cache 128 KB ,  L2 cache , 2 MB to 6 MB. 
 
@@ -31,6 +31,8 @@ DDR复制到share memory和share memory写回DDR 都是需要手动操作的.
 以`__device__ __shared__`为关键词声明的变量会被分配至SM上的shared memory， 可以由block内的全部线程所共享，生命周期也随着block的结束而结束。
 
 refer : https://courses.grainger.illinois.edu/cs484/sp2020/24_gpgpus.pdf
+
+A100 最大48KB
 
 ### Programming Model
 
@@ -185,17 +187,11 @@ https://github.com/Bruce-Lee-LY/cuda_hgemm/blob/10a8a8451f0dcd162b3790045cd7597c
 
 WMMA需要按照每个warp处理 一个WMMA_M * WMMA_N大小的tile的思路来构建，因为Tensor Core的计算层级是warp级别，计算的矩阵元素也是二维的。接下来，与CUDA Core naive的处理思路一致，首先确定当前warp处理矩阵C的[tile坐标](https://www.zhihu.com/search?q=tile坐标&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"620766588"})，声明计算tilie所需的fragment，再以WMMA_K为步长遍历K并直接从global memory中加载所需A、B矩阵tile到fragment参与计算，最后将计算结果从fragment直接写回矩阵C。
 
-mma.h
-
 https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#wmma-description
 
-fragment就是小的 ,16x 16.
-
-k就是整个, k1是右边,k2是左边. 
+fragment就是小的 ,16x 16.  k就是整个, k1是右边,k2是左边. 
 
   `wmma::mma_sync(C_frag, A_frag, B_frag, C_frag);` 就是matrix multiplication and accumulation.
-
-手写一个.
 
 为什么a 是col major， 不是b应该col major吗？
 
@@ -211,11 +207,7 @@ nvcc gemmwmma.cu -o a.out -lcublas -lcurand -arch=sm_80
 
 https://github.com/NVIDIA-developer-blog/code-samples/blob/master/posts/tensor-cores/simpleTensorCoreGEMM.cu
 
-编译失败, gemmwmma.cu(88): error: name followed by "::" must be a class or namespace name 因为没有指定 `-arch=sm_80`
-
-https://mp.weixin.qq.com/s/uvlKg_n0XvTBn4W2WAr3DA
-
-https://mp.weixin.qq.com/s/Gi8ExdfErUkfWu3oRyKvBw
+编译失败, gemmwmma.cu(88): error: name followed by "::" must be a class or namespace name 因为没有指定 `-arch=sm_80`   
 
 #### bank冲突
 
