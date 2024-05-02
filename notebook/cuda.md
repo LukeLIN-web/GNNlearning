@@ -253,3 +253,5 @@ https://zhuanlan.zhihu.com/p/544492099
 3. https://www.zhihu.com/question/26570985
 
 4. 强烈建议你看一下massively 那本书,  前6章就好,可以当工具书查,  看完之后看一下b站关于ncu和nsys的分析kernel的视频 https://www.bilibili.com/video/BV13w411o7cu/?vd_source=c8fbfaa03f04095bf6cd95630d210cc5
+5. [施工中] 在Hopper GPU上实现CuBLAS 90%性能的GEMM - 郑思泽的文章 - 知乎
+   https://zhuanlan.zhihu.com/p/695589046

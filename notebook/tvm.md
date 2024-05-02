@@ -112,7 +112,89 @@ def c1_compute(io, jo): # 注意参数要对齐数量
   c1 = te.compute((n // block, n // block,), c1_compute)
 ```
 
-split之后, s[C].op.axis好像不会显示拆开的,还是显示原来的. 
+即使split之后, s[C].op.axis 依旧不会显示拆开的, 还是原来的.
+
+#### tile
+
+参考
+
+1. 循环优化之循环分块（loop tiling） https://zhuanlan.zhihu.com/p/292539074  和
+   https://zhuanlan.zhihu.com/p/403163009
+2. https://aijishu.com/a/1060000000381408
+3. 推荐看 https://halide-lang.org/  这是tvm的前身.
+
+#### reorder
+
+TVMError: Operate on iter var T.iter_var(j_outer, None, "DataPar", "")that has already been split. 
+
+因为 你下面的reorder里面有mi & ni ,  但是下面它们已经被拆成nio mio了。
+
+```
+mo,mi = s[C].split(C.op.axis[0], factor=bn)
+no,ni = s[C].split(C.op.axis[1], factor=bn)
+ko,ki = s[C].split(s[C].op.reduce_axis[0], factor=bn)
+mio,mii = s[C].split(mi, factor=bn2)
+nio,nii = s[C].split(ni, factor=bn2)
+kio, kii = s[C].split(ki, factor=bn2)
+# s[C].reorder(mo, no,ko, mi, ni, ki)
+s[C].reorder(mo,no,ko, mio,nio,kio, mii, nii,kii)
+print(tvm.lower(s, [A, B, C], simple_mode=True))
+func = tvm.build(s, [A, B, C], target=target, name="mmult")
+```
+
+C.op.axis[0] 和 C.op.axis[1] 区别是啥? 好像 一个是行, 一个是列
+
+ `s[packedB].vectorize(littleN)` 没啥用.去掉反而更快. 因为 llvm会帮你做规整的vectorization.
+
+packing之后好像可以快两倍。 
+
+```python
+s[C].vectorize(nii)  #可以更快
+s[packedB].parallel(bigN) # 没啥用
+s[c1].reorder(c1.op.axis[0], c1.op.axis[1],s[c1].op.reduce_axis[0], c1.op.axis[2], c1.op.axis[3]) # reduce axis也是可以reorder的
+```
+
+https://tvm.hyper.ai/docs/0.10.0/how_to/te_schedules/compute_reduce/
+
+虽然一次 batch 操作会有多个输出，但它们只能一起调度。 就是说调度一个的时候`s[B0].compute_at(s[C], C.op.axis[0])` 另一个也会做同样的调度.
+
+一个cm1是对的， 但是tuple的时候会报错InternalError: Check failed: (ReduceEqual(reduce, reduce_)) is false: The Reduce inputs of ComputeOp should have the same attribute except value_index 为啥呢。
+
+最笨的办法。你去ReduceEqual里面。把它的每一个condition打出来。 看区别是啥。
+
+#### compute at
+
+```python
+C.op.axis 是[T.iter_var(i, T.Range(0, m), "DataPar", "")]  # 真是抽象啊. 不知道多个axis是啥样的. 
+s[B].compute_at(s[C], C.op.axis[0]) # 可以在一个循环做多个事情.  实际上是把B的计算移动到C的第一个循环, axis可以理解为循环
+s[B].compute_inline() # 可以省掉变量B. 可读性变差, 代码行数变少. 
+s[B].compute_root() #类似于compute at的逆操作, 提回到root.
+```
+
+compute at 其实是一个对齐的过程. 比如 `s[ConvF].compute_at(s[Conv], oc) `  ConvF在 compute at之后, 就和Conv一样的轴了, 每个轴都相同. 
+
+` (n // block, n // block, block, block),`  
+
+```python
+cm1 (n // block, n // block, n // block, block // 2, block // 2),
+c1  (n // block, n // block, block, block)
+c11  (n // block, n // block, n // block, block // 2, block // 2),
+s[c11].compute_at(s[c1], c1.op.axis[1]) # 就是把前两个对齐
+s[cm1].compute_at(s[c11], c11.op.axis[4]) # 前4个都对齐. 
+```
+
+InternalError: Check failed: (!out_dom_map->count(this->reduce_axis[i])) is false:  是为啥?  之前算了te.sum, 后面不能直接加起来? 不是,  是因为 `k = te.reduce_axis((0, recur), "k")` ， 一个reduce_axis 同时传入多个te.compute就容易不满足他的assumption check. 同一个句柄认为这两个op不一样. 所以要新建多个reduce axis,可以在函数里新建.
+
+可以把每个中间变量打印出来.
+
+你要去看每一个schedule api的语义 .  知道每个api能干什么
+
+怎么reorder reduce轴?  一样的. 
+
+preserve_unit_loops是什么? 
+
+- fused loop will retain any unit loops (loops with a single iteration) from the original loops.
+- Essentially, it ensures that if any of the original loops had a unit iteration (meaning it runs only once), that property is preserved in the fused loop.
 
 #### reduce 
 
@@ -256,6 +338,10 @@ loopnest, 循环嵌套, 一般来说一个算子就是一个loopnest, 比如C = 
 
 https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms  如何使用TensorCores优化卷积 - 吴建明wujianming的文https://zhuanlan.zhihu.com/p/338608677
 
+我发现github就有 gemm的代码. https://github.com/apache/tvm/blob/6252fa5802c94df522306519da94b874b3a45eda/python/tvm/topi/cuda/batch_matmul_tensorcore.py#L283    
+
+可以参考 batch_matmul_tensorcore.py
+
 ```python
 block_row_warps =4 # 每个块包含 2x4 个 warps
 block_col_warps = 2 
@@ -264,7 +350,6 @@ warp_col_tiles = 4
 chunk = 2
 所有 TensorCore 指令都是 warp 级指令，这意味着 warp 中的所有 32 个线程都应该同时执行此指令.
 使 threadIdx.x 范围32 是解决此问题的最简单方法之一。 就是 warp_size = 32, threadIdx.x =32  
-
 warp_size=32, 是为了让 share memory也是32x32 . 方便读取, 解决bank conflict.
 to, ti = s[AS].split(t, factor=warp_size)
 s[AS].bind(ti, thread_x)
@@ -280,8 +365,6 @@ s[AS].bind(ti, thread_x)
 Tensorcore, we need to use a special instruction to  Write back from register to global memory (or shared).
 
 把filter的大小改成1x1然后ic oc(还是height weight? )就是改成你的矩阵的大小。你就可以用conv做mm。反正gemm是conv的一个特殊形式。那这是多大的矩阵? batch size个矩阵? 
-
-
 
 #### TIR gemm
 
@@ -307,87 +390,7 @@ tir有 two primitive `compute_at` and `reverse_compute_at` while `te` mixes two 
 
 1.  tvm算子优化schedule（二）--GPU篇 - https://zhuanlan.zhihu.com/p/403370698
 
-## tile
-
-参考
-
-1. 循环优化之循环分块（loop tiling） https://zhuanlan.zhihu.com/p/292539074  和
-   https://zhuanlan.zhihu.com/p/403163009
-2. https://aijishu.com/a/1060000000381408
-3. 推荐看 https://halide-lang.org/ 
-
-#### reorder
-
-TVMError: Operate on iter var T.iter_var(j_outer, None, "DataPar", "")that has already been split. 
-
-因为 你下面的reorder里面有mi & ni ,  但是下面它们已经被拆成nio mio了。
-
-```
-mo,mi = s[C].split(C.op.axis[0], factor=bn)
-no,ni = s[C].split(C.op.axis[1], factor=bn)
-ko,ki = s[C].split(s[C].op.reduce_axis[0], factor=bn)
-mio,mii = s[C].split(mi, factor=bn2)
-nio,nii = s[C].split(ni, factor=bn2)
-kio, kii = s[C].split(ki, factor=bn2)
-# s[C].reorder(mo, no,ko, mi, ni, ki)
-s[C].reorder(mo,no,ko, mio,nio,kio, mii, nii,kii)
-print(tvm.lower(s, [A, B, C], simple_mode=True))
-func = tvm.build(s, [A, B, C], target=target, name="mmult")
-```
-
-C.op.axis[0] 和 C.op.axis[1] 区别是啥? 好像 一个是行, 一个是列
-
- `s[packedB].vectorize(littleN)` 没啥用.去掉反而更快. 因为 llvm会帮你做规整的vectorization.
-
-packing之后好像可以快两倍。 
-
-```python
-s[C].vectorize(nii)  #可以更快
-s[packedB].parallel(bigN) # 没啥用
-s[c1].reorder(c1.op.axis[0], c1.op.axis[1],s[c1].op.reduce_axis[0], c1.op.axis[2], c1.op.axis[3]) # reduce axis也是可以reorder的
-```
-
-https://tvm.hyper.ai/docs/0.10.0/how_to/te_schedules/compute_reduce/
-
-虽然一次 batch 操作会有多个输出，但它们只能一起调度。 就是说调度一个的时候`s[B0].compute_at(s[C], C.op.axis[0])` 另一个也会做同样的调度.
-
-一个cm1是对的， 但是tuple的时候会报错InternalError: Check failed: (ReduceEqual(reduce, reduce_)) is false: The Reduce inputs of ComputeOp should have the same attribute except value_index 为啥呢。
-
-最笨的办法。你去ReduceEqual里面。把它的每一个condition打出来。 看区别是啥。
-
-#### compute at
-
-```python
-C.op.axis 是[T.iter_var(i, T.Range(0, m), "DataPar", "")]  # 真是抽象啊. 不知道多个axis是啥样的. 
-s[B].compute_at(s[C], C.op.axis[0]) # 可以在一个循环做多个事情.  实际上是把B的计算移动到C的第一个循环, axis可以理解为循环
-s[B].compute_inline() # 可以省掉变量B. 可读性变差, 代码行数变少. 
-s[B].compute_root() #类似于compute at的逆操作, 提回到root.
-```
-
-compute at 其实是一个对齐的过程.
-
-` (n // block, n // block, block, block),`  
-
-```python
-cm1 (n // block, n // block, n // block, block // 2, block // 2),
-c1  (n // block, n // block, block, block)
-c11  (n // block, n // block, n // block, block // 2, block // 2),
-s[c11].compute_at(s[c1], c1.op.axis[1]) # 就是把前两个对齐
-s[cm1].compute_at(s[c11], c11.op.axis[4]) # 前4个都对齐. 
-```
-
-InternalError: Check failed: (!out_dom_map->count(this->reduce_axis[i])) is false:  是为啥?  之前算了te.sum, 后面不能直接加起来? 不是,  是因为 `k = te.reduce_axis((0, recur), "k")` ， 一个reduce_axis 同时传入多个te.compute就容易不满足他的assumption check. 同一个句柄认为这两个op不一样. 所以要新建多个reduce axis,可以在函数里新建.
-
-可以把每个中间变量打印出来.
-
-你要去看每一个schedule api的语义 .  知道每个api能干什么
-
-怎么reorder reduce轴?  一样的. 
-
-preserve_unit_loops是什么? 
-
-- fused loop will retain any unit loops (loops with a single iteration) from the original loops.
-- Essentially, it ensures that if any of the original loops had a unit iteration (meaning it runs only once), that property is preserved in the fused loop.
+- 
 
 ## topi
 
