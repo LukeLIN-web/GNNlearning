@@ -59,22 +59,22 @@ conda install conda-forge::ninja不行, pip可以.
 成功的方法:
 conda创建一个cuda环境,手动安装tvm和llvm.成功了. 
 
-失败的方法:
-conda activate tvm-build 然后 conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit 会找不到, conda 总是啥也找不到. 可以试试用mamba.
+下面都是失败的方法:
+1. conda activate tvm-build 然后 conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit 会找不到, conda 总是啥也找不到. 可以试试用mamba.
  一开始build就要指定所有, 否则之后install都是冲突.
  试试直接在conda/build-environment.yaml 加上- cuda-toolkit试试, 
 Found conflicts! Looking for incompatible packages.
-
+2. 
 conda create -n cu116tvm python=3.10
 conda install nvidia/label/cuda-11.6.0::cuda
 pip install apache-tvm-cu116 -f https://tlcpack.ai/wheels 不行, conda太慢了. 
-
+3. 
 cuda环境直接装tvm的话, 不用llvm行不行? 不行, Warning: Cannot parse Arm(R)-based target features without LLVM support. Segmentation fault (core dumped)
 还是要装llvm.  因为main module 还是llvm写的.
 config.cmake 有set(USE_LLVM OFF)
 他会被llvm.cmake用到, if(NOT ${USE_LLVM} MATCHES ${IS_FALSE_PATTERN})
   find_llvm(${USE_LLVM})
-
+4. 
 $docker pull tlcpack/ci-gpu:20240105-165030-51bdaec6# 会显示没有tvm
 ```
 
@@ -334,6 +334,14 @@ print(dev_module.get_source())
 
 loopnest, 循环嵌套, 一般来说一个算子就是一个loopnest, 比如C = te.compute((m, n) 就是两层循环的loopnest.
 
+8. InternalError: Check failed: (found) is false: Cannot find the axis T.iter_var(jj_outer_inner, None, "DataPar", "") in parent's leaf_iter_vars parent=stag
+
+因为 `s[AL].compute_at(s[C], ty)` 和`s[AL].compute_at(s[CC], ty)` 是不一样的, C有ty 这个axis, 但是CC没有.
+
+9. s[CC].tensorize(ty, intrin_wmma_gemm()) 显示TVMError: Operate on iter var T.iter_var(jj_outer_inner, None, "DataPar", "")that is not part of the schedule
+
+就是没有这个轴, 得把CC split开. 
+
 #### tensorcore
 
 https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms  如何使用TensorCores优化卷积 - 吴建明wujianming的文https://zhuanlan.zhihu.com/p/338608677
@@ -370,9 +378,6 @@ Tensorcore, we need to use a special instruction to  Write back from register to
 
 复现https://leiblog.wang/tir-effcient-gemm/ 
 
-0. native gemm,  average time cost of 10 runs = 0.840806 ms, 2554.08 GFLOPS.
-1.  block gemm ,  average time cost of 1 runs = 2460.17 ms, 3575.41 GFLOPS.
-
 tir有 two primitive `compute_at` and `reverse_compute_at` while `te` mixes two primtives into one `compute_at`
 
 `reverse_compute_at` 是 **TVM** 中的一个调度操作，用于将一个消费者块（consumer block）移动到特定循环下，并重新生成由该块引发的循环，以便消费者块消耗的缓冲区区域可以覆盖给定循环下其生产者块产生的区域
@@ -389,8 +394,6 @@ tir有 two primitive `compute_at` and `reverse_compute_at` while `te` mixes two 
 ### refer
 
 1.  tvm算子优化schedule（二）--GPU篇 - https://zhuanlan.zhihu.com/p/403370698
-
-- 
 
 ## topi
 
@@ -428,11 +431,13 @@ vnni在tvm标准库中应该有, 去找,在哪里?
 
 tensorize 会把B broadcast , tensorize会找出A B C , 然后plugin进去. 
 
+## debug
 
+tvm/src/driver/ driver.cc里面有
 
+`IRModule mod = ScheduleToModule(std::move(sch), args, name, binds, global_var_supply);`
 
-
-
+加一个  `LOG(INFO) << mod;`就可以看到数组一维化之前的二维数组. 就知道访问内存box 情况.   
 
 
 
