@@ -342,6 +342,10 @@ loopnest, 循环嵌套, 一般来说一个算子就是一个loopnest, 比如C = 
 
 就是没有这个轴, 得把CC split开. 
 
+10. InternalError: Check failed: (mutator.found_attach) is false: did not find attachment point for stage(C.wmma.accumulator,
+
+
+
 #### tensorcore
 
 https://daobook.github.io/tvm/docs/how_to/optimize_operators/opt_conv_tensorcore.html 运行了一下, conv2d with tensor core: 1.191321 ms  如何使用TensorCores优化卷积 - 吴建明wujianming的文https://zhuanlan.zhihu.com/p/338608677
