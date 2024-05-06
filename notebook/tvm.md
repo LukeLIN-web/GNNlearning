@@ -67,6 +67,7 @@ Found conflicts! Looking for incompatible packages.
 2. 
 conda create -n cu116tvm python=3.10
 conda install nvidia/label/cuda-11.6.0::cuda
+conda install llvmdev>=11 不行. conda 啥都识别不了.  
 pip install apache-tvm-cu116 -f https://tlcpack.ai/wheels 不行, conda太慢了. 
 3. 
 cuda环境直接装tvm的话, 不用llvm行不行? 不行, Warning: Cannot parse Arm(R)-based target features without LLVM support. Segmentation fault (core dumped)
@@ -259,6 +260,8 @@ share好像就是要配合local, 只有share 就效果很差.
 - 如果绑定轴增加了寄存器压力（例如由于更多的局部变量或复杂的计算），可能会影响性能。
 
 绑定最里面的yi最快, 因为内存访问是连续的.如果 `xi` 和 `yi` 的范围较大，绑定线程束到这些坐标轴可能导致性能下降。这是因为线程束的数量是有限的，如果范围较大，那么每个线程束需要处理更多的迭代次数，从而导致较长的执行时间。
+
+为什么tvm只bind block也可以? 
 
 #### Virtual Thread
 

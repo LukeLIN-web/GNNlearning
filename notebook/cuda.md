@@ -48,7 +48,9 @@ CUDA:  Grid-> block -> thread
 - 当主机CPU上的CUDA程序调用一个**kernel**时，会启动一个**grid**。
 - 每个**线程block**都是**grid**的一部分。
 
-grid_size是用来描述Grid的三个维度的大小。例如，如果一个Grid在每个维度上都有10个 block，则其grid_size为(10, 10, 10)。
+grid_size是用来描述Grid的三个维度的大小。例如，如果一个Grid在每个维度上都有10个 block，则其grid_size为(10, 10, 10)。 如果只写一个的话, 那就是默认block.x 
+
+` <<<dimGrid, dimBlock>>>`  
 
 #### block
 
@@ -64,13 +66,15 @@ block size最大可以取1024.
 
 我们在 GPU 可以对各个block执行parallelization，对于block内部的thread可以执行vectorization
 
-一个block中一般用128或者256个thread.
+一个block中一般用128或者256个thread. 
 
 "block_size"是每个线程块的大小，通常也是一个由三个整数值组成的元组，用来描述线程块在每个维度上的大小。例如，如果一个线程块在每个维度上都有256个线程，则其block_size为(256, 1, 1)。
 
 #### warp
 
 一个warp是一组连续的线程，通常包含32个线程。这些线程在执行时会以SIMD（单指令多数据）的方式并行执行相同的指令，称为"同步线程束执行"。
+
+单个block里的thread总数 <= 1024.
 
 Warp tile是在算法设计中，将问题分割成小块，每个块的大小等于一个warp的大小。这种设计可以带来一些优势:
 
@@ -145,9 +149,6 @@ nvcc gemmwmma.cu -o a.out --gpu-architecture=compute_80 -lcublas -lcurand
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/linj/miniconda3/envs/condaexample/lib 就可以了.
 普通的$LD_LIBRARY_PATH不全. 
 LD_LIBRARY_PATH 中的动态链接库拥有被调度的更高的优先级,有同名也会用它. 
-
-
-
 ```
 
 #### PTX

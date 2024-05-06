@@ -17,11 +17,7 @@ https://zhuanlan.zhihu.com/p/645251151
 
 怎么测的latency 和吞吐量? 
 
-prompt是哪里输入的? 
-
-Hugging face好像会自动调取. 
-
-
+prompt是哪里输入的?   Hugging face好像会自动调取. 
 
 ## PagedAttention
 
@@ -152,9 +148,9 @@ BGL: GPU-Efficient GNN Training by Optimizing Graph Data I/O and Preprocessing
 
 是否有case, 多个graph同时保存在GPU?
 
-他们的场合很有挑战, 他们会有很多 request, 不能预测多少request, 需要多少内存. 我们的场合都是静态的，内存都是可以计算出来的。
+他们的场合很有挑战, 他们会有很多 request, 不能预测多少request, 需要多少内存. 我们的场合都是静态的，内存都是可以计算出来的。(论文里说了 ,训练都是静态的)
 
-他们是怎么换出的呢? 是LRU还是FIFO? 
+他们是怎么换出的呢? 是LRU还是FIFO? 是否会导致单个request的latency很大? 
 
 他们是怎么快速Detect有哪些Embedding已经在了?
 
