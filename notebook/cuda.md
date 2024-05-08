@@ -14,6 +14,8 @@ conda install -c "nvidia/label/cuda-12.1.1" cuda-toolkit
 
 ![](https://github.com/dmlc/web-data/raw/main/tvm/tutorial/gpu_memory_hierarchy.png)
 
+![](https://assets-global.website-files.com/61dda201f29b7efc52c5fbaf/6501bc80f7c8699c8511c0fc_memory-hierarchy-in-gpus.png)
+
 constant memory 是只读的。  scratchpad 也叫 shared memory. shared和local都是scratchpad.
 
 每个SM里有专属的L1cache, shared memory和constant memory.
@@ -210,9 +212,9 @@ https://github.com/NVIDIA-developer-blog/code-samples/blob/master/posts/tensor-c
 
 编译失败, gemmwmma.cu(88): error: name followed by "::" must be a class or namespace name 因为没有指定 `-arch=sm_80`   
 
-#### bank冲突
+#### bank conflict
 
-shared memory, 连续的内存是分摊到每个bank的同一层中. 当同一个 warp 中的不同线程访问一个 bank 中的不同的地址时（访问同一个地址则会发生广播），就会发生 bank 冲突.
+shared memory, 连续的内存是分摊到每个bank的同一层中. 当同一个 warp 中的不同线程访问一个 bank 中的不同的地址时（访问同一个地址则会发生广播），就会发生 bank conflict
 
 cuda怎么生成随机int?
 
@@ -223,6 +225,12 @@ https://on-demand.gputechconf.com/gtc/2018/presentation/s81006-volta-architectur
 访问步长(stride)为2，线性访问方式，造成了线程0与线程16都访问到了bank 0，线程1与线程17都访问到了bank 2...，于是就造成了2路的bank冲突。
 
 当一个warp中的所有线程访问一个bank中的**同一个字(word)地址**时，就会向所有的线程广播这个word，这种情况并不会发生bank冲突。
+
+我知道A的行做转置，是因为拿数据按照列读数据了.
+
+ `A[Bm][Bk]`,每次从Bm里面拿Tm数据，相邻两个线程相差Bk * Tm * sizeof(float) ,  32 bank是128字节，所以 如果Bk * Tm凑够了32倍数， 他就会conflict.  就是同一时间， t1访问第一个bank， t2访问第64个bank， 就conflict了
+
+按列, 每次从Bk中拿Tk数据.  T1 访问8个bank. t2访问 8个bank. ?
 
 #### 时间测试
 
@@ -246,6 +254,10 @@ https://zhuanlan.zhihu.com/p/544492099
 从global memory读取数据可以使用lgd.128指令，一次读4个float32的数据，从share memory 读取数据，可以用lgs.128. 首先需要从循环中把可以vectorize的shape手动拆出来，再进行向量化
 
 
+
+## cutlass
+
+cutlass的tile size 是固定的,就三四种, 所以tile数量是固定的, 但是block数量太少就没法overlap了, 因为一个block 必须先算然后comm,  所以要进一步tile, 4个block 来计算4 个replicas, 然后all gather. 
 
 ## reference
 
