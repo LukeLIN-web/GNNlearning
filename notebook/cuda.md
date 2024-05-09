@@ -245,19 +245,45 @@ https://zhuanlan.zhihu.com/p/544492099
 
 之前用 nvprof, 现在用nsight, 
 
+100 run平均
 
+数据量要大,  10mb数据pcie 4.0x16还不到1ms, cpu基本上只能测到噪声. 
+
+gpu内存带宽, 理论性能是：`5120/8*1512*1e6*2/1e12` TBps, 大概1.9T左右 那个2的系数是因为ddr
 
 #### debug
 
 #### vectorize
 
-从global memory读取数据可以使用lgd.128指令，一次读4个float32的数据，从share memory 读取数据，可以用lgs.128. 首先需要从循环中把可以vectorize的shape手动拆出来，再进行向量化
+从global memory读取数据可以使用lgd.128指令，一次读4个float32的数据，从share memory 读取数据，可以用lgs.128. 首先需要从循环中把可以vectorize的shape手动拆出来，再进行向量化.
 
+内存带宽,  24年H100玩法是TMA + WGMMA. 等B100又有新套路了, 他们B100从23年就开始做新指令的性能优化了 在Hopper上只有WGMMA才能达到最高的性能. 
 
+ldmatrix都已经落后一个版本了. 纠结LDS是2021年以前的玩法.
+
+#### TMA
+
+张量内存加速器 (TMA) 单元，它可以在全局内存和共享内存之间非常有效地传输大块数据。 TMA 还支持集群中线程块之间的异步复制。还有一个新的[异步biarrier](https://www.zhihu.com/search?q=异步biarrier&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"488340235"})用于进行原子数据移动和同步。
+
+synchronous Copy+：TMA.  之所以称为“Asynchronous Copy+”，是因为A100中已经提供了从主存不经过L2直接到SMEM的异步copy能力。但是H100将其增强了，变成了一个“DMA引擎”。这个东西有些像Google TPUv4中提到的“[Four-dimensional tensor](https://www.zhihu.com/search?q=Four-dimensional tensor&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"486224812"}) DMA“，不过Nvidia增加了一个维度，最大支持5维。
+
+GEMM  被解决完了, 只有其他任务可能还有memory confict.
+
+#### wgmma
+
+wgmma指令，完成异步mma计算
 
 ## cutlass
 
 cutlass的tile size 是固定的,就三四种, 所以tile数量是固定的, 但是block数量太少就没法overlap了, 因为一个block 必须先算然后comm,  所以要进一步tile, 4个block 来计算4 个replicas, 然后all gather. 
+
+社区许多高效的 CUDA 算子是通过 CUTLASS 3.x 实现的。在 NV 的知名的开源软件下搜寻，如 [TensorRT-LLM](https://www.zhihu.com/search?q=TensorRT-LLM&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"689829403"}), Megatron-LM, 都不难发现 [CUTLASS 3.x](https://www.zhihu.com/search?q=CUTLASS 3.x&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"689829403"}) 的影子。除此之外，[大模型训练](https://www.zhihu.com/search?q=大模型训练&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"689829403"})几乎必备的 [Flash Attention(FMHA) 2.0](https://link.zhihu.com/?target=https%3A//crfm.stanford.edu/2023/07/17/flash2.html) 也采用了 CUTLASS 3.x 的特性。
+
+CUTLASS 3.x 进行了大范围的重构，引入了新的 GEMM 编程模型。其中最主要的模块包括 [CuTe](https://link.zhihu.com/?target=https%3A//github.com/NVIDIA/cutlass/blob/main/media/docs/cute/00_quickstart.md)， TMA， [Warp-Specialization](https://link.zhihu.com/?target=https%3A//github.com/NVIDIA/cutlass/blob/main/media/docs/efficient_gemm.md%23warp-specialization)，
+
+ GPU 上面存在的两个异构硬件 TMA 和 TensorCore。Pipeline 的引入基本上宣告了 SIMT 编程的让位。
+
+
 
 ## reference
 
