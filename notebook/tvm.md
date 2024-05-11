@@ -248,7 +248,7 @@ cache write就是计算矩阵乘法C是16 x16的时候cache locality不好, 就�
 
 share memory 都要bind thread和block.
 
-对cache read不懂, 先做最简单的 A= B, 先fetch到local再fetch到 share. tvm的例子不好, 因为卷积太复杂了. 
+对cache read不懂, 先做最简单的 A = B, 先fetch到local再fetch到 share. tvm的例子不好, 因为卷积太复杂了. 
 
 share好像就是要配合local, 只有share 就效果很差. 
 
