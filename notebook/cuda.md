@@ -267,7 +267,7 @@ ldmatrix都已经落后一个版本了. 纠结LDS是2021年以前的玩法.
 
 synchronous Copy+：TMA.  之所以称为“Asynchronous Copy+”，是因为A100中已经提供了从主存不经过L2直接到SMEM的异步copy能力。但是H100将其增强了，变成了一个“DMA引擎”。这个东西有些像Google TPUv4中提到的“[Four-dimensional tensor](https://www.zhihu.com/search?q=Four-dimensional tensor&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"486224812"}) DMA“，不过Nvidia增加了一个维度，最大支持5维。
 
-GEMM  被解决完了, 只有其他任务可能还有memory confict.
+GEMM  被解决完了, 只有其他任务可能还有memory conflict.
 
 #### wgmma
 
