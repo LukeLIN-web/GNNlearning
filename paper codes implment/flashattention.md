@@ -1,1 +1,3 @@
-看源码的话， 看 Triton 官网上的版本，  cutlass里面的实现就是和flash attention v2一模一样 稍微都点区别的是cutlass里面的softmax分块用的是最后一个分块的值作为最大值，并不是整个的作为最大值，还有就多用了一个b2b的gemm的优化方法，其余都和常规的gemm一样。 用的mma 没有针对一个线程的。
+看源码的话， 看 Triton 官网上的版本，  cutlass里面的实现就是和flash attention v2一模一样 稍微都点区别的是cutlass里面的softmax分块用的是最后一个分块的值作为最大值，并不是整个的作为最大值，还有就多用了一个b2b的gemm的优化方法，其余都和常规的gemm一样。
+
+ 用的mma 没有针对一个线程的。就是一个thread group或者一个warp一起做一个mma
