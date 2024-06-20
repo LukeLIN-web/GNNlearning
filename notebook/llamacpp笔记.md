@@ -18,3 +18,11 @@ models里面没有模型， 怎么拿？
 python convert-hf-to-gguf.py Path_To_Qwen
 ```
 
+
+
+
+
+#### llama
+
+重点的代码在llama文件夹下面的generation.py和model.py。
+

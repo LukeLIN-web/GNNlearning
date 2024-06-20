@@ -2,6 +2,12 @@
 
 dockerfile, 非常好用.可以看看经典仓库的dockerfile. 以后建环境的时候把过程记在dockerfile上, 因为dockfile 文件小不用下载很久. 
 
+#### wsl 安装cuda
+
+wsl2只是虚拟机底层，还要去应用商店下载ubuntu系列。安装完wsl的ubuntu 后，再去docker-desktop中设置，把引擎改为ubuntu。 wsl2就是一个虚拟机，但能获取硬件资源。 没有wsl2的docker是用windows的docker引擎，和nv那些基于linux的原版docker镜像不兼容的。
+
+
+
 #### pip
 
 几个常用的参数: 
