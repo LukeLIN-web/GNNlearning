@@ -1,3 +1,26 @@
+#### Roofline model
+
+MegPeak可以绘制. https://github.com/MegEngine/MegPeak 
+https://github.com/krrishnarraj/clpeak
+
+
+
+要是直接参考芯片给的GFLOPS和带宽就比较简单可以画出来，但是芯片自己标的是理想值。 
+假如自己要去通过程序把这个算出真实GFLOPS和峰值带宽，这个没有多年体系结构知识其实很难写出来的呀. 我的理解是,如果从算子优化的角度来讲，像一些高性能的gemm算子，更多的是涉及L1，L2 cache, register 相关的优化trick，测量一个总体的带宽可能没有太大作用.  有个博后大佬写某款芯片的benchmark，写了好几个月，才写完。 
+最后真实峰值带宽与峰值GFLOPS差的挺远的。 roofline model太理论了.
+
+针对某款特定芯片，我们会把它真实峰值带宽与峰值GFLOPS测出来。 
+
+针对gemm，然后加大矩阵的hw，算子GFLOPS会逐渐增大到稳定值，看看是不是最后的稳定值会接近峰值GFLOPS 
+
+针对relu这类算子，加大nchw，他的GB/s会逐渐增大到稳定，看看最后能不能稍微接近峰值带宽呀. 最后分析，和真实峰值差距没有太大，你就可以认为这个算子优化到了尽头了呀.
+
+这也是为啥绝大大大大部分模型打不满芯片，算子也是随着nchw逐渐增大而逐渐能够充分利用芯片呀，但是模型内部大部分算子的输入输出的大小都达不到稳定带宽和稳定GFLOPS的那个线呀.
+
+
+
+
+
 pyg2.1.0不能用torch_profile, 不过它就包装了一行, 自己写也可以. 
 
 https://github.com/mrshenli/ptd_benchmark
