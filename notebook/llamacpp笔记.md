@@ -30,20 +30,21 @@ apply_rotary_emb 是啥
         # values会越来越大？  怎么越来越大呢？ 是拿之前所有的还是新加的？ 
 ```
 
-
-
 kvcache的想法再看看。 
 
 就是把之前的存起来。 
 
 llama-server和 llama-cli什么区别? 
 
-```
-llama_download_file: no previous model file found /Users/linj/Library/Caches/llama.cpp/llama2_7b_chat_uncensored-q4_0.gguf
-llama_download_file: curl_easy_perform() failed: Timeout was reached
-llama_init_from_gpt_params: error: failed to load model '/Users/linj/Library/Caches/llama.cpp/llama2_7b_chat_uncensored-q4_0.gguf'
-main: error: unable to load model
-```
+
+
+dim = 768 /12 
+
+乘法 activation 在前面还是权重在前面?
+
+权重在前面, WX.  权重是4096 * 4096.
+
+metal不能打印变量. 
 
 
 
