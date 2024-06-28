@@ -4,17 +4,13 @@
 
 `make -j` 一分钟。 
 
-models里面没有模型， 怎么拿？  就是hugging face 下载， 然后转换模型。 
+模型下载,  就是hugging face 下载， 然后转换模型。 
 
 ```
 python convert-hf-to-gguf.py Path_To_Qwen
 
 ./llama-cli --hf-repo huggingface的模型 -GGUF --hf-file 对应的.gguf -p "The meaning to life and the universe is"
 ```
-
-
-
-
 
 也有安卓, termux
 
@@ -95,23 +91,15 @@ apply_rotary_emb 是啥 就是加上position embedding.
 
 会计算用户所有的输入，并生成对应的 KV 缓存.
 
-
+也叫 prompt processing 
 
 ####  decoding 
 
 每一个 decoding 过程服务器都会生成一个字符，并将其放入到 KV 缓存当中
 
-
-
 dim = 768 /12 
 
 乘法 activation 在前面还是权重在前面? 权重在前面, WX.  权重是4096 * 4096.
-
-
-
-
-
-
 
  LLAMA_CUBLAS已经废弃了. now it is  LLAMA_CUDA
 
