@@ -91,11 +91,15 @@ apply_rotary_emb 是啥 就是加上position embedding.
 
 采样是可以天然并行执行的.
 
+#### prefill 阶段
+
+会计算用户所有的输入，并生成对应的 KV 缓存.
 
 
-prefill 阶段是干嘛? 
 
-会计算用户所有的输入，并生成对应的 KV 缓存.再经历若干个 decoding 过程，每一个 decoding 过程服务器都会生成一个字符，并将其放入到 KV 缓存当中
+####  decoding 
+
+每一个 decoding 过程服务器都会生成一个字符，并将其放入到 KV 缓存当中
 
 
 
