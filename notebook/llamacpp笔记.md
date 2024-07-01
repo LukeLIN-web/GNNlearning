@@ -30,9 +30,9 @@ llama.cpp 需要自己要从头建图，以完成数据流转、串联算子、�
 
 他们把不同模型比如 build_baichuan 都塞在llama.cpp文件里面， 
 
-ggml 格式，这个模型是 fp16 的
+ggml 格式模型是 fp16 的.
 
-
+正常llama hidden sizes 是4096.
 
 
 
@@ -103,38 +103,25 @@ dim = 768 /12
 
  LLAMA_CUBLAS已经废弃了. now it is  LLAMA_CUDA
 
-#### 问题
 
-1. 
-
-`./llama-batched-bench -m models/meta-llama-3-8b-instruct.Q4_K_M.gguf -b 2048 -ub 512 -npp 128,256 -npl 1,2,4,8,16,32 -fa` 不fa也一样. 
 
 ```
-|    PP |     TG |    B |   N_KV |   T_PP s | S_PP t/s |   T_TG s | S_TG t/s |      T s |    S t/s |
-|-------|--------|------|--------|----------|----------|----------|----------|----------|----------|
-
-llama_print_timings:        load time =    5361.53 ms
-llama_print_timings:      sample time =       0.00 ms /     1 runs   (    0.00 ms per token,      inf tokens per second)
-llama_print_timings: prompt eval time =    5162.39 ms /    16 tokens (  322.65 ms per token,     3.10 tokens per second)
-llama_print_timings:        eval time =       0.00 ms /     1 runs   (    0.00 ms per token,      inf tokens per second)
-```
-
-为什么? 
-
-2. 
+ub是physical maximum batch size 很可能指的是 “micro-batch”（微批次）。
+b是batch size   , logical maximum batch size
+c是  --ctx-size N",           "size of the prompt context
+npp PP (Prompt Processing):
+ntg  TG (Text Generation)
+npl   prompt length
+S t/s: Total speed (tokens per second)，总速度
 
 ```
-./llama-cli -fa -m models/meta-llama-3-8b-instruct.Q4_K_M.gguf -p "The meaning to life and the universe is"  ·    
-
-llama_print_timings:      sample time =     226.79 ms /  1420 runs   (    0.16 ms per token,  6261.19 tokens per second)
-llama_print_timings: prompt eval time =     235.41 ms /     9 tokens (   26.16 ms per token,    38.23 tokens per second)
-llama_print_timings:        eval time =   84240.09 ms /  1419 runs   (   59.37 ms per token,    16.84 tokens per second)
 
 
-没有fa
 
-llama_print_timings:      sample time =     144.92 ms /   892 runs   (    0.16 ms per token,  6155.08 tokens per second)
-llama_print_timings: prompt eval time =     244.15 ms /     9 tokens (   27.13 ms per token,    36.86 tokens per second)
-llama_print_timings:        eval time =   55250.64 ms /   891 runs   (   62.01 ms per token,    16.13 tokens per s
+```
+int64_t ne[GGML_MAX_DIMS]; // number of elements
+//这就是tensor的shape,不过它的存放方式是倒着的
++                                   //比如[batch_size,multi-head,seq_len,head-dim] 
++        //他的存储方式是ne[0]=head-dim,ne[1]=seq_len,ne[2]=multi-head,ne[3]=batch_size
 ```
 
