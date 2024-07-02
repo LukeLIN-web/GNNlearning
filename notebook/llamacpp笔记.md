@@ -73,17 +73,13 @@ https://zhuanlan.zhihu.com/p/672983861
 
 #### llama原理
 
+计算大部分都是fp16的.
+
 重点的代码在llama文件夹下面的generation.py和model.py。
 
 ColumnParallelLinear
 
-apply_rotary_emb 是啥 就是加上position embedding.
-
-```
-       values = values.transpose(1, 2) # (bs, n_local_heads, cache_len + seqlen, head_dim)
-        scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
-        # values会越来越大？  怎么越来越大呢？ 是拿之前所有的还是新加的？ 
-```
+apply_rotary_emb 是啥 就是加上position embedding. xk 加上位置编码之后就放入 kvcache
 
 采样是可以天然并行执行的.
 
@@ -124,4 +120,22 @@ int64_t ne[GGML_MAX_DIMS]; // number of elements
 +                                   //比如[batch_size,multi-head,seq_len,head-dim] 
 +        //他的存储方式是ne[0]=head-dim,ne[1]=seq_len,ne[2]=multi-head,ne[3]=batch_size
 ```
+
+1. sample , promote eval和eval分别是啥? 我们应该看哪个数据? 
+
+sample 就是decode出来的长度,  都是eval time+1,  时间很短可以忽略不计.  吕程说是 长度为2的矩阵把网络过了一遍. 可能是预分配空间
+
+ promote eval 是prefill 加上生成第一个token的速度,tokens数包括start符号,  算attention的时间少, 会快一点. 
+
+eval就是decode, cache的时间长append, 会越来越慢. 用户的体验. 
+
+total time, tokens数不包括start符号
+
+chat 和普通的区别? chat weight不一样.   text是续写. chat要考虑提示词.  
+
+
+
+第一次 prompt eval  用 gemm kernel.   prompt eval 是并行的吗 ?   
+
+后面的decode  用 gemv kernel . 因为 只有一个tokens. 
 
