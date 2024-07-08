@@ -81,6 +81,8 @@ ColumnParallelLinear
 
 apply_rotary_emb 是啥 就是加上position embedding. xk 加上位置编码之后就放入 kvcache
 
+位置编码还有  ALiBi can support long inference context length. 百川模型. 
+
 采样是可以天然并行执行的.
 
 #### prefill 阶段
@@ -112,6 +114,13 @@ S t/s: Total speed (tokens per second)，总速度
 
 ```
 
+#### alibi
+
+在query和key做[矩阵点乘](https://www.zhihu.com/search?q=矩阵点乘&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"657161287"})的基础上，加上一个常数负值，比如距离当前位置前1位为-1， 前两位为-2，这些常数要乘上 权重 m. **优势:**
+
+- 减少了需要训练的Embedding，加快训练速度
+- 较原位置编码，具有更好的长度外推性
+
 
 
 ```
@@ -138,4 +147,8 @@ chat 和普通的区别? chat weight不一样.   text是续写. chat要考虑提
 第一次 prompt eval  用 gemm kernel.   prompt eval 是并行的吗 ?   
 
 后面的decode  用 gemv kernel . 因为 只有一个tokens. 
+
+
+
+
 
