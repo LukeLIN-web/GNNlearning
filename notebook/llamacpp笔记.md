@@ -69,9 +69,75 @@ K 后缀代表 [K-quants](https://link.zhihu.com/?target=https%3A//github.com/gg
 笔记：Llama.cpp 代码浅析（四）：量化那些事 - 刀刀宁的文章 - 知乎
 https://zhuanlan.zhihu.com/p/672983861
 
+## metal
+
+为了根据指定的数据执行流水线，我们需要创建一个指令缓冲区**（command buffer）**来写入指令，并将缓冲区里的指令提交到指令队列中。在完成这些后，Metal API 会将这些指令发送至 GPU 以进行计算。
+
+在 Metal API 中，可以在GPU上运行的代码被称为 **Shader** 
 
 
-#### llama原理
+
+参考 https://github.com/ggerganov/llama.cpp/pull/1860
+
+- Use multiple command buffers
+- Enqueue them at start
+- Encode the commands in parallel on separate threads
+- Each thread commits its buffer
+- Wait for the last one to finish
+
+
+
+该 `dispatch_apply` 函数是 Apple C 语言 Grand Central Dispatch （GCD） 的一部分。它用于并行执行循环，将循环的迭代分布在可用线程之间。这可以显著加快可并行化的操作速度。
+
+n_cb是什么? 
+
+#### MTLComputeCommandEncoder
+
+encoder 是负责 setbuffer, setbytes 
+
+
+
+创建一个 command buffer，用它创建一个 `MTLComputeCommandEncoder` 对象. `MTLComputeCommandEncoder` 对象用于编码计算指令、设置入参、执行计算程序. 设定资源对象（缓存，纹理，采样器 state，线程组内存）
+
+
+
+```cpp
+id <MTLFunction> func = [library newFunctionWithName:@"filter_main"]; //绑定函数
+id <MTLComputePipelineState> filterState
+              = [device newComputePipelineStateWithFunction:func error:&errors]; //MTLFunction 对象被用来创建一个叫做 filterState 的 MTLComputePipelineState 对象。
+[computeCE setComputePipelineState:filterState]; // 绑定encoder
+
+为 state 对象设置资源 (MTLBuffer, MTLTexture,MTLSamplerState) ，这些资源中包含了待处理数据或是被 state 对象返回的数据. 同时还要设置这些资源的参数索引表
+
+
+
+```
+
+`endEncoding` 方法结束 Encoder 编码过程。最后 `MTLCommandBuffer` 对象的 `commit` 方法被调用，使得计算指令被尽快执行。
+
+并行计算程序按照 Encoder 被推入 command buffer 的次序执行. 
+
+并行计算着色程序执行完毕。这意味着前一个 Encoder 产生的数据可以被下一个 Encoder 使用。
+
+
+
+#### handler
+
+ addScheduledHandler(_:)  Registers a completion handler the GPU device calls immediately after it **schedules** the command buffer to run on the GPU.
+
+gpu 可以 identifies command buffer’s dependencies, 然后schedule command buffer和tasks. 然后 sets the command buffer’s status to [`MTLCommandBufferStatus.scheduled`](https://developer.apple.com/documentation/metal/mtlcommandbufferstatus/scheduled) and calls your scheduled completion handler. 
+
+addCompletedHandler Registers a completion handler the GPU device calls immediately after the GPU **finishes** running the commands in the command buffer. 
+
+这两个都是 completion handler
+
+
+
+
+
+
+
+## llama原理
 
 计算大部分都是fp16的.
 
@@ -80,6 +146,8 @@ https://zhuanlan.zhihu.com/p/672983861
 ColumnParallelLinear
 
 apply_rotary_emb 是啥 就是加上position embedding. xk 加上位置编码之后就放入 kvcache
+
+ROPE算子就是加 position embedding
 
 位置编码还有  ALiBi can support long inference context length. 百川模型. 
 
@@ -103,6 +171,8 @@ dim = 768 /12
 
 
 
+输入的embedding 每个128 计算, 不是dim=4096直接计算. 
+
 ```
 ub是physical maximum batch size 很可能指的是 “micro-batch”（微批次）。
 b是batch size   , logical maximum batch size
@@ -111,7 +181,6 @@ npp PP (Prompt Processing):
 ntg  TG (Text Generation)
 npl   prompt length
 S t/s: Total speed (tokens per second)，总速度
-
 ```
 
 #### alibi
@@ -121,13 +190,11 @@ S t/s: Total speed (tokens per second)，总速度
 - 减少了需要训练的Embedding，加快训练速度
 - 较原位置编码，具有更好的长度外推性
 
-
-
-```
+```cpp
 int64_t ne[GGML_MAX_DIMS]; // number of elements
 //这就是tensor的shape,不过它的存放方式是倒着的
-+                                   //比如[batch_size,multi-head,seq_len,head-dim] 
-+        //他的存储方式是ne[0]=head-dim,ne[1]=seq_len,ne[2]=multi-head,ne[3]=batch_size
+比如[batch_size,multi-head,seq_len,head-dim] 
+他的存储方式是ne[0]=head-dim,ne[1]=seq_len,ne[2]=multi-head,ne[3]=batch_size
 ```
 
 1. sample , promote eval和eval分别是啥? 我们应该看哪个数据? 
@@ -142,11 +209,11 @@ total time, tokens数不包括start符号
 
 chat 和普通的区别? chat weight不一样.   text是续写. chat要考虑提示词.  
 
-
-
 第一次 prompt eval  用 gemm kernel.   prompt eval 是并行的吗 ?   
 
 后面的decode  用 gemv kernel . 因为 只有一个tokens. 
+
+
 
 
 
