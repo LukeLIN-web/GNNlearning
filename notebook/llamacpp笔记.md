@@ -40,8 +40,6 @@ ggml 格式模型是 fp16 的.
 
 在 https://github.com/ggerganov/llama.cpp/blob/master/examples/main/README.md
 
-
-
 一些微调模型通过缩放 RoPE 扩展了上下文长度。例如，如果原始预训练模型的上下文长度（最大序列长度）为 4096 （4k），而微调模型的上下文长度为 32k。这是比例因子 8，应该通过将上述 `--ctx-size` 设置为 32768 （32k） 和 `--rope-scale` 8 来工作。
 
 为什么rope scale 可以拓展上下文长度? 
@@ -56,13 +54,51 @@ metal 代码不能打印变量.
 
 
 
-#### 量化
+## 量化
 
 ./examples/quantize/quantize.cpp
 
 ggml 的 fp16 模型转换为 int8、int4 等格式。其实牛逼的 llama.cpp 支持了很多种量化方法，并且还贴心的在定义中给出了每个量化方法的 ppl 变化，如下图所示，例如 Q8_0 只增加了 0.0004 的 ppl，相当于就没啥变化，相当强。并且，llama.cpp 自己还提供[测试 ppl 的脚本方法](https://link.zhihu.com/?target=https%3A//github.com/ggerganov/llama.cpp%3Ftab%3Dreadme-ov-file%23perplexity-measuring-model-quality)。
 
-ppl是啥
+ppl是啥, 就是不确定度. 
+
+4bit 来存32bit. 
+
+对称量化 , 对称量化则是非对称量化的一种特殊形式，其限制了将零点映射为0
+
+### Legacy quants
+
+#### Q4 0
+
+32个weight 一个block, 每个block 内一次量化, 
+
+每个block 求max. 
+
+-max 到max 切开 2^4份,  Q4 的方法在实际实现时，是复用了 Q8 的存储空间存放了两个 int4 ，一个放在低四位上一个放在**位移 4 位**后的高四位上，这就是 INT 量化方法比 FP 量化的优势所在。这是因为具体硬件中没有单独的数据结构来存放 Q4 的数据.
+
+因为值域范围太小，15.5 以上的值就没有表示方法了，所以代码中做一个简单的截取，这在 Q8 中没有做，这种截取本质的问题我认为不是丢弃了outlier ，而是只压缩了贴近 16 的一小部分数值。
+
+#### Q4 1
+
+
+
+
+
+Q4_1 和 Q4_0 的差异在于， Q4_0只有 scale，是对称 quant，没有减掉 minus. 运算快. 
+
+Q4 1会多存一个M,就是 Q4_1 in ggml for example **takes a block of 32 weights and gives each block a scaling factor 'd' and takes the minimum of the weights 'm' to be the quantized '0'**  因此量化权重“q”的最终权重是 q * d + m，并且采用相对较小的块大小使它们更有可能都在合理的量化范围内。值得注意的是，d 和 m 可以在不牺牲太多空间的情况下更准确地存储，因为开销除以 32。
+
+Q4_k更进一步，取了 8 个块的“超级块”，并对其应用了另一个比例因子“d_s”和最小“m_s”，因此最终权重为 （q * d + m） * d_s + m_s，附加因子存储为 6 位而不是 4 位。  https://news.ycombinator.com/item?id=36577898  
+
+
+
+一个block 是16个字节吗? 
+
+- `GGML_TYPE_Q4_K` - "type-1" 4-bit quantization in super-blocks containing 8 blocks, each block having 32 weights. Scales and mins are quantized with 6 bits. This ends up using `4.5` bpw.
+
+https://github.com/ggerganov/llama.cpp/pull/1684
+
+
 
 K 后缀代表 [K-quants](https://link.zhihu.com/?target=https%3A//github.com/ggerganov/llama.cpp/pull/1684) 方法，再后边 S、M、L、XS 等等代表尺寸.
 
@@ -71,15 +107,13 @@ https://zhuanlan.zhihu.com/p/672983861
 
 ## metal
 
-为了根据指定的数据执行流水线，我们需要创建一个指令缓冲区**（command buffer）**来写入指令，并将缓冲区里的指令提交到指令队列中。在完成这些后，Metal API 会将这些指令发送至 GPU 以进行计算。
+将缓冲区里的指令提交到指令队列中。在完成这些后，Metal API 会将这些指令发送至 GPU 以进行计算。 在 Metal API 中，可以在GPU上运行的代码被称为 **Shader** 
 
-在 Metal API 中，可以在GPU上运行的代码被称为 **Shader** 
-
-
+可以同时存在多个命令队列，每个队列可以独立地调度和提交命令缓冲区。在单个命令队列中，命令缓冲区按提交顺序执行；在多个命令队列中，不同队列中的命令缓冲区可以并行执行。
 
 参考 https://github.com/ggerganov/llama.cpp/pull/1860
 
-- Use multiple command buffers
+- Use multiple command buffers, 
 - Enqueue them at start
 - Encode the commands in parallel on separate threads
 - Each thread commits its buffer
@@ -89,17 +123,15 @@ https://zhuanlan.zhihu.com/p/672983861
 
 该 `dispatch_apply` 函数是 Apple C 语言 Grand Central Dispatch （GCD） 的一部分。它用于并行执行循环，将循环的迭代分布在可用线程之间。这可以显著加快可并行化的操作速度。
 
-n_cb是什么? 
+n_cb是什么?  就是  gf->n_threads;  command buffer数量. 
+
+
 
 #### MTLComputeCommandEncoder
 
 encoder 是负责 setbuffer, setbytes 
 
-
-
 创建一个 command buffer，用它创建一个 `MTLComputeCommandEncoder` 对象. `MTLComputeCommandEncoder` 对象用于编码计算指令、设置入参、执行计算程序. 设定资源对象（缓存，纹理，采样器 state，线程组内存）
-
-
 
 ```cpp
 id <MTLFunction> func = [library newFunctionWithName:@"filter_main"]; //绑定函数
@@ -108,30 +140,23 @@ id <MTLComputePipelineState> filterState
 [computeCE setComputePipelineState:filterState]; // 绑定encoder
 
 为 state 对象设置资源 (MTLBuffer, MTLTexture,MTLSamplerState) ，这些资源中包含了待处理数据或是被 state 对象返回的数据. 同时还要设置这些资源的参数索引表
-
-
-
 ```
 
-`endEncoding` 方法结束 Encoder 编码过程。最后 `MTLCommandBuffer` 对象的 `commit` 方法被调用，使得计算指令被尽快执行。
+`endEncoding` 方法结束 Encoder 编码过程。最后 `MTLCommandBuffer` 对象的 `commit` 方法被调用，buffer真正提交到 command queue。
 
-并行计算程序按照 Encoder 被推入 command buffer 的次序执行. 
-
-并行计算着色程序执行完毕。这意味着前一个 Encoder 产生的数据可以被下一个 Encoder 使用。
+并行计算程序按照 Encoder 被推入 command buffer 的次序执行.  前一个 Encoder 产生的数据可以被下一个 Encoder 使用。
 
 
 
 #### handler
 
- addScheduledHandler(_:)  Registers a completion handler the GPU device calls immediately after it **schedules** the command buffer to run on the GPU.
+ addScheduledHandler   Registers a completion handler the GPU device calls immediately after it **schedules** the command buffer to run on the GPU. 
 
 gpu 可以 identifies command buffer’s dependencies, 然后schedule command buffer和tasks. 然后 sets the command buffer’s status to [`MTLCommandBufferStatus.scheduled`](https://developer.apple.com/documentation/metal/mtlcommandbufferstatus/scheduled) and calls your scheduled completion handler. 
 
 addCompletedHandler Registers a completion handler the GPU device calls immediately after the GPU **finishes** running the commands in the command buffer. 
 
 这两个都是 completion handler
-
-
 
 
 
@@ -167,9 +192,7 @@ dim = 768 /12
 
 乘法 activation 在前面还是权重在前面? 权重在前面, WX.  权重是4096 * 4096.
 
- LLAMA_CUBLAS已经废弃了. now it is  LLAMA_CUDA
-
-
+ LLAMA_CUBLAS已经废弃了. now it is LLAMA_CUDA
 
 输入的embedding 每个128 计算, 不是dim=4096直接计算. 
 
@@ -212,10 +235,4 @@ chat 和普通的区别? chat weight不一样.   text是续写. chat要考虑提
 第一次 prompt eval  用 gemm kernel.   prompt eval 是并行的吗 ?   
 
 后面的decode  用 gemv kernel . 因为 只有一个tokens. 
-
-
-
-
-
-
 
