@@ -66,6 +66,8 @@ ppl是啥, 就是不确定度.
 
 对称量化 , 对称量化则是非对称量化的一种特殊形式，其限制了将零点映射为0
 
+
+
 ### Legacy quants
 
 #### Q4 0
@@ -80,13 +82,11 @@ ppl是啥, 就是不确定度.
 
 #### Q4 1
 
+Q4_1 和 Q4_0 的差异在于， Q4_0只有 scale，是对称 quant，没有减掉 minus. 运算快.  
 
+Q4 1 , bias可以防止偏态分布导致的量化空间浪费.  缩放系数d 更大, 保留更多信息. 
 
-
-
-Q4_1 和 Q4_0 的差异在于， Q4_0只有 scale，是对称 quant，没有减掉 minus. 运算快. 
-
-Q4 1会多存一个M,就是 Q4_1 in ggml for example **takes a block of 32 weights and gives each block a scaling factor 'd' and takes the minimum of the weights 'm' to be the quantized '0'**  因此量化权重“q”的最终权重是 q * d + m，并且采用相对较小的块大小使它们更有可能都在合理的量化范围内。值得注意的是，d 和 m 可以在不牺牲太多空间的情况下更准确地存储，因为开销除以 32。
+会多存一个M,   takes a block of 32 weights and gives each block a scaling factor 'd' and takes the minimum of the weights 'm' 因此量化权重“q”的最终权重是 q * d + m，并且采用相对较小的块大小使它们更有可能都在合理的量化范围内。值得注意的是，d 和 m 可以在不牺牲太多空间的情况下更准确地存储，因为开销除以 32。
 
 Q4_k更进一步，取了 8 个块的“超级块”，并对其应用了另一个比例因子“d_s”和最小“m_s”，因此最终权重为 （q * d + m） * d_s + m_s，附加因子存储为 6 位而不是 4 位。  https://news.ycombinator.com/item?id=36577898  
 
@@ -102,8 +102,13 @@ https://github.com/ggerganov/llama.cpp/pull/1684
 
 K 后缀代表 [K-quants](https://link.zhihu.com/?target=https%3A//github.com/ggerganov/llama.cpp/pull/1684) 方法，再后边 S、M、L、XS 等等代表尺寸.
 
-笔记：Llama.cpp 代码浅析（四）：量化那些事 - 刀刀宁的文章 - 知乎
-https://zhuanlan.zhihu.com/p/672983861
+如果数据尺度差好几个数量级, 小尺度可能归零, 所以要考虑fp8 等非线性量化.
+
+### reference
+
+1. 【NVIDIA AI 加速精讲堂-TensorRT-LLM量化原理、实现与优化】 https://www.bilibili.com/video/BV1GE4m1R7Sa/?share_source=copy_web&vd_source=bb7496f78e4d303270b7c97ae8f69402
+2. 笔记：Llama.cpp 代码浅析（四）：量化那些事 - 刀刀宁的文章 - 知乎
+   https://zhuanlan.zhihu.com/p/672983861
 
 ## metal
 
@@ -146,15 +151,13 @@ id <MTLComputePipelineState> filterState
 
 并行计算程序按照 Encoder 被推入 command buffer 的次序执行.  前一个 Encoder 产生的数据可以被下一个 Encoder 使用。
 
-
-
 #### handler
 
- addScheduledHandler   Registers a completion handler the GPU device calls immediately after it **schedules** the command buffer to run on the GPU. 
+ addScheduledHandler,    Registers a completion handler the GPU device calls immediately after it **schedules** the command buffer to run on the GPU. 
 
 gpu 可以 identifies command buffer’s dependencies, 然后schedule command buffer和tasks. 然后 sets the command buffer’s status to [`MTLCommandBufferStatus.scheduled`](https://developer.apple.com/documentation/metal/mtlcommandbufferstatus/scheduled) and calls your scheduled completion handler. 
 
-addCompletedHandler Registers a completion handler the GPU device calls immediately after the GPU **finishes** running the commands in the command buffer. 
+addCompletedHandler, Registers a completion handler the GPU device calls immediately after the GPU **finishes** running the commands in the command buffer. 
 
 这两个都是 completion handler
 
