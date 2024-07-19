@@ -98,11 +98,31 @@ Q4_k更进一步，取了 8 个块的“超级块”，并对其应用了另一�
 
 https://github.com/ggerganov/llama.cpp/pull/1684
 
-
+https://github.com/ggerganov/llama.cpp/discussions/1121
 
 K 后缀代表 [K-quants](https://link.zhihu.com/?target=https%3A//github.com/ggerganov/llama.cpp/pull/1684) 方法，再后边 S、M、L、XS 等等代表尺寸.
 
-如果数据尺度差好几个数量级, 小尺度可能归零, 所以要考虑fp8 等非线性量化.
+#### 量化分片
+
+如果数据尺度差好几个数量级, 小尺度可能归零, 所以要考虑fp8 等非线性量化.  同样的原因, 一般不用per tensor, 全矩阵一个scal factor
+
+per channel, 就是一列或者一行共享一个scal factor. 一般 AxB,  A按行, 有M个行factor,  B 按列, 有N个列factor,  就是沿着inner dim 量化, 
+
+LLM中. A是activation, 一行是一个token的embedding, 所以也叫per token量化. 
+
+进一步分片, groupwise. 
+
+但是tensorRT-LLM 会各种高级操作预处理, interleave col, permute row, add bias, 充分利用硬件速度. 
+
+#### 预处理memorylayout
+
+cuda用ldg 128 从HBM 到SMEM . 混合精度的时候, B要并行加载两列.  预处理就要把两列交织在一起.   就是 两个第一个列 然后两个第二列, interleave col , 也是一种memory layout吧. 
+
+SMEM ldmatrix.x1 到 寄存器. 为warp中每个线程加载 连续4个bytes. 需要和 mma.m16n8k16 指令需要的数据排布对对齐. 所以也需要重排. 
+
+mma 处理fp16的输入, 
+
+int8转fp16 有特殊的算法. 具体看视频.
 
 ### reference
 
