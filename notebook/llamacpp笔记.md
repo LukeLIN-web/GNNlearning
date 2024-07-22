@@ -124,6 +124,12 @@ mma 处理fp16的输入,
 
 int8转fp16 有特殊的算法. 具体看视频.
 
+如果没有pack好,   编译器 unroll 会失效.  因为用了过多的寄存器,  必须从最后一层开始.  最后一个for loop太大了就不能unroll. `#pragma clang loop unroll(full)`
+
+
+
+
+
 ### reference
 
 1. 【NVIDIA AI 加速精讲堂-TensorRT-LLM量化原理、实现与优化】 https://www.bilibili.com/video/BV1GE4m1R7Sa/?share_source=copy_web&vd_source=bb7496f78e4d303270b7c97ae8f69402
