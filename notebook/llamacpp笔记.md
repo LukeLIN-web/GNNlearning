@@ -154,7 +154,42 @@ int8转fp16 有特殊的算法. 具体看视频.
 
 该 `dispatch_apply` 函数是 Apple C 语言 Grand Central Dispatch （GCD） 的一部分。它用于并行执行循环，将循环的迭代分布在可用线程之间。这可以显著加快可并行化的操作速度。
 
-n_cb是什么?  就是  gf->n_threads;  command buffer数量. 
+n_cb是什么?  就是  gf->n_threads;  command buffer数量.  
+
+为什么要iter多次呢? 
+
+```objective-c
+dispatch_apply(n_cb, ctx->d_queue, ^(size_t iter) {
+  for (int i = node_start; i < node_end; ++i) {
+
+   // 每个node插入一个handler. 时间波动很大, 为什么? 
+                CFAbsoluteTime startCommitTime = CFAbsoluteTimeGetCurrent(); //这个是分配的时间, 不是开始的时间.
+
+            [command_buffer addCompletedHandler:^(id<MTLCommandBuffer>  command_buffer) {
+                               CFTimeInterval start = command_buffer.GPUStartTime;
+                CFTimeInterval end = command_buffer.GPUEndTime;//CFTimeInterval精度是秒. 精度太低了. 
+            }];
+            // end profiling
+  }
+}
+    //  因为每个handler是并行的, 不是串行的 ? 也不是, 但是startCommitTime 也是每个node独立的. 
+               %.9f 才能保留到纳秒, .f 只能到微秒. 
+               CFAbsoluteTimeGetCurrent()单位秒，保留到纳秒
+               CFTimeInterval , 单位是秒, 保留到纳秒.  
+               command_buffer.GPUStartTime 精确到纳秒.
+```
+
+可能用的是第一个token的缘故.
+
+都用最后一个token. 
+
+metal文档有object c和swift 两种语言
+
+靠buffer没法得到运行时间.  但是不靠buffer我们不知道什么时候完成. 
+
+
+
+intel cpu上, pytorch 不支持fp16, apple 底层arm是支持的. 
 
 
 
@@ -177,6 +212,10 @@ id <MTLComputePipelineState> filterState
 
 并行计算程序按照 Encoder 被推入 command buffer 的次序执行.  前一个 Encoder 产生的数据可以被下一个 Encoder 使用。
 
+
+
+
+
 #### handler
 
  addScheduledHandler,    Registers a completion handler the GPU device calls immediately after it **schedules** the command buffer to run on the GPU. 
@@ -186,6 +225,18 @@ gpu 可以 identifies command buffer’s dependencies, 然后schedule command bu
 addCompletedHandler, Registers a completion handler the GPU device calls immediately after the GPU **finishes** running the commands in the command buffer. 
 
 这两个都是 completion handler
+
+
+
+#### 测时间
+
+说法
+
+1. The best way to measure these things is to use on device performance monitor counters
+
+2. 可以用events, MTLSharedEvent
+
+
 
 
 
