@@ -232,13 +232,32 @@ addCompletedHandler, Registers a completion handler the GPU device calls immedia
 
 说法
 
-1. The best way to measure these things is to use on device performance monitor counters
+1 The best way to measure these things is to use on device performance monitor counters  , 是Xcode? 
 
-2. 可以用events, MTLSharedEvent
+2 可以用events, MTLSharedEvent. `MTLSharedEvent` 是 Metal 中的同步原语，可用于协调 CPU 和 GPU 之间的工作，或不同 GPU 命令缓冲区之间的工作。虽然它主要不是为精确的计时测量而设计的，但它仍然可以通过使用其信号和等待功能来测量 GPU 任务的持续时间。 这个和scheduled time 功能一样. 
+
+3  MTLCounterSampleBuffer,    在 Metal 内核中直接存取时间戳并不常见。通常，时间戳记录在 CPU 端通过 `MTLCounterSampleBuffer` 实现。
+
+```objective-c
+id<MTLCounterSet> timestampCounterSet = [device counterSets][0]; // Assume the first counter set is the timestamp counter set.
+id<MTLCounterSampleBuffer> sampleBuffer = [device newCounterSampleBufferWithDescriptor:[MTLCounterSampleBufferDescriptor descriptor] error:&error];
+
+[computeEncoder sampleCountersInBuffer:sampleBuffer atSampleIndex:0 withBarrier:NO];
+```
+
+但是llamacpp目前写法是dispatch_apply   全部command buffer 结束了后一个个command buffer 查看状态, 没法这么插入. 
+
+4  在 Metal 内核中直接存取时间戳并不常见
+
+```
+uint64_t startTime = clock::get_timestamp();
+```
+
+metal代码里不能直接print. 
 
 
 
-
+sd.cpp 用Ggml graph print 可以打印时间. 
 
 
 
