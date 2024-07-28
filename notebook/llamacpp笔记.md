@@ -261,6 +261,8 @@ sd.cpp 用Ggml graph print 可以打印时间.
 
 
 
+
+
 ## llama原理
 
 计算大部分都是fp16的.
