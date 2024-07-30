@@ -14,6 +14,7 @@
 #### Cpp
 
 1. Segmentation fault (core dumped) ,gdb python opt_conv_cuda.py 看看. 
+2. vscode 参数，debug：online values .   在debug的时候能实时显式出来所在栈帧的状态.    还有 clangd: toggle inlay hints 
 
 
 
