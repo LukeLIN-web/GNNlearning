@@ -123,3 +123,24 @@ refer:
 
 1. PyTorch训练加速的量化分析 - 风车车车的文章 - 知乎 https://zhuanlan.zhihu.com/p/416942523
 2. https://dev-discuss.pytorch.org/t/using-nsight-systems-to-profile-gpu-workload/59
+
+
+
+#### 小kernel怎么测
+
+```
+for batch in B:
+for k1 in K:
+for k2 in K:
+g= torch.cuda.CUDAGraph()
+x= torch.rand(size=[batch, k1],dtype=torch.half, device='cuda')w = torch.rand(size=[k2,k1],dtype=torch.half, device='cuda')
+o =F.linear(x，w)
+with torch.cuda.graph(g):for i in range(ITERATION):o =F.linear(x，w)torch.cuda.synchronize(
+tik = time(
+g.replay()
+torch.cuda.synchronize()
+tok = time()
+
+用一下cuda graph, 把pytorch启动kernel的时间弄掉
+```
+
