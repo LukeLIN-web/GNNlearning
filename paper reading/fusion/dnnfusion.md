@@ -47,7 +47,3 @@ Specialized Kernels: Group Norm and GELU
 
 是把 matmul V和softmax fuse到一起. 看图2.
 
-
-
-we implemented a GPU shader. 啥意思?
-

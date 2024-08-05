@@ -106,7 +106,7 @@ v2就在外面了. V1 q在里面.
 
 Pij就是 上面的dij.  为什么要写回li和mi to HBM?  Li是用来backward 计算的. forward没用到. 
 
-diag 就是把这个vector 变成矩阵.  **给定一个一维张量，它会返回一个以该一维张量为对角线元素的方阵**.  具体还要看看代码. 怎么实现的. 
+diag 就是把vector 变成矩阵.  **给定一个一维张量，它会返回一个以该一维张量为对角线元素的方阵**.  具体还要看看代码. 怎么实现的. 
 
 
 
@@ -167,7 +167,7 @@ fa1 需要跨warp同步 QxK的结果,  fa2就不用.
 
 讲讲怎么并行. 
 
-
+S就是QK的中间矩阵. 
 
 Output one 𝑂C at a time, so that only one rescaling is needed after the inner loop ends, reducing non-matmul calculations.
 
@@ -175,9 +175,9 @@ rescaling 啥意思?
 
   https://zhuanlan.zhihu.com/p/645376942
 
-O 写入放在外层循环. 内层完全不需要写入Oi到 HBM.
+O 写入放在外层循环. 内层完全不需要写入Oi到 HBM. v1中，o需要不断的从hbm读写，但是，v2中，kv也要反复从hbm里面读到sram在这一点上，算打个平手。
 
-https://github.com/tspeterkim/flash-attention-minimal/blob/main/flash.cu
+https://github.com/tspeterkim/flash-attention-minimal/blob/main/flash.cu  refer  【[手写flash attention v1 & v2] baseline的基础实现】 https://www.bilibili.com/video/BV1zM4m1S7gg/?share_source=copy_web&vd_source=bb7496f78e4d303270b7c97ae8f69402
 
 ## FlashDecoding++  
 
@@ -188,4 +188,8 @@ https://github.com/tspeterkim/flash-attention-minimal/blob/main/flash.cu
 待从源码中学习下 V 的 [in-kernel transpose 另一个亮点就是 [fp8 quantization error](https://www.zhihu.com/search?q=fp8 quantization error&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"answer"%2C"sourceId"%3A3559908421}) 的控制.
 
 
+
+怎么确认
+
+Layernorm, 先算平均值,再算方差, 3遍. 数组大的时候, 然后更新一遍值. 
 
