@@ -12,8 +12,6 @@ developing a classification of both individual operators and their combinations
 
 DNNFusion includes 1) a novel mathematical-property based graph rewriting framework (为什么可以reduce?) to reduce evaluation costs and facilitate subsequent operator fusion, 2) an integrated  fusion plan generation that leverages the high-level analysis and accurate light-weight profiling, and 3) additional optimizations during fusion code generation. 
 
-
-
 分类 : One-to-One, Reorganize, Shuffle, One-to-Many, and Many-to-Many
 
 就对各种情况进行分析.  提出 Extended Computational Graph 作为IR.
@@ -28,13 +26,9 @@ DNNFusion includes 1) a novel mathematical-property based graph rewriting framew
 
 认为 One-to-One mapping fuse 潜力最大.  作为seed op. 找前后的op.
 
-
-
 在patDNN上写的. 
 
 别的框架好像很多都不支持.
-
-
 
 ## Speed Is All You Need
 

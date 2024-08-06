@@ -16,6 +16,8 @@ python convert-hf-to-gguf.py Path_To_Qwen
 
 ### 结构
 
+ggml真复杂, cpp 推理很难, 要写非常多的代码 infra. 
+
  llama.cpp 大概是：a算子的运行，结果给b算子，运行时候去逐个算子执行，不是初始化的时候把DAG就先构建出来
 
 ggml_cgraph 是负责结构的， ggml_object 是负责存储的，ggml_cplan 是负责多线程执行的，ggml_context 应该是维护 object 级别关系的。
@@ -138,7 +140,43 @@ int8转fp16 有特殊的算法. 具体看视频.
 
 ## metal
 
-将缓冲区里的指令提交到指令队列中。在完成这些后，Metal API 会将这些指令发送至 GPU 以进行计算。 在 Metal API 中，可以在GPU上运行的代码被称为 **Shader** 
+metal的第一个commit是ecb217db4fcfa3880300ad08531a5fb6bb14.
+
+#### 结构
+
+
+
+包装了metal buffer, context,
+
+```objective-c
+struct ggml_metal_context * ggml_metal_init(void) {
+read the source from "ggml-metal.metal" into a string and use newLibraryWithSource
+//  load kernels 
+  #define GGML_METAL_ADD_KERNEL(name)这个宏会为每个计算核（kernel）执行以下步骤：
+使用给定的名称从库中创建一个新函数，并将其保存到 ctx->function_##name 。
+使用该函数创建一个新的计算管线状态，并将其保存到 ctx->pipeline_##name 。
+  
+  ggml_metal_graph_compute{
+  for (int i = 0; i < gf->n_nodes; ++i) {
+  根据每个op 进行set. 比如 
+    [encoder setBuffer:id_src0 offset:offs_src0 atIndex:0];
+    
+  }
+     [command_buffer commit];
+    [command_buffer waitUntilCompleted];
+}
+  
+  .metal的文件不是直接调用的. 通过string读入, 用 newLibraryWithSource 加载到 ctx->library.
+  .metal的函数命名就是 kernel_  +  .m里的名字, mul_mat_q4_0_f32
+```
+
+https://github.com/ggerganov/llama.cpp/pull/1642/commits/b23fe8c9c78d066461c81447566844ecf22a4a8e
+
+
+
+没有测试, 都不知道怎么单独运行算子. 
+
+将缓冲区里的指令提交到指令队列中。在完成这些后，Metal API 会将这些指令发送至 GPU 以进行计算。
 
 可以同时存在多个命令队列，每个队列可以独立地调度和提交命令缓冲区。在单个命令队列中，命令缓冲区按提交顺序执行；在多个命令队列中，不同队列中的命令缓冲区可以并行执行。
 
