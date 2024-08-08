@@ -56,6 +56,31 @@ metal 代码不能打印变量.
 
 
 
+
+
+llama_synchronize 
+
+n queued tokens是什么? 
+
+```cpp
+    if (ctx->n_queued_tokens == 1) {
+        ctx->t_eval_us += ggml_time_us() - ctx->t_compute_start_us;
+        ctx->n_eval++;
+    } else if (ctx->n_queued_tokens > 1) {
+        ctx->t_p_eval_us += ggml_time_us() - ctx->t_compute_start_us;
+        ctx->n_p_eval += ctx->n_queued_tokens;
+    }
+
+n_queued_tokens是什么? 
+  把 n_queued_tokens 150个全部加上.在哪里加? 
+number of tokens processed in batches at the beginning
+prompt processing到底干了啥? 
+```
+
+
+
+
+
 ## 量化
 
 ./examples/quantize/quantize.cpp

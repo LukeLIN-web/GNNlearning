@@ -59,6 +59,8 @@ https://github.com/Stonesjtu/pytorch_memlab
 
 https://github.com/nicolargo/nvidia-ml-py3 
 
+用nvitop，看gpu利用率. 
+
 
 
 ## Nsight
