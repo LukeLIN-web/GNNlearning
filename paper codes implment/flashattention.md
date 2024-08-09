@@ -66,21 +66,17 @@ x>=11, e^x exceed fp16 范围 (2^16).   所以要求一行中的最大值.
 
 attention, 用了online softmax 两次遍历. 
 
-之后flash attention发现, 我们不用算mN. 就直接算mi. 同样道理, i= N的时候保证o'n = on.
+之后flash attention发现, 我们不用算mN. 就直接算mi. 同样道理, i= N的时候保证o'n = on.  所以也是一样道理, 改变oi的中间结果, 保证on对就行.  就可以消去ai. 只需要一次loop.
 
 就可以一次遍历!
 
+#### tiling
+
 在GPU上, 需要tiling.
 
-算出oN 这一行 , 放入k行.
-
-所以也是一样道理, 改变oi的中间结果, 保证on对就行.  就可以消去ai. 只需要一次loop.
-
-但是还是太长, 所以需要进一步分块.
-
-K每次取Bc 列, 
-
 A100 20MB  sram, 108SM x 192KB per SM .
+
+#### 伪代码
 
 4d可能是fp32的原因.  可能是为了sram里完全放的下Kj,Vj,Qi,Oi这四个块，不至于内循环重复读取Qi和Oi的时候Kj和Vj被换出去. 
 

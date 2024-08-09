@@ -163,6 +163,8 @@ https://tvm.hyper.ai/docs/0.10.0/how_to/te_schedules/compute_reduce/
 
 最笨的办法。你去ReduceEqual里面。把它的每一个condition打出来。 看区别是啥。
 
+parallel 会启动min (循环次数, 硬件max线程数)  个线程.
+
 #### compute at
 
 ```python

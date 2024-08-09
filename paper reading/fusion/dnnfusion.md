@@ -48,3 +48,12 @@ Specialized Kernels: Group Norm and GELU
 fuse, 或许可以用 dynamic shape fusion 试试. 
 
 flashattention 不是从循环程序分析角度能得到的, 注意到了memory level的, online softmax不是dag能描述的, 依赖关系太复杂. dnn 计算复杂了 调度空间太大了. 
+
+https://llm.mlc.ai/docs/get_started/quick_start  tvm运行llama3.
+
+
+
+
+
+
+
