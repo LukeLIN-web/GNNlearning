@@ -167,9 +167,28 @@ int8转fp16 有特殊的算法. 具体看视频.
 
 metal的第一个commit是ecb217db4fcfa3880300ad08531a5fb6bb14.
 
+#### 编译
+
+```cmake
+    if (GGML_METAL_SHADER_DEBUG)
+        #   xcrun -sdk macosx metal    -fno-fast-math -c ggml-metal.metal -o ggml-metal.air
+        #   xcrun -sdk macosx metallib                   ggml-metal.air   -o default.metallib
+        #       ref: https://github.com/ggerganov/whisper.cpp/issues/1720
+               add_custom_command(
+            OUTPUT ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/default.metallib
+            COMMAND xcrun -sdk macosx metal    ${XC_FLAGS} -c ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ggml-metal.metal -o ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ggml-metal.air
+            )
+           xcrun -sdk macosx metal -c MyLibrary.metal -o MyLibrary.air
+           xcrun -sdk macosx metallib MyLibrary.air -o MyLibrary.metallib
+           
+```
+https://juejin.cn/post/7029658159832629285
+
+https://developer.apple.com/documentation/metal/shader_libraries/metal_libraries/building_a_shader_library_by_precompiling_source_files?language=objc
+
+
+
 #### 结构
-
-
 
 包装了metal buffer, context,
 
