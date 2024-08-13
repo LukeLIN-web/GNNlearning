@@ -66,7 +66,7 @@ block size最大可以取1024.
 
 单个block中的所有thread将在同一个SM中执行.
 
-我们在 GPU 可以对各个block执行parallelization，对于block内部的thread可以执行vectorization
+我们在 GPU 可以对各个block执行parallelization，对于block内部的thread可以执行vectorization.
 
 一个block中一般用128或者256个thread. 
 
@@ -75,6 +75,8 @@ block size最大可以取1024.
 #### warp
 
 一个warp是一组连续的线程，通常包含32个线程。这些线程在执行时会以SIMD（单指令多数据）的方式并行执行相同的指令，称为"同步线程束执行"。
+
+在硬件层面上，`warp` 的调度是由SM来负责的。
 
 单个block里的thread总数 <= 1024.
 

@@ -6,6 +6,14 @@ block size:  M/4d,  M是啥？ 是SRAM的大小。
 
 Bc： M/4d  Br：   M/4d 就是K和V分别放几个
 
+看llama cpp , Bc是怎么确定的? 
+
+
+
+一开始矩阵就切分好了, 可能 就是按head来算的.
+
+
+
 为什么是4d？ 一个float32是4byte.
 
 xi - m 很小的时候会丢失fp16精度吗? 可能就是关注最大的数. 接近0的不重要. 
@@ -147,8 +155,6 @@ fa1 需要跨warp同步 QxK的结果,  fa2就不用.
 
 S就是QK的中间矩阵. 
 
-li 是
-
 Output one 𝑂C at a time, so that only one rescaling is needed after the inner loop ends, reducing non-matmul calculations.
 
 rescaling 啥意思?
@@ -161,9 +167,11 @@ https://github.com/tspeterkim/flash-attention-minimal/blob/main/flash.cu  refer 
 
 
 
-代码
+version2 没找到答案. 
 
-li怎么写?
+
+
+
 
 ## FlashDecoding++  
 

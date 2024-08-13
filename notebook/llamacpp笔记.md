@@ -188,6 +188,16 @@ https://developer.apple.com/documentation/metal/shader_libraries/metal_libraries
 
 
 
+
+
+I've downloaded Xcode. Then I moved all *special* tools to CommandLineTools. After that I threw Xcode into trash. For now everything seems to work fine.
+
+I wonder whether I could `cp /Applications/Xcode.app/Contents/Developer ` to `/Library/Developer/CommandLineTools` , Xcode hack and open every markdown, really bad Xcode. 
+
+移动到哪里呢?  /Library/Developer/CommandLineTools/Library/Developer/ 还是sdk文件夹. 
+
+
+
 #### 结构
 
 包装了metal buffer, context,
@@ -340,6 +350,24 @@ metal代码里不能直接print.
 
 
 sd.cpp 用Ggml graph print 可以打印时间. 
+
+ggml assert不对会直接报错吗. 停吗? 
+
+#### fa
+
+threadgroup就是 cuda的 block.
+
+simdgroup 是 cuda 的 warps.  
+
+但是他是怎么切分矩阵的? 要看出来.  
+
+两个unroll嵌套，我记得会提示展开失败吧. 两个unroll嵌套, 会展开4x4次吗? 会很长?
+
+
+
+simdgroup要手动指定, warp是GPU自动指定的吗? 是的.  如果没有32个并行的怎么办? CUDA仍然会将这些线程分配到`warp`中，但这些`warp`会部分填充，剩余线程被称为“空闲线程”，不会实际执行指令。
+
+为什么他要有1x4和8x4两个kernel? 
 
 
 
