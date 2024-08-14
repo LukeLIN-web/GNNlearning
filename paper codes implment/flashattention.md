@@ -165,11 +165,12 @@ O 写入放在外层循环. 内层完全不需要写入Oi到 HBM. v1中，o需�
 
 https://github.com/tspeterkim/flash-attention-minimal/blob/main/flash.cu  refer  【[手写flash attention v1 & v2] baseline的基础实现】 https://www.bilibili.com/video/BV1zM4m1S7gg/?share_source=copy_web&vd_source=bb7496f78e4d303270b7c97ae8f69402
 
-
-
 version2 没找到答案. 
 
 
+
+https://github.com/weishengying/tiny-flash-attention/tree/main/csrc   refer:  FlashAttention 笔记 - shengying.wei的文章 - 知乎
+https://zhuanlan.zhihu.com/p/708867810
 
 
 
