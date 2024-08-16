@@ -58,8 +58,9 @@ https://llm.mlc.ai/docs/get_started/quick_start  tvm运行llama3.
 https://ai.lefebvre-sarrut.eu/2023/07/20/deep-dive-into-kernel-fusion-accelerating-inference-in-llama-v2/
 
 1. 实数虚数分开表示.
-2.   rms weight 乘法的同时 统计rms  所有元素平方的均值
-3. 
+2. 在同一地址上执行两次连续的加载操作时，第二次操作可能会从 GPU 缓存中获取数据, 所以不会花费双重 DDR 加载.
+3.  rms weight 乘法的同时 统计rms  所有元素平方的均值
+4. feedforward, 一次loop 加载两个矩阵乘法. 
 
 #### Rotary Embeddings
 
@@ -93,7 +94,7 @@ RMSNorm 成本更高的任务是数据加载，分两个不同的阶段执行。
 
 内核的初始指令侧重于确定开始数据读取过程的精确位置。然后，该循环执行三个主要操作：投影（即矩阵乘法）、与 RMSNorm 权重的乘法，以及方便地计算 RMSNorm 的统计数据，这得益于正在进行的数据读取。RMSNorm 的实现最终是通过以下操作完成的：`accumulator = accumulator * a_norm[:, None]`
 
-After applying RMSNorm, the accumulator encapsulates the post-RMSNorm tile. This then proceeds to the 'epilogue', which involves the application of RBE. Here, it's crucial to note the synchronization barrier.   当在共享地址上同时发生读/写操作时，必须确保单个 warp 中的所有线程同步完成。否则，这可能会导致与并发相关的复杂调试问题。
+之后做rbe,  Here, it's crucial to note the synchronization barrier.   当在共享地址上同时发生读/写操作时，必须确保单个 warp 中的所有线程同步完成。否则，这可能会导致与并发相关的复杂调试问题。
 
 值得注意的是一个重要的权衡：RMSNorm 和矩阵乘法的融合导致的计算量超过了严格必要的计算量。具体来说，对于每个tile（张量的一部分），该过程会重新计算整个输入行的统计数据，然后对tile进行归一化。这种方法主要基于这样一个事实，即在小批量的上下文中（可能与全局内存 I/O 和 CPU 开销得到有效管理和摊销的大批量无关），我们受到内存带宽的限制。因此，这种额外的计算被认为是可以接受的。不过，对于较大的批次，比较融合和未融合的 RMSNorm 操作之间的性能配置文件肯定是一个好主意。
 
@@ -103,7 +104,12 @@ After applying RMSNorm, the accumulator encapsulates the post-RMSNorm tile. This
 
 一次loop 加载两个矩阵乘法
 
+silu 运算由两个元素运算组成，也可以与第一个矩阵乘法的输出合并，从而实现整体更精简的运算。
 
 
 
+内核合并提供了一个显着的计算优势，例如通过优化计算过程将 CUDA 时间减少 30%。然而，第二个优势在于减少了内核启动数量和其他可能的开销。这些因素对总墙时间有很大贡献，特别是在计算相对有限的情况下，例如在推理中，当批量大小设置为 1 时更是如此，就像这里一样。
 
+
+
+使用 Flash Attention 确实对perplexity有轻微影响。在此项目中，Flash Attention 仅在 FP8 场景中使用。这可能归因于我们的 FA 内核实现中的一个错误。我们已经实现了原版 Triton 和我们自己针对 Llama 的自定义版本，两者都导致了同样的问题。或者，它可能根本不是一个错误，而是一个灾难性取消catastrophic cancelling的例子。我们没有对此进行深入调查，因为我们的主要目的是测试 FP8 格式及其对速度的影响。

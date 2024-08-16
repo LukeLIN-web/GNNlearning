@@ -103,6 +103,8 @@ ppl是啥, 就是不确定度.
 
 对称量化 , 对称量化则是非对称量化的一种特殊形式，其限制了将零点映射为0
 
+https://github.com/ggerganov/ggml/blob/21f9e5c426b105841c2e346d8f1aafec398edf15/src/ggml-quants.c#L1515 可以参考 
+
 
 
 ### Legacy quants
