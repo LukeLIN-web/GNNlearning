@@ -245,7 +245,7 @@ https://zhuanlan.zhihu.com/p/544492099
 
 #### 带宽测量
 
-之前用 nvprof, 现在用nsight, 
+之前用 nvprof, 现在用nsight
 
 100 run平均
 

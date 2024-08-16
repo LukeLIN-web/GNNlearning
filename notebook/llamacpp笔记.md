@@ -46,9 +46,19 @@ ggml 格式模型是 fp16 的.
 
 为什么rope scale 可以拓展上下文长度? 
 
-
+https://www.omrimallis.com/posts/understanding-how-llm-inference-works-with-llama-cpp/
 
 metal 代码不能打印变量. 
+
+
+
+llama.cpp重构之后kv cache管理怎么这么复杂.一堆策略，看的晕死.auto多好用啊，模板编程也离不开啊
+
+
+
+#### kvcache
+
+llama.cpp的kv cache update这里为什么只有k的更新没有见到v的更新.  k与v的idx应该是相同的. 你看后面有个结构体叫kv_cell
 
 #### common/sampling.cpp
 
