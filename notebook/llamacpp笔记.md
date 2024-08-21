@@ -64,10 +64,6 @@ llama.cpp的kv cache update这里为什么只有k的更新没有见到v的更新
 
 每一个 token 的输出的时候都要 sampling 一次
 
-
-
-
-
 llama_synchronize 
 
 n queued tokens是什么? 
@@ -118,6 +114,10 @@ https://github.com/ggerganov/ggml/blob/21f9e5c426b105841c2e346d8f1aafec398edf15/
 -max 到max 切开 2^4份,  Q4 的方法在实际实现时，是复用了 Q8 的存储空间存放了两个 int4 ，一个放在低四位上一个放在**位移 4 位**后的高四位上，这就是 INT 量化方法比 FP 量化的优势所在。这是因为具体硬件中没有单独的数据结构来存放 Q4 的数据.
 
 因为值域范围太小，15.5 以上的值就没有表示方法了，所以代码中做一个简单的截取，这在 Q8 中没有做，这种截取本质的问题我认为不是丢弃了outlier ，而是只压缩了贴近 16 的一小部分数值。
+
+参考 https://github.com/ggerganov/llama.cpp/discussions/1121#discussioncomment-10361167
+
+一个block是几个字节?前两个字节包含 FP16 的比例因子,  18个字节吗? 
 
 #### Q4 1
 
