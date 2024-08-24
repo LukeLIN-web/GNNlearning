@@ -36,6 +36,14 @@ ggml 格式模型是 fp16 的.
 
 正常llama hidden sizes 是4096.
 
+#### rope
+
+都是用yarn吗? 还是就是普通的?  rope_neox和rope_norm 都是yarn了  , YaRN（另一种 RoPE 扩展方法），这是一种计算效率高的方法，用于扩展此类模型的上下文窗口，与以前的方法相比，需要的令牌少 10 倍，训练步骤少 2.5 倍,上下文长度可达 128k。
+
+  就是 **GPT-NeoX style** RoPE风格. meta的llama 是**GPT-J**风格. 
+
+GGML_METAL_KERNEL_TYPE_ROPE_NORM_F32 , 是直接和norm合并吗? 我不知道为啥这个叫norm,  没有norm操作. 
+
 
 
 #### docs
@@ -131,8 +139,6 @@ Q4_k更进一步，取了 8 个块的“超级块”，并对其应用了另一�
 
 
 
-一个block 是16个字节吗? 
-
 - `GGML_TYPE_Q4_K` - "type-1" 4-bit quantization in super-blocks containing 8 blocks, each block having 32 weights. Scales and mins are quantized with 6 bits. This ends up using `4.5` bpw.
 
 https://github.com/ggerganov/llama.cpp/pull/1684
@@ -140,6 +146,27 @@ https://github.com/ggerganov/llama.cpp/pull/1684
 https://github.com/ggerganov/llama.cpp/discussions/1121
 
 K 后缀代表 [K-quants](https://link.zhihu.com/?target=https%3A//github.com/ggerganov/llama.cpp/pull/1684) 方法，再后边 S、M、L、XS 等等代表尺寸.
+
+
+
+#### 代码
+
+```cpp
+template [[host_name("kernel_mul_mm_q8_0_f32")]]    kernel mat_mm_t kernel_mul_mm<block_q8_0,    2,     dequantize_q8_0>;
+
+block_q =block_q8_0  , nl  = 2 , dequantize_func = dequantize_q8_0
+
+device const block_q * x = (device const block_q *)(src0 + (r0 * BLOCK_SIZE_M + thread_row) * nb01 + offset0) + offset1;
+
+each block_q contains 16*nl weights.  32个weight. 
+
+```
+
+
+
+
+
+
 
 #### 量化分片
 
@@ -177,6 +204,8 @@ int8转fp16 有特殊的算法. 具体看视频.
 
 ## metal
 
+数据类型 : https://github.com/alexiscn/metal-shading-language-specification/blob/master/ch02.md
+
 metal的第一个commit是ecb217db4fcfa3880300ad08531a5fb6bb14.
 
 #### 编译
@@ -192,7 +221,6 @@ metal的第一个commit是ecb217db4fcfa3880300ad08531a5fb6bb14.
             )
            xcrun -sdk macosx metal -c MyLibrary.metal -o MyLibrary.air
            xcrun -sdk macosx metallib MyLibrary.air -o MyLibrary.metallib
-           
 ```
 https://juejin.cn/post/7029658159832629285
 

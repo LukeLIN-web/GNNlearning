@@ -131,6 +131,14 @@ fa1的优化:
 
 为此, 需要splitting Q in outer loop.
 
+V2最重要的提升点是参考Phil Tillet的Tirton版本，更改了Tiling循环的顺序，也就是笔者本文图1的效果。V1版本循环顺序设计是outer和inner loop和图1反过来，在outer loop扫描时做softmax的规约，这导致outer loop必须在一个thread block里才能共享softmax计算中间结果的信息，从而只能对batch * head维度上以thread block为粒度并行切分。V2中调换了循环顺序，使outer loop每个迭代计算没有依赖，可以发送给不同的thread block并行执行，也就是可以对batch* head* sequence三层循环以thread block为粒度并行切分，从而显著增加GPU的吞吐。反向遵循同样的原理，不要把inner loop放在softmax规约的维度，因此正向反向的循环顺序是不同的。
+
+说实话，我看V1论文中原始图1就觉得循环顺序很不合理，我盯着循环执行的zigzag顺序图看了一下午，百思不得其解。现在FA github readme里还不把这个图改过来，有点说不过去。另外，个人推测V2性能最大的提升就是来源是来自这个循环顺序的调换
+
+随着循环顺序调换之后，一个thread block内warps粒度的划分也需要改进，作者把V1版本沿着K切分共享Q，改为沿着Q切分共享K。
+
+另外作者做了提取公因式数学变换，减少了一些non-matmul FLOPs，调优了thread block size。最终更达到了最优情况下72% A100 FLOPs利用率的效果。
+
 #### warp通信减少
 
 一个thread block中的warps,  需要用smem communicate. 
@@ -175,6 +183,8 @@ https://zhuanlan.zhihu.com/p/708867810
 
 
 ## FlashDecoding++  
+
+针对长序列的推理
 
 ## fa3. 
 

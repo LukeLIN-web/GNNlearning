@@ -1,5 +1,3 @@
-
-
 #### 背景
 
 tvm 只有固定pattern, 不够广.
@@ -41,17 +39,11 @@ Specialized Kernels: Group Norm and GELU
 
 是把 matmul V和softmax fuse到一起. 看图2.
 
-
-
-
-
 fuse, 或许可以用 dynamic shape fusion 试试. 
 
 flashattention 不是从循环程序分析角度能得到的, 注意到了memory level的, online softmax不是dag能描述的, 依赖关系太复杂. dnn 计算复杂了 调度空间太大了. 
 
 https://llm.mlc.ai/docs/get_started/quick_start  tvm运行llama3.
-
-
 
 ## fuse
 
@@ -64,17 +56,23 @@ https://ai.lefebvre-sarrut.eu/2023/07/20/deep-dive-into-kernel-fusion-accelerati
 
 #### Rotary Embeddings
 
-函数 precompute_freqs_cis_pytorch 生成一个范围，根据此范围计算频率值，然后计算这些频率的余弦值和正弦值，这些值作为两个单独的张量返回。
+函数 precompute_freqs_cis 生成一个范围，根据此范围计算频率值，然后计算这些频率的余弦值和正弦值，这些值作为两个单独的张量返回。
 
-函数apply_rotary_emb_pytorch将输入张量 xq 和 xk 分割成实数和虚数部分，重塑 freqs_cos 和 freqs_sin 以进行广播，执行类似于复数乘法的计算，最后将实数和虚数部分合并回原始张量。
+函数apply_rotary_emb_pytorch将输入张量 x分割成实数和虚数部分，执行类似于复数乘法的计算，最后将实数和虚数部分合并回原始张量。
 
-就是避免用torch polar, 不用创建复数 不用 torch.complex128保存.  就是分开实部和虚部.
+就是避免用torch polar, 不用创建复数 不用 torch.complex128保存.  就是分开实部和虚部. 
+
+为什么这么做? 像Triton这样的低级工具缺乏对它们的直接支持.triton 没有complex128格式.https://github.com/triton-lang/triton/blob/f21009031e94f4f4da2d01641d7f20f8b8e2d70b/python/triton/language/core.py#L324  最多uint64, fp64 
+
+llamacpp是fp32, 没有量化. 实部和虚部已经分开了.
+
+
 
 #### RMSNorm 
 
 第一个循环读取数据并计算 RMSNorm 统计信息。
 
-第二个循环使用上一步中计算的统计信息修改读取的数据。
+第二个循环使用上一步中计算的rstd 修改读取的数据。
 
 当在同一地址上执行两次连续的加载操作时，第二次操作可能会从 GPU 缓存中获取数据，这意味着在同一个 Triton 程序中执行两次传递不会花费双重 DDR 加载。
 
@@ -82,11 +80,13 @@ https://ai.lefebvre-sarrut.eu/2023/07/20/deep-dive-into-kernel-fusion-accelerati
 
 为什么需要 rms weight 乘法?
 
+llamacpp 也是两个循环,  但是没有 out = x_hat * rms_w ,  是放在单独算子做吗?
+
 #### 融合
 
 RMSNorm 成本更高的任务是数据加载，分两个不同的阶段执行。紧接着，during matrix multiplication from output of RMSNorm and model weight (to perform the projection)，iterate 输入张量。这种情况为计算 RMSNorm 所需的统计信息提供了机会。
 
-由于转换需要将输入除以特定值，因此我们可以在tile 矩阵乘法**后**执行此操作。从本质上讲，这意味着我们可以合并这两个操作：在归一化之前在张量上执行矩阵乘法，然后归一化其（tile）输出。
+由于转换需要将输入除以特定值，因此我们可以在tile 矩阵乘法后执行此操作。从本质上讲，这意味着我们可以合并这两个操作：在归一化之前在张量上执行矩阵乘法，然后归一化其（tile）输出。
 
 矩阵乘法后，我们可以将输出与旋转嵌入合并。
 
@@ -106,10 +106,9 @@ RMSNorm 成本更高的任务是数据加载，分两个不同的阶段执行。
 
 silu 运算由两个元素运算组成，也可以与第一个矩阵乘法的输出合并，从而实现整体更精简的运算。
 
+将 CUDA 时间减少 30%。然而，第二个优势在于减少了内核启动数量和其他可能的开销。这些因素对总墙时间有很大贡献，特别是在计算相对有限的情况下，例如在推理中，当批量大小设置为 1 时更是如此，就像这里一样。
+
+ Flash Attention 确实对perplexity有轻微影响。在此项目中，Flash Attention 仅在 FP8 场景中使用。这可能归因于我们的 FA 内核实现中的一个错误。我们已经实现了原版 Triton 和我们自己针对 Llama 的自定义版本，两者都导致了同样的问题。或者，它可能根本不是一个错误，而是一个灾难性取消catastrophic cancelling的例子(就是两个近似值相减误差 比实际误差大非常多倍)。我们没有对此进行深入调查，因为我们的主要目的是测试 FP8 格式及其对速度的影响。
 
 
-内核合并提供了一个显着的计算优势，例如通过优化计算过程将 CUDA 时间减少 30%。然而，第二个优势在于减少了内核启动数量和其他可能的开销。这些因素对总墙时间有很大贡献，特别是在计算相对有限的情况下，例如在推理中，当批量大小设置为 1 时更是如此，就像这里一样。
 
-
-
-使用 Flash Attention 确实对perplexity有轻微影响。在此项目中，Flash Attention 仅在 FP8 场景中使用。这可能归因于我们的 FA 内核实现中的一个错误。我们已经实现了原版 Triton 和我们自己针对 Llama 的自定义版本，两者都导致了同样的问题。或者，它可能根本不是一个错误，而是一个灾难性取消catastrophic cancelling的例子。我们没有对此进行深入调查，因为我们的主要目的是测试 FP8 格式及其对速度的影响。
