@@ -162,9 +162,21 @@ each block_q contains 16*nl weights.  32个weight.
 
 ```
 
+llm_build_inp_embd是干啥的? 
 
 
 
+是怎么调用kernel_mul_mm_q8_0_f32的?
+
+就是用op, 然后op建图. 
+
+模仿  GML_METAL_KERNEL_TYPE_MUL_MM_Q4_0_F16_F16
+
+
+
+f16_f16_f16,  强调c=a*b都是f16,不然他默认c是f32
+
+我们需要输出16
 
 
 
