@@ -49,10 +49,11 @@ https://llm.mlc.ai/docs/get_started/quick_start  tvm运行llama3.
 
 https://ai.lefebvre-sarrut.eu/2023/07/20/deep-dive-into-kernel-fusion-accelerating-inference-in-llama-v2/
 
-1. 实数虚数分开表示.
-2. 在同一地址上执行两次连续的加载操作时，第二次操作可能会从 GPU 缓存中获取数据, 所以不会花费双重 DDR 加载.
-3.  rms weight 乘法的同时 统计rms  所有元素平方的均值
-4. feedforward, 一次loop 加载两个矩阵乘法. 
+1. 实数虚数分开表示. llama cpp已经做了. 
+2. RMSNorm , 在同一地址上执行两次连续的加载操作时，第二次操作可能会从 GPU 缓存中获取数据, 所以不会花费双重 DDR 加载.  llama cpp已经做了. 
+3.  rms weight 乘法的同时 统计rms  所有元素平方的均值.  llama cpp 是分开乘的. 
+4.   一个大kernel, 融合rms norm 和rbe . 一个循环同时乘linear 和rms的weight.  llama cpp 没做. 
+5. feedforward, 一次loop 加载两个矩阵乘法. 
 
 #### Rotary Embeddings
 
@@ -60,17 +61,27 @@ https://ai.lefebvre-sarrut.eu/2023/07/20/deep-dive-into-kernel-fusion-accelerati
 
 函数apply_rotary_emb_pytorch将输入张量 x分割成实数和虚数部分，执行类似于复数乘法的计算，最后将实数和虚数部分合并回原始张量。
 
-就是避免用torch polar, 不用创建复数 不用 torch.complex128保存.  就是分开实部和虚部. 
+就是避免用torch polar, 不用创建复数 不用 torch.complex128保存, 分开实部和虚部. 
 
 为什么这么做? 像Triton这样的低级工具缺乏对它们的直接支持.triton 没有complex128格式.https://github.com/triton-lang/triton/blob/f21009031e94f4f4da2d01641d7f20f8b8e2d70b/python/triton/language/core.py#L324  最多uint64, fp64 
 
 llamacpp是fp32, 没有量化. 实部和虚部已经分开了.
 
-
-
 #### RMSNorm 
 
 第一个循环读取数据并计算 RMSNorm 统计信息。
+
+```
+for 
+ var += x^2
+ 
+var = sum(x^2)
+var = 求 var 平均值
+rstd = sqrt (var)
+
+for :
+	xhat = x * rstd
+```
 
 第二个循环使用上一步中计算的rstd 修改读取的数据。
 
@@ -78,9 +89,19 @@ llamacpp是fp32, 没有量化. 实部和虚部已经分开了.
 
 我们还在加载和存储张量时使用掩码。在处理可能包含张量边界之外的地址的固定大小块时，这些掩码对于避免非法内存访问至关重要。
 
-为什么需要 rms weight 乘法?
+为什么需要 rms weight 乘法? gi是否就是weight.https://mltalks.medium.com/rmsnorm%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB-bfae83f6d464
 
-llamacpp 也是两个循环,  但是没有 out = x_hat * rms_w ,  是放在单独算子做吗?
+是的, 就是rmsnorm就有一个weight. 初始化为1. layernorm也有weight.
+
+llamacpp 也是两个循环,  但是没有 out = x_hat * rms_w ,  是放在单独算子做. 
+
+```
+2024-08-26 20:24:46.680 llama-cli[18076:6315274] ,f32, RMS_NORM , ffn_inp-0 , (4096; 2;1; 1),  , (0; 0;0; 0),0.004888
+2024-08-26 20:24:46.680 llama-cli[18076:6315274] ,f32, MUL , norm-0 , (4096; 2;1; 1),  blk.0.ffn_norm.weight, (4096; 1;1; 1),0.007033
+
+2024-08-26 20:24:46.680 llama-cli[18076:6315274] ,f32, RMS_NORM , l_out-0 , (4096; 2;1; 1),  , (0; 0;0; 0),0.007033
+2024-08-26 20:24:46.680 llama-cli[18076:6315274] ,f32, MUL , norm-1 , (4096; 2;1; 1),  blk.1.attn_norm.weight, (4096; 1;1; 1),0.006080
+```
 
 #### 融合
 
@@ -88,17 +109,19 @@ RMSNorm 成本更高的任务是数据加载，分两个不同的阶段执行。
 
 由于转换需要将输入除以特定值，因此我们可以在tile 矩阵乘法后执行此操作。从本质上讲，这意味着我们可以合并这两个操作：在归一化之前在张量上执行矩阵乘法，然后归一化其（tile）输出。
 
-矩阵乘法后，我们可以将输出与旋转嵌入合并。
+矩阵乘法后，我们可以将输出与旋转嵌入rbe_triton合并。
 
 在此优化过程中，旋转嵌入的使用被认为是可选的，因为它仅用于 Q 和 K 张量，而不用于 V 张量（RBE_EPILOGUE bool 参数）。
 
-内核的初始指令侧重于确定开始数据读取过程的精确位置。然后，该循环执行三个主要操作：投影（即矩阵乘法）、与 RMSNorm 权重的乘法，以及方便地计算 RMSNorm 的统计数据，这得益于正在进行的数据读取。RMSNorm 的实现最终是通过以下操作完成的：`accumulator = accumulator * a_norm[:, None]`
+该循环执行三个主要操作：projection（即矩阵乘法）、与 RMSNorm 权重的乘法，以及方便地计算 RMSNorm 的统计数据.  RMSNorm 的实现最终是通过以下操作完成的：`accumulator = accumulator * a_norm[:, None]`
+
+
 
 之后做rbe,  Here, it's crucial to note the synchronization barrier.   当在共享地址上同时发生读/写操作时，必须确保单个 warp 中的所有线程同步完成。否则，这可能会导致与并发相关的复杂调试问题。
 
-值得注意的是一个重要的权衡：RMSNorm 和矩阵乘法的融合导致的计算量超过了严格必要的计算量。具体来说，对于每个tile（张量的一部分），该过程会重新计算整个输入行的统计数据，然后对tile进行归一化。这种方法主要基于这样一个事实，即在小批量的上下文中（可能与全局内存 I/O 和 CPU 开销得到有效管理和摊销的大批量无关），我们受到内存带宽的限制。因此，这种额外的计算被认为是可以接受的。不过，对于较大的批次，比较融合和未融合的 RMSNorm 操作之间的性能配置文件肯定是一个好主意。
+值得注意的是一个重要的权衡：RMSNorm 和矩阵乘法的融合导致的计算量超过了严格必要的计算量。具体来说，对于每个tile（张量的一部分），该过程会重新计算整个输入行的统计数据，然后对tile进行归一化。主要基于这样一个事实，即在小batch size，受到内存带宽的限制。因此，这种额外的计算被认为是可以接受的。
 
-速度提升不高的原因主要是因为，在 Triton 中为投影执行的矩阵乘法并不比在 PyTorch 中快得多。这主要是因为将权重从全局存储器移动到片上存储器的过程非常耗时，无论实施何种优化策略，情况仍然如此。尽管如此，速度提高 1.5 倍是一个重大改进。
+速度提升不高的原因主要是因为，在 Triton 中矩阵乘法并不比在 PyTorch 中快得多。这主要是因为将权重从全局存储器移动到片上存储器的过程非常耗时，无论实施何种优化策略，情况仍然如此。尽管如此，速度提高 1.5 倍是一个重大改进。
 
 #### Feed Forward
 

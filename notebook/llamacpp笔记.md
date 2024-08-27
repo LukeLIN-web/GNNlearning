@@ -160,6 +160,11 @@ device const block_q * x = (device const block_q *)(src0 + (r0 * BLOCK_SIZE_M + 
 
 each block_q contains 16*nl weights.  32个weight. 
 
+  
+  GGML_METAL_ADD_KERNEL(GGML_METAL_KERNEL_TYPE_MUL_MM_Q8_0_F16_F16,   //这个是.m文件中的描述符
+                        mul_mm_q8_0_f16_f16,   //这个是.metal文件中的host_name
+                        ctx->support_simdgroup_mm);// 参看函数的定义
+
 ```
 
 llm_build_inp_embd是干啥的? 
@@ -177,6 +182,10 @@ llm_build_inp_embd是干啥的?
 f16_f16_f16,  强调c=a*b都是f16,不然他默认c是f32
 
 我们需要输出16
+
+prompt eval和 eval的fa不是一个. 写上判断, 不开也跑f16.
+
+
 
 
 
