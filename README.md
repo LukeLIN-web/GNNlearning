@@ -10,7 +10,7 @@ Lectures can be found here [CS224W: Machine Learning with Graphs Video Lectures]
 
 Visualiztion:  https://distill.pub/2021/gnn-intro/ . 
 
-colab答案https://github.com/hdvvip/CS224W_Winter2021 
+colabhttps://github.com/hdvvip/CS224W_Winter2021 
 
 https://sands.kaust.edu.sa/classes/CS294E/F21/schedule.html
 

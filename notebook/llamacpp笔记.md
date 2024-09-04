@@ -58,11 +58,7 @@ https://www.omrimallis.com/posts/understanding-how-llm-inference-works-with-llam
 
 metal 代码不能打印变量. 
 
-
-
-llama.cpp重构之后kv cache管理怎么这么复杂.一堆策略，看的晕死.auto多好用啊，模板编程也离不开啊
-
-
+llama.cpp重构之后kv cache管理怎么这么复杂.一堆策略，看的晕死.
 
 #### kvcache
 
@@ -432,7 +428,13 @@ simdgroup要手动指定, warp是GPU自动指定的吗? 是的.  如果没有32�
 
 
 
+fa不需要读取weight.  所以和Q8 无关. 
 
+mm 矩阵乘法有模版.  mv没有模版. getrows有模板. 
+
+
+
+prompt和 eval 不是同一个kernel. 
 
 ## llama原理
 
@@ -455,6 +457,14 @@ ROPE算子就是加 position embedding
 会计算用户所有的输入，并生成对应的 KV 缓存.
 
 也叫 prompt processing 
+
+#### tokenizer
+
+Tokenizer也是在庞大的预训练语料上训练出来的，只不过由于计算需求相对训练模型少很多。 
+
+ 常用的Tokenization方法包括Byte Pair Encoding（BPE)，Uniform Language Model（ULM），WordPiece等等方法。而SentencePiece中主要是用的就是BPE和ULM，并且LLAMA2 选择的是SentencePiece中的BPE方法。
+
+Llama-3将tokenizer由sentencepiece换成了tiktoken，这与GPT4 保持一致. Vocabulary-size  扩大到128K,  这是模型能识别的所有不同token的数量, ，使用了GQA.  Context Window Size = 8K也就是 max_seq_len.
 
 ####  decoding 
 
@@ -508,3 +518,12 @@ chat 和普通的区别? chat weight不一样.   text是续写. chat要考虑提
 
 后面的decode  用 gemv kernel . 因为 只有一个tokens. 
 
+#### llama3和llama2区别 
+
+gqa是什么? 不是所有 Q 头共享一组 KV，而是**分组一定头数 Q 共享一组 KV**，比如两组 Q 共享一组 KV。
+
+gqa 没有额外的kernel.  
+
+输入前处理在cpu, 后处理有的也在cpu. 
+
+文字质量, 可以用数据集测.  
