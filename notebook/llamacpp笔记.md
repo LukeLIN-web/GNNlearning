@@ -518,11 +518,9 @@ chat 和普通的区别? chat weight不一样.   text是续写. chat要考虑提
 
 后面的decode  用 gemv kernel . 因为 只有一个tokens. 
 
-#### llama3和llama2区别 
+
 
 gqa是什么? 不是所有 Q 头共享一组 KV，而是**分组一定头数 Q 共享一组 KV**，比如两组 Q 共享一组 KV。
-
-gqa 没有额外的kernel.  
 
 输入前处理在cpu, 后处理有的也在cpu. 
 

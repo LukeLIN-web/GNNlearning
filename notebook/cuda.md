@@ -285,7 +285,11 @@ CUTLASS 3.x 进行了大范围的重构，引入了新的 GEMM 编程模型。�
 
  GPU 上面存在的两个异构硬件 TMA 和 TensorCore。Pipeline 的引入基本上宣告了 SIMT 编程的让位。
 
+#### kernel命名
 
+https://github.com/NVIDIA/cutlass/blob/main/python/cutlass_library/library.py
+
+https://github.com/NVIDIA/cutlass/blob/main/python/cutlass_library/gemm_operation.py
 
 ## reference
 
