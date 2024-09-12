@@ -155,17 +155,13 @@ block_q =block_q8_0  , nl  = 2 , dequantize_func = dequantize_q8_0
 device const block_q * x = (device const block_q *)(src0 + (r0 * BLOCK_SIZE_M + thread_row) * nb01 + offset0) + offset1;
 
 each block_q contains 16*nl weights.  32个weight. 
-
   
   GGML_METAL_ADD_KERNEL(GGML_METAL_KERNEL_TYPE_MUL_MM_Q8_0_F16_F16,   //这个是.m文件中的描述符
-                        mul_mm_q8_0_f16_f16,   //这个是.metal文件中的host_name
-                        ctx->support_simdgroup_mm);// 参看函数的定义
-
+mul_mm_q8_0_f16_f16,   //这个是.metal文件中的host_name
+ctx->support_simdgroup_mm);// 参看函数的定义
 ```
 
 llm_build_inp_embd是干啥的? 
-
-
 
 是怎么调用kernel_mul_mm_q8_0_f32的?
 
@@ -173,17 +169,11 @@ llm_build_inp_embd是干啥的?
 
 模仿  GML_METAL_KERNEL_TYPE_MUL_MM_Q4_0_F16_F16
 
-
-
 f16_f16_f16,  强调c=a*b都是f16,不然他默认c是f32
 
 我们需要输出16
 
 prompt eval和 eval的fa不是一个. 写上判断, 不开也跑f16.
-
-
-
-
 
 #### 量化分片
 
@@ -199,7 +189,7 @@ LLM中. A是activation, 一行是一个token的embedding, 所以也叫per token�
 
 #### 预处理memorylayout
 
-cuda用ldg 128 从HBM 到SMEM . 混合精度的时候, B要并行加载两列.  预处理就要把两列交织在一起.   就是 两个第一个列 然后两个第二列, interleave col , 也是一种memory layout吧. 
+cuda用ldg 128 从HBM 到SMEM . 混合精度的时候, B要并行加载两列.  预处理就要把两列交织在一起.   两个放第一个列 .  两个 放第二列, interleave col , 也是一种memory layout吧. 
 
 SMEM ldmatrix.x1 到 寄存器. 为warp中每个线程加载 连续4个bytes. 需要和 mma.m16n8k16 指令需要的数据排布对对齐. 所以也需要重排. 
 
@@ -209,15 +199,15 @@ int8转fp16 有特殊的算法. 具体看视频.
 
 如果没有pack好,   编译器 unroll 会失效.  因为用了过多的寄存器,  必须从最后一层开始.  最后一个for loop太大了就不能unroll. `#pragma clang loop unroll(full)`
 
-
-
-
-
 ### reference
 
 1. 【NVIDIA AI 加速精讲堂-TensorRT-LLM量化原理、实现与优化】 https://www.bilibili.com/video/BV1GE4m1R7Sa/?share_source=copy_web&vd_source=bb7496f78e4d303270b7c97ae8f69402
 2. 笔记：Llama.cpp 代码浅析（四）：量化那些事 - 刀刀宁的文章 - 知乎
    https://zhuanlan.zhihu.com/p/672983861
+
+https://github.com/pytorch/ao?tab=readme-ov-file#inference
+
+市面上挺多都是基于trt做的,ppq也是 .   现在钦定的换成了torchao, torch的量化都凉了,开发成本过高.  而且这个weightonly的量化也不会加速  torchao的dynamic quantization可以得到int8/fp8 tensor core的助力.  但是不支持cuda .    自己基于torchinductor做的backend，和trt 10.3的性能差距在2.5%以内. 
 
 ## metal
 
@@ -520,8 +510,42 @@ chat 和普通的区别? chat weight不一样.   text是续写. chat要考虑提
 
 
 
+LLM_ARCH_NOMIC_BERT, LLM_ARCH_BERT等用的是gqa
+
+一样的超参数处理.   kv用的是gqa
+
 gqa是什么? 不是所有 Q 头共享一组 KV，而是**分组一定头数 Q 共享一组 KV**，比如两组 Q 共享一组 KV。
 
 输入前处理在cpu, 后处理有的也在cpu. 
 
 文字质量, 可以用数据集测.  
+
+q40 和q80, mul_mv是不同的kernel, 
+
+Llama3 是训练脚本. 
+
+对比调用kernel 的差异. 
+
+Q4 完全不行. 对于小模型,  量化到 10-11位是开始有影响的, 12位不会有影响.
+
+
+
+https://www.53ai.com/news/qianyanjishu/1120.html
+
+找一下llama2的代码, 对比hidden dim. **ntermediate_size：11008->14336。**只是FFN时的中间维度变了，计算范式不变。参数量**增大**：32*4096*(14336-11008)*3*2/1024/1024 Byte **(2496MB)**  确认llama2 和3 是多少?
+
+训练脚本在hugging face上 https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct/blob/main/config.json,  
+
+
+
+tokenizer已经处理了, 是cpu处理的吗?
+
+
+
+只有linear 有weight.
+
+为什么8B 了 比7B 更大了? 
+
+inf, 为什么?  累加需要用f32, 不然会f16 爆范围. 
+
+128的fa 没有注释, 256的fa 注释了, 为什么? 

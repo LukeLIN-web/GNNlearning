@@ -49,10 +49,12 @@ https://llm.mlc.ai/docs/get_started/quick_start  tvm运行llama3.
 
 https://ai.lefebvre-sarrut.eu/2023/07/20/deep-dive-into-kernel-fusion-accelerating-inference-in-llama-v2/
 
+但是没想到啥创新,  先做试试.  也得继续看论文.    
+
 1. 实数虚数分开表示. llama cpp已经做了. 
-2. RMSNorm , 在同一地址上执行两次连续的加载操作时，第二次操作可能会从 GPU 缓存中获取数据, 所以不会花费双重 DDR 加载.  llama cpp已经做了. 
+2. RMSNorm , 在同一地址上执行两次连续的加载操作时，第二次操作可能会从 GPU 缓存中获取数据, 所以不会花费双重 DDR 加载.  llama cpp已经做了.   
 3.  rms weight 乘法的同时 统计rms  所有元素平方的均值.  llama cpp 是分开乘的. 
-4.   一个大kernel, 融合rms norm 和rbe . 一个循环同时乘linear 和rms的weight.  llama cpp 没做. 
+4.   一个大kernel, 融合rms norm 和rbe . 一个循环同时乘linear 和rms的weight.  llama cpp 没做.    
 5. feedforward, 一次loop 加载两个矩阵乘法. 
 
 #### Rotary Embeddings
@@ -135,3 +137,11 @@ silu 运算由两个元素运算组成，也可以与第一个矩阵乘法的输
 
 
 
+
+
+连续矩阵乘的融合收益还是要看具体场景，虽然能减少中间矩阵的搬移，但也会影响并行度以及对旁侧矩阵的复用，最好是中间矩阵足够大、旁侧矩阵足够小才有比较好的收益，主流场景中好像基本只有各类 attention、cnn 的前几层、一些小型 mlp 比较符合这个要求. 
+
+为什么没有自动生成任意算子fusion kernel的工作？ - 尘伊光的回答 - 知乎
+https://www.zhihu.com/question/666742071/answer/3621843363
+
+效果最好的场景就是连续多个的elementwise ops。通过算子融合可以显著减轻memory bound。
