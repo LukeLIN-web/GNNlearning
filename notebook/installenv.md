@@ -66,6 +66,8 @@ dpkg -l nvidia-*|grep ^ii ii就是安装了的
 apt list | grep nvidia-container-toolkit # 查看是否安装toolkit, 有[installed]就是安装了.
 ```
 
+cuda,  You need 387 driver for 9.1 toolkit, 384 corresponds to 9.0
+
 用` sudo apt-get --purge remove "*nvidia*"`删除了所有, 
 
 直接安装 nvidia-container-toolkit, 会把driver 自动装了. https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html 
@@ -102,4 +104,8 @@ conda install numpy ninja pyyaml mkl mkl-include setuptools cmake cffi typing_ex
 export $LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 确认path有/usr/local/cuda/bin
 ```
+
+
+
+
 

@@ -514,38 +514,37 @@ LLM_ARCH_NOMIC_BERT, LLM_ARCH_BERT等用的是gqa
 
 一样的超参数处理.   kv用的是gqa
 
-gqa是什么? 不是所有 Q 头共享一组 KV，而是**分组一定头数 Q 共享一组 KV**，比如两组 Q 共享一组 KV。
+gqa是什么? 不是所有 Q 头共享一组 KV，而是**分组一定头数 Q 共享一组 KV**，比如两组 Q 共享一组 KV. 
 
 输入前处理在cpu, 后处理有的也在cpu. 
 
 文字质量, 可以用数据集测.  
 
-q40 和q80, mul_mv是不同的kernel, 
-
-Llama3 是训练脚本. 
+q40 和q80, mul_mv是不同的kernel. 
 
 对比调用kernel 的差异. 
 
 Q4 完全不行. 对于小模型,  量化到 10-11位是开始有影响的, 12位不会有影响.
 
-
-
 https://www.53ai.com/news/qianyanjishu/1120.html
 
-找一下llama2的代码, 对比hidden dim. **ntermediate_size：11008->14336。**只是FFN时的中间维度变了，计算范式不变。参数量**增大**：32*4096*(14336-11008)*3*2/1024/1024 Byte **(2496MB)**  确认llama2 和3 是多少?
+为什么8B 了 比7B 更大了?   **intermediate_size：11008->14336。**只是FFN时的中间维度变了，计算范式不变。参数量**增大**：`32*4096*(14336-11008)*3*2/1024/1024` Byte **(2496MB)**     
 
 训练脚本在hugging face上 https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct/blob/main/config.json,  
 
-
-
-tokenizer已经处理了, 是cpu处理的吗?
-
-
+tokenizer已经处理了, 是cpu处理的吗?  不知道该怎么确认. 
 
 只有linear 有weight.
-
-为什么8B 了 比7B 更大了? 
 
 inf, 为什么?  累加需要用f32, 不然会f16 爆范围. 
 
 128的fa 没有注释, 256的fa 注释了, 为什么? 
+
+ T-Mac,   优点,非常快,  缺点, 要生成代码, 工作量很大. 
+
+LUT  , 把每种向量和矩阵组合记住,  
+
+为什么GPU的share memory不够快? 
+
+把可能的排列都记下来. 保存矩阵乘法的结果. 
+
