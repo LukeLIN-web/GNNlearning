@@ -170,7 +170,7 @@ https://pytorch.org/blog/cuda-free-inference-for-llms/?hss_channel=tw-7765855026
 2. 为什么没有自动生成任意算子fusion kernel的工作？ - 尘伊光的回答 - 知乎
    https://www.zhihu.com/question/666742071/answer/3621843363
 
-3. 效果最好的场景就是连续多个的elementwise ops。通过算子融合可以显著减轻memory bound。 cuda capture+cuda graph算cuda层动态融合.,算子融合是框架静态图的特长，torch compile  已经融合的不错了.  torch静态图的难点是构图，Dynamo在原理上我猜已经完备了，至于如果对一个包含各种op的图做融合算法是需要时间积累的,  另外推理引擎也是专业做op融合。cuda层做融合就确实没怎么听过
+3. 效果最好的场景就是连续多个的elementwise ops。通过算子融合可以显著减轻memory bound。 cuda capture+cuda graph算cuda层动态融合.,算子融合是框架静态图的特长，torch compile  已经融合的不错了.  torch静态图的难点是构图，Dynamo在原理上我猜已经完备了，至于如果对一个包含各种op的图做融合算法是需要时间积累的,  另外推理引擎也是专业做op融合。cuda层做融合就确实没怎么听过.
 
     elementwise 代表的layernorm 操作其融合会显著提高 SRAM 的访存效率，并减少layout的重置。可以先做. 
 
@@ -178,23 +178,9 @@ https://pytorch.org/blog/cuda-free-inference-for-llms/?hss_channel=tw-7765855026
 
 4. https://arxiv.org/abs/2008.13006   运行时统计数据, 根据数据来做块量化和块稀疏, 然后生成合适的算子来执行, 整个算力会有质的飞跃. 块量化同样精度下需要的bits更少, 块稀疏可以跳过不必要的计算.我之所以笃定能做这个事, 是因为 "矩阵乘法"的复杂度是n3, 而数据是n2, 这意味着对数据的统计占比不大. 对这个有兴趣的可以找我, 理论简单, 意义重大, 属于高性价比的内容了. 块量化这个肯定是有意义的, 这个在之前的channel量化就验证了. 块稀疏这个也就人做了, 它论文里说效果还行  https://github.com/galois-stack/galois/blob/preview/galois/ir/ir.hpp
 
-
-
-attn是绝对的memory bound（不算qkvo proj）  ,  大部分文章指的是gemm因为bs太小 memory bound了. attn我觉得不需要考虑tc了，除非说你某些量化的计算需要tc的支持.
-
-
+attn是绝对的memory bound（不算qkvo proj),  大部分文章指的是gemm因为bs太小 memory bound了. attn我觉得不需要考虑tc了，除非说你某些量化的计算需要tc的支持.
 
 https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/XQA-kernel.md  目前tensorrt-llm是在做的, decoding阶段用tensor core加速.
 
-
-
 GQA/MQA就不一样了 这种情况下kv cache是可以被多个query head reuse的. 
-
-
-
-
-
-
-
-
 
