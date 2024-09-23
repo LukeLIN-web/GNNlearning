@@ -184,3 +184,22 @@ https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/XQA-kernel.md
 
 GQA/MQA就不一样了 这种情况下kv cache是可以被多个query head reuse的. 
 
+# Chimera:
+
+ An Analytical Optimizing Framework for Effective Compute-intensive Operators Fusion
+
+优化框架，可以有效地提高计算密集型算子链在不同硬件加速器上的locality.
+
+在 Chimera 中，每个计算密集型算子都由一系列计算块组成。为op 链生成高效的融合内核，需要对block间和 block内 intra进行优化. 对于块间优化，Chimera minimizing the data movement volume among blocks using an analytical model.来确定优化的块执行顺序。对于块内优化，Chimera 使用统一的可替换微内核对不同的加速器应用特定于硬件的优化。最后，Chimera 为计算密集型 op链生成融合内核。
+
+#### 难点
+
+1. 很难确定计算密集型算子链的计算执行顺序。链中的每个算子都可以分解成一系列的计算块，这些计算块的不同执行顺序会导致块之间的数据移动量不同，因此性能也会发生巨大变化.  因为它们缺乏精确的性能模型来评估不同排序选择的算子的数据移动量
+2. 使用特定于硬件的功能优化每个模块内的计算具有挑战性。缺乏一种统一的方法来为不同的硬件加速器生成可扩展和灵活的微内核
+
+#### solution
+
+Chimera 列举了不同的区块执行顺序，并分析估计了区块之间的输入/输出数据移动量。之后，Chimera 选择提供最小数据移动量的执行顺序，以实现最佳数据局部性。
+
+
+
