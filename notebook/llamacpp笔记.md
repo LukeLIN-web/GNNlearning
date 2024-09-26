@@ -87,10 +87,6 @@ number of tokens processed in batches at the beginning
 prompt processing到底干了啥? 
 ```
 
-
-
-
-
 ## 量化
 
 ./examples/quantize/quantize.cpp
@@ -104,6 +100,38 @@ ppl是啥, 就是不确定度.
 对称量化 , 对称量化则是非对称量化的一种特殊形式，其限制了将零点映射为0
 
 https://github.com/ggerganov/ggml/blob/21f9e5c426b105841c2e346d8f1aafec398edf15/src/ggml-quants.c#L1515 可以参考 
+
+group 量化, 32个数字一个scale.  一个channel用一个scale 精度会掉太多,但是 paper都是这样做的, ppl不会掉, 但是实际上用起来非常差.  weight only 8bit  实际能用的都没有.  
+
+ 很多论文完全没有测精度, 很多速度非常快 , 实际上 模型的精度根本不能用.  
+
+architecture 优化模型速度的论文都可以说不work.llama说不出人话 , 但是 准确率指标还是很高.
+
+group wise  weight 和 activation一起,是做不了的.   会出现所有scale 互相乘的组合. 
+
+weight 4 bit的精度也很差. 大模型不行, resnet, yolo, bert  可以. 
+
+activation  channel wise? 
+
+英伟达推4x4, 4x8. group wise. 
+
+太需要 推公式, 太难了, 太需要数理基础. 
+
+英伟达中间可以转浮点数, activation用浮点数 8bit就行.  
+
+8 和16 bit 都做. 会增加不少. 做8bit.  中间全是定点数. 
+
+E2e 量化, 最难就是32 怎么定点回到 8, 直接切 scale只能取1/2的倍数, 精度损伤巨大. 必须重新train.  必须要有浮点运算的东西.   也可以找人支持一下16bit. 
+
+NPU 准确率是失控状态.  用定点数 凑出浮点数, 他们甚至没有浮点数算子.  都是假定定点数. 
+
+必须倒回CPU 做 32bit 转8bit . 不能直接切, 要转浮点数, 重新量化8bit , 输入conv2.
+
+activation  8bit, 结果肯定不行.   中间结果 16bit 可能可以做. 但是 硬件平台只能做到这个地步. 
+
+ 高通  int x 浮点数,  要先int 转浮点数.  mac可能 compiler会自动处理. 
+
+ 16 x16可以放32bit, 但是定点数不能放32bit , 会超出. 
 
 
 
@@ -132,8 +160,6 @@ Q4 1 , bias可以防止偏态分布导致的量化空间浪费.  缩放系数d �
 会多存一个M,   takes a block of 32 weights and gives each block a scaling factor 'd' and takes the minimum of the weights 'm' 因此量化权重“q”的最终权重是 q * d + m，并且采用相对较小的块大小使它们更有可能都在合理的量化范围内。值得注意的是，d 和 m 可以在不牺牲太多空间的情况下更准确地存储，因为开销除以 32。
 
 Q4_k更进一步，取了 8 个块的“超级块”，并对其应用了另一个比例因子“d_s”和最小“m_s”，因此最终权重为 （q * d + m） * d_s + m_s，附加因子存储为 6 位而不是 4 位。  https://news.ycombinator.com/item?id=36577898  
-
-
 
 - `GGML_TYPE_Q4_K` - "type-1" 4-bit quantization in super-blocks containing 8 blocks, each block having 32 weights. Scales and mins are quantized with 6 bits. This ends up using `4.5` bpw.
 
@@ -207,7 +233,7 @@ int8转fp16 有特殊的算法. 具体看视频.
 
 https://github.com/pytorch/ao?tab=readme-ov-file#inference
 
-市面上挺多都是基于trt做的,ppq也是 .   现在钦定的换成了torchao, torch的量化都凉了,开发成本过高.  而且这个weightonly的量化也不会加速  torchao的dynamic quantization可以得到int8/fp8 tensor core的助力.  但是不支持cuda .    自己基于torchinductor做的backend，和trt 10.3的性能差距在2.5%以内. 
+市面上挺多都是基于trt做的,ppq也是 .   现在钦定的换成了torchao, torch的量化都凉了,开发成本过高.  而且这个weightonly的量化也不会加速  torchao的dynamic quantization可以得到int8/fp8 tensor core的助力.  但是不支持cuda. 自己基于torchinductor做的backend，和trt 10.3的性能差距在2.5%以内. 
 
 ## metal
 
@@ -232,10 +258,6 @@ metal的第一个commit是ecb217db4fcfa3880300ad08531a5fb6bb14.
 https://juejin.cn/post/7029658159832629285
 
 https://developer.apple.com/documentation/metal/shader_libraries/metal_libraries/building_a_shader_library_by_precompiling_source_files?language=objc
-
-
-
-
 
 I've downloaded Xcode. Then I moved all *special* tools to CommandLineTools. After that I threw Xcode into trash. For now everything seems to work fine.
 

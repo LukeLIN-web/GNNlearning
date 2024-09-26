@@ -16,21 +16,19 @@ DNNFusion includes 1) a novel mathematical-property based graph rewriting framew
 
 分类 : One-to-One, Reorganize, Shuffle, One-to-Many, and Many-to-Many
 
-就对各种情况进行分析.  提出 Extended Computational Graph 作为IR.
+各种情况进行分析.  提出 Extended Computational Graph 作为IR.
 
 先用tvm和mnn产生计算图, 然后加入他们的infomation 产生ecg.
 
 #### Mathematical-Property-Based Graph Rewriting
 
-看图二好像就是结合律, 分配律, 交换律
+看图二就是结合律, 分配律, 交换律
 
 #### Light-Weight Profile-Driven Fusion Plan Exploration
 
 认为 One-to-One mapping fuse 潜力最大.  作为seed op. 找前后的op.
 
 在patDNN上写的. 
-
-别的框架好像很多都不支持.
 
 ## Speed Is All You Need
 
@@ -42,8 +40,6 @@ Specialized Kernels: Group Norm and GELU
 #### Enhancing Attention Module Efficiency
 
 是把 matmul V和softmax fuse到一起. 看图2.
-
-fuse, 或许可以用 dynamic shape fusion 试试. 
 
 flashattention 不是从循环程序分析角度能得到的, 注意到了memory level的, online softmax不是dag能描述的, 依赖关系太复杂. dnn 计算复杂了 调度空间太大了. 
 
@@ -137,7 +133,7 @@ RMSNorm 成本更高的任务是数据加载，分两个不同的阶段执行。
 
 silu 运算由两个元素运算组成，也可以与第一个矩阵乘法的输出合并，从而实现整体更精简的运算。
 
-将 CUDA 时间减少 30%。然而，第二个优势在于减少了内核启动数量和其他可能的开销。这些因素对总墙时间有很大贡献，特别是在计算相对有限的情况下，例如在推理中，当批量大小设置为 1 时更是如此，就像这里一样。
+将 CUDA 时间减少 30%。然而，第二个优势在于减少了内核启动数量和其他可能的开销。这些因素对总wall time有很大贡献，特别是在计算相对有限的情况下，例如在推理中，当批量大小设置为 1 时更是如此，就像这里一样。
 
  Flash Attention 确实对perplexity有轻微影响。在此项目中，Flash Attention 仅在 FP8 场景中使用。这可能归因于我们的 FA 内核实现中的一个错误。我们已经实现了原版 Triton 和我们自己针对 Llama 的自定义版本，两者都导致了同样的问题。或者，它可能根本不是一个错误，而是一个灾难性取消catastrophic cancelling的例子(就是两个近似值相减误差 比实际误差大非常多倍)。我们没有对此进行深入调查，因为我们的主要目的是测试 FP8 格式及其对速度的影响。
 
@@ -194,22 +190,14 @@ GQA/MQA就不一样了 这种情况下kv cache是可以被多个query head reuse
 
 #### 难点
 
-1. 很难确定计算密集型算子链的计算执行顺序。链中的每个算子都可以分解成一系列的计算块，这些计算块的不同执行顺序会导致块之间的数据移动量不同，因此性能也会发生巨大变化.  因为它们缺乏精确的性能模型来评估不同排序选择的算子的数据移动量
-2. 使用特定于硬件的功能优化每个模块内的计算具有挑战性。缺乏一种统一的方法来为不同的硬件加速器生成可扩展和灵活的微内核
+1. 很难确定计算密集型算子链的计算执行顺序。链中的每个算子都可以分解成一系列的计算块，这些计算块的不同执行顺序会导致块之间的数据移动量不同，因此性能也会发生巨大变化.  因为它们缺乏精确的性能模型来评估不同排序选择的算子的数据移动量. 
+2. 使用特定于硬件的功能优化每个模块内的计算具有挑战性。缺乏一种统一的方法来为不同的硬件加速器生成可扩展和灵活的微内核.
 
 #### solution
 
 Chimera 列举了不同的区块执行顺序，并分析估计了区块之间的输入/输出数据移动量。之后，Chimera 选择提供最小数据移动量的执行顺序，以实现最佳数据局部性。
 
 #### Inter-block Optimization
-
-
-
-
-
-
-
-
 
 Chimera 的输入是机器学习中的计算 DAG（由领域特定语言描述）。首先将 DAG 中的每个算子分解为一系列计算块, 然后用分析模型,  选择 执行顺序. 
 
@@ -218,4 +206,28 @@ Chimera 的输入是机器学习中的计算 DAG（由领域特定语言描述�
 矩阵 *B* 不会被重用，因为当我们沿维度 L 遍历块时，会访问矩阵 *B* 的不同数据块.
 
 矩阵 *D* 和 *E* 始终沿 *k* 维度重复使用，因为 *k* 是第一个 GEMM 的私有对象，它不会迭代第二个 GEMM 的计算.
+
+评估 bert, MLP mixer, vit 
+
+
+
+
+
+halide 比tvm  在 sdp 平台上表现更好.   
+
+stable diffusion  的 gemm 有vit这么多吗?    https://github.com/hahnyuan/LLM-Viewer 可以测op, roofline model.
+
+group wise在硬件上写起来太困难了. 
+
+
+
+
+
+
+
+
+
+
+
+
 
