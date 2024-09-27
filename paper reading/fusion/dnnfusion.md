@@ -213,7 +213,7 @@ Chimera 的输入是机器学习中的计算 DAG（由领域特定语言描述�
 
 
 
-halide 比tvm  在 sdp 平台上表现更好.   
+halide 比tvm  在 某些地方表现更好.   
 
 stable diffusion  的 gemm 有vit这么多吗?    https://github.com/hahnyuan/LLM-Viewer 可以测op, roofline model.
 
