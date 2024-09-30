@@ -176,6 +176,8 @@ https://pytorch.org/blog/cuda-free-inference-for-llms/?hss_channel=tw-7765855026
 
 attn是绝对的memory bound（不算qkvo proj),  大部分文章指的是gemm因为bs太小 memory bound了. attn我觉得不需要考虑tc了，除非说你某些量化的计算需要tc的支持.
 
+cpu的cache你不好手动控制，然后寄存器级别的fuse很影响性能，你想生成这种代码难，还依赖llvm给你寄存器分配.  1G的L3 latency大的离谱
+
 https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/XQA-kernel.md  目前tensorrt-llm是在做的, decoding阶段用tensor core加速.
 
 GQA/MQA就不一样了 这种情况下kv cache是可以被多个query head reuse的. 
@@ -208,8 +210,6 @@ Chimera 的输入是机器学习中的计算 DAG（由领域特定语言描述�
 矩阵 *D* 和 *E* 始终沿 *k* 维度重复使用，因为 *k* 是第一个 GEMM 的私有对象，它不会迭代第二个 GEMM 的计算.
 
 评估 bert, MLP mixer, vit 
-
-
 
 
 
