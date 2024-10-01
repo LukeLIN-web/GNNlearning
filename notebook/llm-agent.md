@@ -7,7 +7,6 @@
 1. 让听众可以参与.
 2. 完整讲了论文的细节.
 3. QA, 给一些问题. refer一些detail. 回答问题. 
-4. 
 
 65%  project.
 
@@ -18,8 +17,6 @@
 reasoning依然非常弱, think step by step work但是没人知道为什么. 
 
 未来可能, 机器人发现明天会下雨, 所以给你伞. 
-
-
 
 就是讲自己的论文.
 
@@ -49,11 +46,7 @@ user privacy, 不能让agent说出用户的隐私.
 
 #### CompeteAI
 
-提出了一个研究智能体之间竞争的一般框架。然后，我们使用 GPT-4 实现一个实际的竞争环境，以模拟一个具有两种类型的代理的虚拟城镇，包括餐厅和客户 .具体来说，餐厅代理相互竞争以吸引更多顾客，竞争鼓励他们转型，例如培养新的运营策略。模拟实验发现 一些现象, 与现有的市场和社会学理论非常吻合.  用gpt 研究社会学和市场.
-
-
-
-
+提出了一个研究智能体之间竞争的一般框架。用GPT4 实现一个实际的竞争环境, 包括餐厅和客户. 具体来说，餐厅代理相互竞争以吸引更多顾客，竞争鼓励他们转型，例如培养新的运营策略。模拟实验发现一些现象, 与现有的市场和社会学理论非常吻合.  用gpt 研究社会学和市场.
 
 #### Generative Agents: Interactive Simulacra of Human Behavior
 
@@ -80,7 +73,7 @@ https://zhuanlan.zhihu.com/p/676362983
 
 ### camel ai
 
-https://github.com/camel-ai/camel  可以快速产生agent, 让agent对话. 做了infra的工作.  这个或许可以用. 
+https://github.com/camel-ai/camel 使用初始提示来指导聊天代理完成任务，同时保持与人类意图的一致性。我们展示了如何使用角色扮演来生成对话数据，以研究代理社会的行为和能力.  可以快速产生agent, 让agent对话. 做了infra的工作.  这个或许可以用. 
 
 https://github.com/mistralai/cookbook/blob/main/third_party/CAMEL_AI/camel_roleplaying_scraper.ipynb 这个 加了很多rag, 更强大, 但是也更麻烦, 依赖的东西太多了, 如果需求他没有实现就需要改大量代码. 可以参考. 
 
