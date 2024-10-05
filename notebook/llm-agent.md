@@ -1,5 +1,3 @@
-
-
 10% 课堂参与, 发言五次就行.  11 课. 上课了要让TA 知道. 上5个课就行.
 
 25% 展示
@@ -9,6 +7,12 @@
 3. QA, 给一些问题. refer一些detail. 回答问题. 
 
 65%  project.
+
+参考 https://www.usenix.org/system/files/osdi24_slides-wang-lei.pdf
+
+
+
+
 
 
 
@@ -71,7 +75,7 @@ https://zhuanlan.zhihu.com/p/676362983
 
 
 
-### camel ai
+#### camel ai
 
 https://github.com/camel-ai/camel 使用初始提示来指导聊天代理完成任务，同时保持与人类意图的一致性。我们展示了如何使用角色扮演来生成对话数据，以研究代理社会的行为和能力.  可以快速产生agent, 让agent对话. 做了infra的工作.  这个或许可以用. 
 
@@ -82,4 +86,56 @@ https://github.com/mistralai/cookbook/blob/main/third_party/CAMEL_AI/camel_rolep
 目前支持安卓和大部分桌面环境. linux windwos macos都可用，但效果还要看prompt设计和model性能. 
 
 让agent 控制鼠标键盘, 去触发 mac和windows 的事件. 其实就是网络传输动作和参数，加一个控制mac鼠标键盘的库.
+
+#### ChatDB
+
+ChatDB 探索了使用符号内存增强 LLMs处理任意长度的上下文的方法 . 这样的符号内存框架被实例化为具有一组 SQL 数据库的 LLM。LLM 生成 SQL 指令来自主操作 SQL 数据库（包括插入、选择、更新和删除），旨在完成需要多跳推理和长期符号内存的复杂任务。这与现有的数据库参与形成鲜明对比，在数据库中，数据库被视为整个学习系统之外，被动地存储人类指示的信息。此外，之前的工作主要只关注选择操作，不支持对数据库进行插入、更新和删除操作。
+
+问题是什么? 简单地将所有上下文信息连接起来并将其塞入 LLMs，很容易超出 LLMs并累积错误，导致模型失去对对话的跟踪并产生不太准确的响应。
+
+怎么解决的? using databases as novel symbolic memory for LLMs
+
+#### Benchmark Self-Evolving: A Multi-Agent Framework for Dynamic LLM Evaluation
+
+我们利用多代理系统来操纵原始实例的上下文或问题，以高置信度重构新的不断发展的实例，从而动态扩展现有基准。为了实现更具可扩展性、稳健性和细粒度的评估，我们实施了六次重构操作，以构建针对各种查询、数据噪声LLMs，并探测它们解决问题的子能力。
+
+
+
+怎么重构的? 
+
+
+
+问题是什么? 
+
+1. Dataset inadequate: the previous static datasets used for evaluation are insufficient.
+2. Data contamination issues:  In-domain training or even public test data may be unintentionally included during LLM training, resulting in skewed evaluations.
+
+目标: continual updates of static benchmark datasets, enabling a more dynamic and accurate evaluation of LLMs
+
+过去的方案
+
+1. 对重新采样数据的困惑来评估 LLMs,然而，这种对困惑的过度依赖可能无法完全反映 LLMs 在预测准确性之外的性能
+2. 基于有向无环图动态合成测试样本，但这种方法难以推广到无法用图表示的任务
+
+解决方案:
+
+在这项工作中，我们建议灵活地更新现有的基准数据集，而不是构建全新的数据集。
+
+
+
+怎么解决的? 我们引入了一个基准自我进化框架，它通过修改它们的上下文或问题以及相应的答案，将现有的基准实例重新构建为新的变体以进行动态评估。 
+
+1. 我们通过基于原始上下文创建替代或更复杂的问题来引入**可扩展评估**。  creation of alternative questions (*Question Alternating*)    more complex questions requiring additional reasoning steps (*Question Complicating*)
+2. **稳健的评估**。这涉及将各种扰动合并到原始实例的上下文中，包括释义、添加噪声和反转极性    *Context Paraphrasing*: paraphrasing the original context to obtain diverse formulations;    *Context Noising*: adding noise by introducing irrelevant or adversarial sentences into the original context;     *Polarity Reversing*: reversing the polarity or altering key details of the original context. 
+3. 减轻过时数据和偏差敏感性可能扭曲能力评估的影响，我们设计**了细粒度评估**来探测LLMs 解决不同问题的子能力。task planning capability   和implicit knowledge identification capability for recognizing underlying facts or rules 和 relevant context retrieval capability for extracting pertinent information from the given context to support its responses.
+
+
+
+
+
+结果如何? 
+
+多代理对我们有用吗?
+
+感觉这个比较有趣展示, 很明显容易懂. 
 
