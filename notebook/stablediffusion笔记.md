@@ -1,5 +1,3 @@
-turbo的model structure啊，至少到每个Layer的级别，所谓layer，不是只有conv层就完了，至少也得知道是3  3的conv？有没有stride?什么的
-
 一文读懂Stable Diffusion 论文原理+代码超详细解读 - 蓝色仙女的文章 - 知乎
 https://zhuanlan.zhihu.com/p/640545463
 
@@ -10,6 +8,10 @@ Unet:  https://pic3.zhimg.com/v2-03cf776c6281ff727e157e6088dbb394_r.jpg
 目录 https://www.zhihu.com/column/c_1646154470676168704
 
 vae : https://pic3.zhimg.com/v2-a390d53cc59c0e76b0bbc86864f226ac_r.jpg
+
+
+
+stable diffusion training, teacher是冻结的, 训练student这个vae+ Unet + encoder, 两个loss 加起来. 辨别器会平衡到50% 输出达到真假难辨. 
 
 在扩散模型中，如果定义了 3 个反向去噪的步骤（Step），**UNet 会在每个步骤中执行一次**。每一步都会将当前的带噪数据传递给 UNet，让其去噪并生成一个更接近最终输出的数据。因此，经过 3 个步骤，UNet 就会被调用 3 次。
 
@@ -49,35 +51,45 @@ diffusers似乎默认用Lora 就可以.
 diffusers/src/diffusers/models/unets/unet_2d_condition.py
 
 vscode debug失败. attempted relative import with no known parent package
-
-
 ```
-
-
 
 turbo就是 https://github.com/Stability-AI/generative-models 
 
+## diffusion 基础
 
+https://lilianweng.github.io/posts/2021-07-11-diffusion-models/
+
+
+
+X0->x1->x2 -> z
+
+#### Forward diffusion process
+
+每次加一点高斯噪声. 
+
+
+
+#### reverse diffusion
+
+用Unet, 每次
 
 
 
 ## Unet
 
-
-
 跳过路径直接将丰富且相对更多的低级信息从 Di 转发到 Ui 。在 U-Net 架构中的前向传播期间，数据同时通过两条路径遍历：主分支和 skip 分支. 
 
 
 
-skip分支代码在哪里?
+skip分支代码在哪里?`hidden_states = torch.cat([hidden_states, res_hidden_states], dim=1)`
+
+视野范围越来越大, 但是看不到小的了.  两个数之间 距离其实越来越大. 只能看到最big picture, 看不到细节.  所以需要大层面的resnet. 用concat. 
+
+attention和 spatial transformer 差异是啥?  
 
 
 
 #### ResnetBlock2D
-
-
-
-
 
 
 
@@ -99,9 +111,7 @@ Q is projected from noisy data zt, K and V are projected from text condition
 
 
 
-## prune
-
-
+## pruning
 
 #### 挑战
 
@@ -113,13 +123,9 @@ challenge stems from the step-by-step denoising process required during their re
 
 
 
+#### DeepCache
 
-
-
-
-
-
-DeepCache: Accelerating Diffusion Models for Free. CVPR'24
+: Accelerating Diffusion Models for Free. CVPR'24
 
 观察到连续步骤之间高级特征的显着时间一致性。我们发现这些高级特征甚至可以缓存，可以计算一次，然后再次检索以进行后续步骤。通过利用 U-Net 的结构特性，可以缓存高级特征，同时保持在每个降噪步骤中更新的低级特征。
 
@@ -129,13 +135,25 @@ DeepCache: Accelerating Diffusion Models for Free. CVPR'24
 
 
 
-SnapFusion: Text-to-Image Diffusion Model on Mobile Devices within Two Seconds nips 23
+#### SnapFusion
+
+: Text-to-Image Diffusion Model on Mobile Devices within Two Seconds nips 23
 
 fig2 说 UNet 中间部分 参数多, , the slowest parts of UNet are the input and output stages with the largest feature resolution, as spatial cross-attentions have quadratic computation complexity with respect to feature size (tokens).
 
+ step distillation是怎么做的?
+
+input and output stages 指的是哪个stage?
+
+通过评估单个残差块和注意力块的重要性获得高效的 UNet 架构. 怎么评估? 
 
 
 
 
 
+#### structual pruning for for diffusion models.
+
+https://arxiv.org/pdf/2305.10924
+
+该术语 |𝜽′|0 表示参数的 L-0 范数，它计算非零行向量的数量，并 s 表示修剪模型的稀疏性。然而，由于扩散模型固有的迭代性质，训练目标（用 表示） ℒ 可以被视为相互关联的任务的组合 T ： {ℒ1,ℒ2,…,ℒT} 。每项任务都会影响并依赖于其他任务，从而带来了不同于传统修剪问题的新挑战，传统修剪问题主要集中在优化单个目标上。根据公式 [4](https://arxiv.org/html/2305.10924?_immersive_translate_auto_translate=1#S4.E4) 中定义的修剪目标，我们首先深入研究了每个损失分量 ℒt 在修剪中的单独贡献，随后提出了一种专为扩散模型修剪而设计的定制方法，即 Diff-Pruning。
 

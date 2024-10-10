@@ -99,11 +99,7 @@ ChatDB 探索了使用符号内存增强 LLMs处理任意长度的上下文的�
 
 我们利用多代理系统来操纵原始实例的上下文或问题，以高置信度重构新的不断发展的实例，从而动态扩展现有基准。为了实现更具可扩展性、稳健性和细粒度的评估，我们实施了六次重构操作，以构建针对各种查询、数据噪声LLMs，并探测它们解决问题的子能力。
 
-
-
 怎么重构的? 
-
-
 
 问题是什么? 
 
@@ -121,21 +117,31 @@ ChatDB 探索了使用符号内存增强 LLMs处理任意长度的上下文的�
 
 在这项工作中，我们建议灵活地更新现有的基准数据集，而不是构建全新的数据集。
 
-
-
 怎么解决的? 我们引入了一个基准自我进化框架，它通过修改它们的上下文或问题以及相应的答案，将现有的基准实例重新构建为新的变体以进行动态评估。 
 
 1. 我们通过基于原始上下文创建替代或更复杂的问题来引入**可扩展评估**。  creation of alternative questions (*Question Alternating*)    more complex questions requiring additional reasoning steps (*Question Complicating*)
 2. **稳健的评估**。这涉及将各种扰动合并到原始实例的上下文中，包括释义、添加噪声和反转极性    *Context Paraphrasing*: paraphrasing the original context to obtain diverse formulations;    *Context Noising*: adding noise by introducing irrelevant or adversarial sentences into the original context;     *Polarity Reversing*: reversing the polarity or altering key details of the original context. 
 3. 减轻过时数据和偏差敏感性可能扭曲能力评估的影响，我们设计**了细粒度评估**来探测LLMs 解决不同问题的子能力。task planning capability   和implicit knowledge identification capability for recognizing underlying facts or rules 和 relevant context retrieval capability for extracting pertinent information from the given context to support its responses.
 
-
-
-
-
 结果如何? 
 
 多代理对我们有用吗?
 
-感觉这个比较有趣展示, 很明显容易懂. 
+这个比较有趣展示, 很明显容易懂. 
+
+#### memory bank
+
+可以用dual-tower retrieval mechanism 来 集成 RAG . 
+
+memory sandbox
+
+users可以控制agent记住什么. 也是可视化的很好, 可以view, edit memory objects.
+
+
+
+
+
+
+
+
 
