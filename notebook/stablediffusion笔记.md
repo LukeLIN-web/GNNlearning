@@ -1,3 +1,17 @@
+## Vit
+
+Quasar-ViT: Hardware-Oriented Quantization-Aware Architecture Search for Vision Transformers
+
+HeatViT: Hardware-Efficient Adaptive Token Pruning for Vision Transformers: 
+
+ 很容易录了HPCA, algorithm  publish 别的paper了.   FPGA是林雪的学生写的, 回国了. 动态remove patchs, sequence layer也可以remove,  可以predict, 训练了一个predicter.  优点就是prune 一层,  acc下降了, 不会传播.   为什么? 问问arman .  没人知道 hardware怎么支持不同dimension的. 
+
+Peeling the Onion: Hierarchical Reduction of Data Redundancy for Efficient Vision Transformer Training
+
+
+
+
+
 一文读懂Stable Diffusion 论文原理+代码超详细解读 - 蓝色仙女的文章 - 知乎
 https://zhuanlan.zhihu.com/p/640545463
 
@@ -121,8 +135,6 @@ challenge stems from the step-by-step denoising process required during their re
 
 需要大规模数据集来重新训练这些轻量级模型.
 
-
-
 #### DeepCache
 
 : Accelerating Diffusion Models for Free. CVPR'24
@@ -133,27 +145,66 @@ challenge stems from the step-by-step denoising process required during their re
 
 作者改进出了, https://github.com/VainF/Diff-Pruning
 
-
-
 #### SnapFusion
 
 : Text-to-Image Diffusion Model on Mobile Devices within Two Seconds nips 23
 
+没有公开代码. 仓库只有图. 
+
+prune和 NAS, 需要微调. 
+
 fig2 说 UNet 中间部分 参数多, , the slowest parts of UNet are the input and output stages with the largest feature resolution, as spatial cross-attentions have quadratic computation complexity with respect to feature size (tokens).
 
- step distillation是怎么做的?
+ step distillation是怎么做的? 
 
-input and output stages 指的是哪个stage?
+input and output stages 指的是哪个stage?具有最大特征分辨率 是哪个? 
 
 通过评估单个残差块和注意力块的重要性获得高效的 UNet 架构. 怎么评估? 
 
+3.1 efficient Unet
 
+跳过一部分 crossattention, resnet, 是or 的关系还是两个随机独立?
 
+algo1
 
+```
+while not conver:
+    perform robust training
+    if f perform architecture evolving at this iteration:
+        perform architecture evolving
+        for eachblock[i, j]:
+            delta_clip = evaluate_block(去掉i, j, )
+            delta_latency = evaluate_block(i, j)
+        if latency > latency_threshold:
+            A = argmin(delta_clip/delta_latency)
+        else:
+            A = argmin(delta_clip/delta_latency)
+这个算法不讲人话,非常难懂. 
+```
+
+3.2 image decoder
+
+applying 50% uniform channel pruning to the original image decoder
+
+#### 4 Step Distillation
+
+distilling the teacher, *e.g.*, at 32 steps, to a student that runs at fewer steps, *e.g.*, 16 steps
+
+step就是循环Unet 32次. 
+
+不要逐步进行, 凭经验观察到，渐进式蒸馏比直接蒸馏略差. 32蒸馏到16, 16蒸馏到8 step.
+
+16node*8个 40G A100GPU.
 
 #### structual pruning for for diffusion models.
 
 https://arxiv.org/pdf/2305.10924
 
 该术语 |𝜽′|0 表示参数的 L-0 范数，它计算非零行向量的数量，并 s 表示修剪模型的稀疏性。然而，由于扩散模型固有的迭代性质，训练目标（用 表示） ℒ 可以被视为相互关联的任务的组合 T ： {ℒ1,ℒ2,…,ℒT} 。每项任务都会影响并依赖于其他任务，从而带来了不同于传统修剪问题的新挑战，传统修剪问题主要集中在优化单个目标上。根据公式 [4](https://arxiv.org/html/2305.10924?_immersive_translate_auto_translate=1#S4.E4) 中定义的修剪目标，我们首先深入研究了每个损失分量 ℒt 在修剪中的单独贡献，随后提出了一种专为扩散模型修剪而设计的定制方法，即 Diff-Pruning。
+
+## stable video diffusion
+
+量化可以节省显存, 省GPU
+
+
 
