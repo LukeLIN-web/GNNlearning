@@ -1,4 +1,4 @@
-10% 课堂参与, 发言五次就行.  11 课. 上课了要让TA 知道. 上5个课就行.
+10% 课堂参与, 11 个课. 上课了要让TA 知道. 上5个课就行.
 
 25% 展示
 
@@ -7,10 +7,6 @@
 3. QA, 给一些问题. refer一些detail. 回答问题. 
 
 65%  project.
-
-参考 https://www.usenix.org/system/files/osdi24_slides-wang-lei.pdf
-
-
 
 
 
@@ -95,27 +91,41 @@ ChatDB 探索了使用符号内存增强 LLMs处理任意长度的上下文的�
 
 怎么解决的? using databases as novel symbolic memory for LLMs
 
+#### memory bank
+
+可以用dual-tower retrieval mechanism 来 集成 RAG . 
+
+memory sandbox
+
+users可以控制agent记住什么. 也是可视化的很好, 可以view, edit memory objects.
+
 #### Benchmark Self-Evolving: A Multi-Agent Framework for Dynamic LLM Evaluation
 
 我们利用多代理系统来操纵原始实例的上下文或问题，以高置信度重构新的不断发展的实例，从而动态扩展现有基准。为了实现更具可扩展性、稳健性和细粒度的评估，我们实施了六次重构操作，以构建针对各种查询、数据噪声LLMs，并探测它们解决问题的子能力。
 
 怎么重构的? 
 
-问题是什么? 
+Good evening everyone, today I would like to introduce the paper , benchmark self evolving, a Multi-Agent Framework for Dynamic LLM Evaluation.
+
+The first author is from Fudan University and Tongji university.  
+
+The evaluation of LLMs has emerged as a crucial area. A lot of benchmark datasets have been proposed to evaluate LLMs. However, with the rapid development of LLMs, these static datasets are inadequate. 
+
+There are two problems
 
 1. Dataset inadequate: the previous static datasets used for evaluation are insufficient.
-2. Data contamination issues:  In-domain training or even public test data may be unintentionally included during LLM training, resulting in skewed evaluations.
+2. Data contamination issues:  In-domain training or even public test data may be unintentionally included during LLM training, resulting in skewed evaluations.  
 
 目标: continual updates of static benchmark datasets, enabling a more dynamic and accurate evaluation of LLMs
 
 过去的方案
 
-1. 对重新采样数据的困惑来评估 LLMs,然而，这种对困惑的过度依赖可能无法完全反映 LLMs 在预测准确性之外的性能
+1. 
 2. 基于有向无环图动态合成测试样本，但这种方法难以推广到无法用图表示的任务
 
 解决方案:
 
-在这项工作中，我们建议灵活地更新现有的基准数据集，而不是构建全新的数据集。
+灵活地更新现有的基准数据集，而不是构建全新的数据集。
 
 怎么解决的? 我们引入了一个基准自我进化框架，它通过修改它们的上下文或问题以及相应的答案，将现有的基准实例重新构建为新的变体以进行动态评估。 
 
@@ -125,19 +135,7 @@ ChatDB 探索了使用符号内存增强 LLMs处理任意长度的上下文的�
 
 结果如何? 
 
-多代理对我们有用吗?
-
-这个比较有趣展示, 很明显容易懂. 
-
-#### memory bank
-
-可以用dual-tower retrieval mechanism 来 集成 RAG . 
-
-memory sandbox
-
-users可以控制agent记住什么. 也是可视化的很好, 可以view, edit memory objects.
-
-
+这几个agent有训练吗?  oneshot是啥意思? 
 
 
 

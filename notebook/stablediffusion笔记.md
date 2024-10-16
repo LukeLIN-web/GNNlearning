@@ -202,9 +202,56 @@ https://arxiv.org/pdf/2305.10924
 
 该术语 |𝜽′|0 表示参数的 L-0 范数，它计算非零行向量的数量，并 s 表示修剪模型的稀疏性。然而，由于扩散模型固有的迭代性质，训练目标（用 表示） ℒ 可以被视为相互关联的任务的组合 T ： {ℒ1,ℒ2,…,ℒT} 。每项任务都会影响并依赖于其他任务，从而带来了不同于传统修剪问题的新挑战，传统修剪问题主要集中在优化单个目标上。根据公式 [4](https://arxiv.org/html/2305.10924?_immersive_translate_auto_translate=1#S4.E4) 中定义的修剪目标，我们首先深入研究了每个损失分量 ℒt 在修剪中的单独贡献，随后提出了一种专为扩散模型修剪而设计的定制方法，即 Diff-Pruning。
 
+https://arxiv.org/abs/2410.10812   Hybrid Autoregressive Transformer.  用传统的AR模型生成图像,  混合分词器，它将自动编码器的连续潜在因素分解为两个部分：代表大局的离散分词和代表离散分量无法表示的残余分量的连续分量。离散分量由可扩展分辨率的离散 AR 模型建模，而连续分量则使用只有 37M 参数的轻量级残差扩散模块进行学习. 
+
 ## stable video diffusion
 
-量化可以节省显存, 省GPU
+量化可以节省显存, 省GPU, pruning可以吗? 
+
+34w下载, stable-video-diffusion-img2vid-xt, 9.56gb, fp16是 4.2 GB. 但是还是跑不起来. 不支持bf16.
+
+A100支持bf16.
+
+也可以看看加速 cogvideox 智普AI和清华的. cogvideox 有8w下载, 非常可以. 
+
+LanguageBind/Open-Sora-Plan-v1.3.0, 0下载. 没啥人用.  不管他.
+
+```
+torch._dynamo.exc.Unsupported: call_method NNModuleVariable() to [ConstantVariable(str)] {}
+
+from user code:
+   File "/usr/local/lib/python3.10/dist-packages/accelerate/hooks.py", line 717, in offload
+    self.hook.init_hook(self.model)
+  File "/usr/local/lib/python3.10/dist-packages/accelerate/hooks.py", line 696, in init_hook
+    return module.to("cpu")
+
+Set TORCH_LOGS="+dynamo" and TORCHDYNAMO_VERBOSE=1 for more information
 
 
+You can suppress this exception and fall back to eager by setting:
+    import torch._dynamo
+    torch._dynamo.config.suppress_errors = Truez
+   Function                                  Runtimes (s)
+--------------------------------------  --------------
+_compile                                      146.867
+OutputGraph.call_user_compiler                132.066
+create_aot_dispatcher_function                132.273
+compile_fx.<locals>.fw_compiler_base          113.608
+GraphLowering.run                              11.5849
+GraphLowering.compile_to_module                82.072
+Scheduler.__init__                             14.3387
+Scheduler.codegen                               6.7381
+WrapperCodeGen.generate                         0.2502
+cudagraphify                                    0.0066
+CachingAutotuner.benchmark_all_configs          5.538
+```
 
+compile的时间非常久. 
+
+为了防止量化引起的任何数值问题，我们以 bfloat16 格式运行所有内容。
+
+https://pytorch.org/blog/accelerating-generative-ai-3/
+
+module 'torch' has no attribute 'float8_e4m3fn'
+
+torchao,FP8 precision must be used on devices with NVIDIA H100 and above

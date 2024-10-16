@@ -203,15 +203,11 @@ Chimera 列举了不同的区块执行顺序，并分析估计了区块之间的
 
 Chimera 的输入是机器学习中的计算 DAG（由领域特定语言描述）。首先将 DAG 中的每个算子分解为一系列计算块, 然后用分析模型,  选择 执行顺序. 
 
-
-
 矩阵 *B* 不会被重用，因为当我们沿维度 L 遍历块时，会访问矩阵 *B* 的不同数据块.
 
 矩阵 *D* 和 *E* 始终沿 *k* 维度重复使用，因为 *k* 是第一个 GEMM 的私有对象，它不会迭代第二个 GEMM 的计算.
 
 评估 bert, MLP mixer, vit 
-
-
 
 halide 比tvm  在 某些地方表现更好.   
 
@@ -219,15 +215,33 @@ stable diffusion  的 gemm 有vit这么多吗?    https://github.com/hahnyuan/LL
 
 group wise在硬件上写起来太困难了. 
 
+## fuse
+
+###  **操作符之间的依赖关系**
+
+- **无数据依赖**：如果两个 op 的输入输出数据没有强依赖关系，并且能够同时执行，通常可以考虑融合。比如卷积层和激活函数（如 ReLU）的组合是经典的可以融合的例子。
+- **数据流依赖**：如果一个 op 的输出直接成为下一个 op 的输入，可能可以在计算图的优化过程中将这两个 op 融合成一个更高效的计算单元。
 
 
 
+可以观察一下 
 
+```
+pipe.unet = torch.compile(pipe.unet, mode="max-autotune", fullgraph=True)
+pipe.vae.decode = torch.compile(pipe.vae.decode, mode="max-autotune", fullgraph=True)
 
+torch._inductor.config.conv_1x1_as_mm = True
+torch._inductor.config.coordinate_descent_tuning = True
+torch._inductor.config.epilogue_fusion = False
+torch._inductor.config.coordinate_descent_check_all_directions = True
 
+```
 
+和之前的对比, 把一些好的hardcode进去.
 
+结合几篇论文. 
 
+#### mirage 
 
-
+贾志豪的论文, 
 

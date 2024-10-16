@@ -14,6 +14,8 @@ python convert-hf-to-gguf.py Path_To_Qwen
 
 也有安卓, termux
 
+
+
 ### 结构
 
 ggml真复杂, cpp 推理很难, 要写非常多的代码 infra. 
@@ -26,7 +28,7 @@ ggml类项目都先构图的
 
 在llama_decode_internal 里，先build graph 再 graph compute；每一次推理都需要重新构建一次计算图，再计算
 
-
+ggml两套多线程的逻辑, 一个是自定义的线程池, 一个是 openmp的api .  llama.cpp的最新版有支持openmp, 
 
 llama.cpp 需要自己要从头建图，以完成数据流转、串联算子、调度运算
 
@@ -87,87 +89,7 @@ number of tokens processed in batches at the beginning
 prompt processing到底干了啥? 
 ```
 
-## 量化
 
-./examples/quantize/quantize.cpp
-
-ggml 的 fp16 模型转换为 int8、int4 等格式。其实牛逼的 llama.cpp 支持了很多种量化方法，并且还贴心的在定义中给出了每个量化方法的 ppl 变化，如下图所示，例如 Q8_0 只增加了 0.0004 的 ppl，相当于就没啥变化，相当强。并且，llama.cpp 自己还提供[测试 ppl 的脚本方法](https://link.zhihu.com/?target=https%3A//github.com/ggerganov/llama.cpp%3Ftab%3Dreadme-ov-file%23perplexity-measuring-model-quality)。
-
-ppl是啥, 就是不确定度. 
-
-4bit 来存32bit. 
-
-对称量化 , 对称量化则是非对称量化的一种特殊形式，其限制了将零点映射为0
-
-https://github.com/ggerganov/ggml/blob/21f9e5c426b105841c2e346d8f1aafec398edf15/src/ggml-quants.c#L1515 可以参考 
-
-group 量化, 32个数字一个scale.  一个channel用一个scale 精度会掉太多,但是 paper都是这样做的, ppl不会掉, 但是实际上用起来非常差.  weight only 8bit  实际能用的都没有.  
-
- 很多论文完全没有测精度, 很多速度非常快 , 实际上 模型的精度根本不能用.  
-
-architecture 优化模型速度的论文都可以说不work.llama说不出人话 , 但是 准确率指标还是很高.
-
-group wise  weight 和 activation一起,是做不了的.   会出现所有scale 互相乘的组合. 
-
-weight 4 bit的精度也很差. 大模型不行, resnet, yolo, bert  可以. 
-
-activation  channel wise? 
-
-英伟达推4x4, 4x8. group wise. 
-
-太需要 推公式, 太难了, 太需要数理基础. 
-
-英伟达中间可以转浮点数, activation用浮点数 8bit就行.  
-
-8 和16 bit 都做. 会增加不少. 做8bit.  中间全是定点数. 
-
-E2e 量化, 最难就是32 怎么定点回到 8, 直接切 scale只能取1/2的倍数, 精度损伤巨大. 必须重新train.  必须要有浮点运算的东西.   也可以找人支持一下16bit. 
-
-NPU 准确率是失控状态.  用定点数 凑出浮点数, 他们甚至没有浮点数算子.  都是假定定点数. 
-
-必须倒回CPU 做 32bit 转8bit . 不能直接切, 要转浮点数, 重新量化8bit , 输入conv2.
-
-activation  8bit, 结果肯定不行.   中间结果 16bit 可能可以做. 但是 硬件平台只能做到这个地步. 
-
- 高通  int x 浮点数,  要先int 转浮点数.  mac可能 compiler会自动处理. 
-
- 16 x16可以放32bit, 但是定点数不能放32bit , 会超出. 
-
-
-
-### Legacy quants
-
-#### Q4 0
-
-32个weight 一个block, 每个block 内一次量化, 
-
-每个block 求max. 
-
--max 到max 切开 2^4份,  Q4 的方法在实际实现时，是复用了 Q8 的存储空间存放了两个 int4 ，一个放在低四位上一个放在**位移 4 位**后的高四位上，这就是 INT 量化方法比 FP 量化的优势所在。这是因为具体硬件中没有单独的数据结构来存放 Q4 的数据.
-
-因为值域范围太小，15.5 以上的值就没有表示方法了，所以代码中做一个简单的截取，这在 Q8 中没有做，这种截取本质的问题我认为不是丢弃了outlier ，而是只压缩了贴近 16 的一小部分数值。
-
-参考 https://github.com/ggerganov/llama.cpp/discussions/1121#discussioncomment-10361167
-
-一个block是几个字节?前两个字节包含 FP16 的比例因子,  18个字节吗? 
-
-#### Q4 1
-
-Q4_1 和 Q4_0 的差异在于， Q4_0只有 scale，是对称 quant，没有减掉 minus. 运算快.  
-
-Q4 1 , bias可以防止偏态分布导致的量化空间浪费.  缩放系数d 更大, 保留更多信息. 
-
-会多存一个M,   takes a block of 32 weights and gives each block a scaling factor 'd' and takes the minimum of the weights 'm' 因此量化权重“q”的最终权重是 q * d + m，并且采用相对较小的块大小使它们更有可能都在合理的量化范围内。值得注意的是，d 和 m 可以在不牺牲太多空间的情况下更准确地存储，因为开销除以 32。
-
-Q4_k更进一步，取了 8 个块的“超级块”，并对其应用了另一个比例因子“d_s”和最小“m_s”，因此最终权重为 （q * d + m） * d_s + m_s，附加因子存储为 6 位而不是 4 位。  https://news.ycombinator.com/item?id=36577898  
-
-- `GGML_TYPE_Q4_K` - "type-1" 4-bit quantization in super-blocks containing 8 blocks, each block having 32 weights. Scales and mins are quantized with 6 bits. This ends up using `4.5` bpw.
-
-https://github.com/ggerganov/llama.cpp/pull/1684
-
-https://github.com/ggerganov/llama.cpp/discussions/1121
-
-K 后缀代表 [K-quants](https://link.zhihu.com/?target=https%3A//github.com/ggerganov/llama.cpp/pull/1684) 方法，再后边 S、M、L、XS 等等代表尺寸.
 
 
 
@@ -195,23 +117,9 @@ llm_build_inp_embd是干啥的?
 
 模仿  GML_METAL_KERNEL_TYPE_MUL_MM_Q4_0_F16_F16
 
-f16_f16_f16,  强调c=a*b都是f16,不然他默认c是f32
+f16_f16_f16,  强调c=a*b都是f16,不然他默认c是f32.  我们需要输出16
 
-我们需要输出16
-
-prompt eval和 eval的fa不是一个. 写上判断, 不开也跑f16.
-
-#### 量化分片
-
-如果数据尺度差好几个数量级, 小尺度可能归零, 所以要考虑fp8 等非线性量化.  同样的原因, 一般不用per tensor, 全矩阵一个scal factor
-
-per channel, 就是一列或者一行共享一个scal factor. 一般 AxB,  A按行, 有M个行factor,  B 按列, 有N个列factor,  就是沿着inner dim 量化, 
-
-LLM中. A是activation, 一行是一个token的embedding, 所以也叫per token量化. 
-
-进一步分片, groupwise. 
-
-但是tensorRT-LLM 会各种高级操作预处理, interleave col, permute row, add bias, 充分利用硬件速度. 
+prompt eval和 eval的fa不是一个. 
 
 #### 预处理memorylayout
 
@@ -231,9 +139,9 @@ int8转fp16 有特殊的算法. 具体看视频.
 2. 笔记：Llama.cpp 代码浅析（四）：量化那些事 - 刀刀宁的文章 - 知乎
    https://zhuanlan.zhihu.com/p/672983861
 
-https://github.com/pytorch/ao?tab=readme-ov-file#inference
 
-市面上挺多都是基于trt做的,ppq也是 .   现在钦定的换成了torchao, torch的量化都凉了,开发成本过高.  而且这个weightonly的量化也不会加速  torchao的dynamic quantization可以得到int8/fp8 tensor core的助力.  但是不支持cuda. 自己基于torchinductor做的backend，和trt 10.3的性能差距在2.5%以内. 
+
+
 
 ## metal
 
