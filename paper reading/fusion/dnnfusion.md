@@ -245,3 +245,6 @@ torch._inductor.config.coordinate_descent_check_all_directions = True
 
 贾志豪的论文, 
 
+
+
+自动分布式,自动tiling,自动fusion. 这些都是static shape才好使.  但估计明年跑大模型还是得老老实实手写, dynamic shape破坏的东西太多了. 从模型上看是很多 dynamic shape,  但是如果结合serving engine的话是不是可以做到fix一部分? 

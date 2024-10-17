@@ -8,10 +8,6 @@ HeatViT: Hardware-Efficient Adaptive Token Pruning for Vision Transformers:
 
 Peeling the Onion: Hierarchical Reduction of Data Redundancy for Efficient Vision Transformer Training
 
-
-
-
-
 一文读懂Stable Diffusion 论文原理+代码超详细解读 - 蓝色仙女的文章 - 知乎
 https://zhuanlan.zhihu.com/p/640545463
 
@@ -237,13 +233,6 @@ _compile                                      146.867
 OutputGraph.call_user_compiler                132.066
 create_aot_dispatcher_function                132.273
 compile_fx.<locals>.fw_compiler_base          113.608
-GraphLowering.run                              11.5849
-GraphLowering.compile_to_module                82.072
-Scheduler.__init__                             14.3387
-Scheduler.codegen                               6.7381
-WrapperCodeGen.generate                         0.2502
-cudagraphify                                    0.0066
-CachingAutotuner.benchmark_all_configs          5.538
 ```
 
 compile的时间非常久. 
@@ -252,6 +241,5 @@ compile的时间非常久.
 
 https://pytorch.org/blog/accelerating-generative-ai-3/
 
-module 'torch' has no attribute 'float8_e4m3fn'
-
 torchao,FP8 precision must be used on devices with NVIDIA H100 and above
+
