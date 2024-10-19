@@ -267,13 +267,25 @@ ldmatrix都已经落后一个版本了. 纠结LDS是2021年以前的玩法.
 
 张量内存加速器 (TMA) 单元，它可以在全局内存和共享内存之间非常有效地传输大块数据。 TMA 还支持集群中线程块之间的异步复制。还有一个新的[异步biarrier](https://www.zhihu.com/search?q=异步biarrier&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"488340235"})用于进行原子数据移动和同步。
 
-synchronous Copy+：TMA.  之所以称为“Asynchronous Copy+”，是因为A100中已经提供了从主存不经过L2直接到SMEM的异步copy能力。但是H100将其增强了，变成了一个“DMA引擎”。这个东西有些像Google TPUv4中提到的“[Four-dimensional tensor](https://www.zhihu.com/search?q=Four-dimensional tensor&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"486224812"}) DMA“，不过Nvidia增加了一个维度，最大支持5维。
+synchronous Copy+：TMA.  A100中已经提供了从主存不经过L2直接到SMEM的异步copy能力。但是H100将其增强了，变成了一个“DMA引擎”。这个东西有些像Google TPUv4中提到的“[Four-dimensional tensor](https://www.zhihu.com/search?q=Four-dimensional tensor&search_source=Entity&hybrid_search_source=Entity&hybrid_search_extra={"sourceType"%3A"article"%2C"sourceId"%3A"486224812"}) DMA“，不过Nvidia增加了一个维度，最大支持5维。
 
 GEMM  被解决完了, 只有其他任务可能还有memory conflict.
 
 #### wgmma
 
 wgmma指令，完成异步mma计算
+
+
+
+#### 减少cache miss
+
+xor trick解决bank conflict。block swizzle访存局部性
+
+https://github.com/microsoft/BitBLAS/blob/main/bitblas/base/roller/rasterization.py
+
+hint感觉只能有1%左右的影响,  block swizzle大shape有10%
+
+
 
 ## cutlass
 

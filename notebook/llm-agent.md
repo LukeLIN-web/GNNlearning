@@ -120,20 +120,28 @@ There are two problems
 
 过去的方案
 
-1. 
+1. **Perplexity on re-sampled data?**	-> May not fully capture LLM performance beyond predictive accuracy
 2. 基于有向无环图动态合成测试样本，但这种方法难以推广到无法用图表示的任务
-
-解决方案:
-
-灵活地更新现有的基准数据集，而不是构建全新的数据集。
 
 怎么解决的? 我们引入了一个基准自我进化框架，它通过修改它们的上下文或问题以及相应的答案，将现有的基准实例重新构建为新的变体以进行动态评估。 
 
-1. 我们通过基于原始上下文创建替代或更复杂的问题来引入**可扩展评估**。  creation of alternative questions (*Question Alternating*)    more complex questions requiring additional reasoning steps (*Question Complicating*)
-2. **稳健的评估**。这涉及将各种扰动合并到原始实例的上下文中，包括释义、添加噪声和反转极性    *Context Paraphrasing*: paraphrasing the original context to obtain diverse formulations;    *Context Noising*: adding noise by introducing irrelevant or adversarial sentences into the original context;     *Polarity Reversing*: reversing the polarity or altering key details of the original context. 
-3. 减轻过时数据和偏差敏感性可能扭曲能力评估的影响，我们设计**了细粒度评估**来探测LLMs 解决不同问题的子能力。task planning capability   和implicit knowledge identification capability for recognizing underlying facts or rules 和 relevant context retrieval capability for extracting pertinent information from the given context to support its responses.
+1. 我们通过基于原始上下文创建替代或更复杂的问题来引入**可扩展评估**。 
+2. **稳健的评估**。这涉及将各种扰动合并到原始实例的上下文中，包括释义、添加噪声和反转极性    
+3. 
+
+
+
+
+
+instance verfier
+
+validate the correctness of both the new generated instance (Ce,Qe,Ae) and its corresponding incorrect alternative (Ce,Qe,Ow).
 
 结果如何? 
+
+
+
+这个分数是怎么算的?  他evaluation不是有好几个模块吗? 
 
 这几个agent有训练吗?  oneshot是啥意思? 
 
