@@ -19,8 +19,6 @@ Unet:  https://pic3.zhimg.com/v2-03cf776c6281ff727e157e6088dbb394_r.jpg
 
 vae : https://pic3.zhimg.com/v2-a390d53cc59c0e76b0bbc86864f226ac_r.jpg
 
-
-
 stable diffusion training, teacher是冻结的, 训练student这个vae+ Unet + encoder, 两个loss 加起来. 辨别器会平衡到50% 输出达到真假难辨. 
 
 在扩散模型中，如果定义了 3 个反向去噪的步骤（Step），**UNet 会在每个步骤中执行一次**。每一步都会将当前的带噪数据传递给 UNet，让其去噪并生成一个更接近最终输出的数据。因此，经过 3 个步骤，UNet 就会被调用 3 次。
@@ -60,9 +58,7 @@ diffusers似乎默认用Lora 就可以.
 diffusers/src/diffusers/models/unets/unet_2d_condition.py
 ```
 
-
-
-
+compile,太慢了. 用了7分49s. 第二次就是2分20s. 
 
 为了防止量化引起的任何数值问题，我们以 bfloat16 格式运行所有内容。
 
@@ -74,13 +70,13 @@ torchao,FP8 precision must be used on devices with NVIDIA H100 and above
 
 https://huggingface.co/blog/simple_sdxl_optimizations
 
-https://learn.microsoft.com/en-us/windows/ai/directml/dml-fused-activations
+fuse所有activation.
 
 ```
 f16, Peak GPU memory usage: 7.47GB , time 6.42s一张图.  30 step,  4.62s. 
 
 pipe.unet.set_default_attn_processor()
-pipe.vae.set_default_attn_processor() 
+pipe.vae.set_default_attn_processor()  
 没有区别, 为啥?
 Time taken: 7.13 seconds 慢了 7.13-6.42=0.71 , 慢了9.96%.  sdpa可以快10%
 Time taken: 4.37 seconds , 快了4.62-4.37=0.25,快了 5.72%
@@ -88,13 +84,11 @@ Time taken: 4.37 seconds , 快了4.62-4.37=0.25,快了 5.72%
 Peak GPU memory usage: 7.49 
 ```
 
-sdcpp  2.3GB , fa后 ~1.8GB.
-
-compile, 需要
-
-
+Turbo, total params memory size = 6558.89MB (VRAM 6558.89MB, RAM 0.00MB): clip 1564.36MB(VRAM), unet 4900.07MB(VRAM), vae 94.47MB(VRAM), controlnet 0.00MB(VRAM), 
 
 turbo就是 https://github.com/Stability-AI/generative-models 
+
+https://learn.microsoft.com/en-us/windows/ai/directml/dml-fused-activations
 
 ## diffusion 基础
 
@@ -154,7 +148,7 @@ challenge stems from the step-by-step denoising process required during their re
 
 #### DeepCache
 
-: Accelerating Diffusion Models for Free. CVPR'24
+Accelerating Diffusion Models for Free. CVPR'24
 
 观察到连续步骤之间高级特征的显着时间一致性。我们发现这些高级特征甚至可以缓存，可以计算一次，然后再次检索以进行后续步骤。通过利用 U-Net 的结构特性，可以缓存高级特征，同时保持在每个降噪步骤中更新的低级特征。
 

@@ -2,6 +2,8 @@ https://arxiv.org/pdf/2108.13342 一篇是fusion
 
 https://arxiv.org/pdf/2304.11267 一篇是另外给你参考
 
+
+
 #### 背景
 
 tvm 只有固定pattern, 不够广.
@@ -155,7 +157,7 @@ Inductor：op fusion。
 
 tensorrt也是compile一遍. 
 
-
+TVM 生成的cuda 很低效, 底层也用tensorrt? 
 
 https://pytorch.org/blog/cuda-free-inference-for-llms/?hss_channel=tw-776585502606721024
 
@@ -248,3 +250,9 @@ torch._inductor.config.coordinate_descent_check_all_directions = True
 
 
 自动分布式,自动tiling,自动fusion. 这些都是static shape才好使.  但估计明年跑大模型还是得老老实实手写, dynamic shape破坏的东西太多了. 从模型上看是很多 dynamic shape,  但是如果结合serving engine的话是不是可以做到fix一部分? 
+
+
+
+要写一个新算子, fuse两个. 能复用就用属性判断,  
+
+话说我想起来 opt step可以和loss backward fuse下省点memory，也不知道最近做的咋样了。如果gpu上的memory占用都是很规律的，那确实tcmalloc意义不大，还不如徒手搞点fuse之类的来的效率高。
