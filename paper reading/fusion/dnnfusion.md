@@ -107,10 +107,6 @@ llamacpp 也是两个循环,  但是没有 out = x_hat * rms_w ,  是放在单�
 2024-08-26 20:24:46.680 llama-cli[18076:6315274] ,f32, MUL , norm-1 , (4096; 2;1; 1),  blk.1.attn_norm.weight, (4096; 1;1; 1),0.006080
 ```
 
-
-
-
-
 #### 融合
 
 RMSNorm 成本更高的任务是数据加载，分两个不同的阶段执行。紧接着，during matrix multiplication from output of RMSNorm and model weight (to perform the projection)，iterate 输入张量。这种情况为计算 RMSNorm 所需的统计信息提供了机会。
