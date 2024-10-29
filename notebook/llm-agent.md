@@ -133,15 +133,9 @@ validate the correctness of both the new generated instance (Ce,Qe,Ae) and its c
 
 结果如何? 
 
-
-
 这个分数是怎么算的?  他evaluation不是有好几个模块吗? 
 
 这几个agent有训练吗?  oneshot是啥意思? 
 
-
-
-
-
-
+#### chateval
 
