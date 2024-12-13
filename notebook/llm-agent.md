@@ -1,14 +1,8 @@
-10% 课堂参与, 11 个课. 上课了要让TA 知道. 上5个课就行.
 
-25% 展示
 
 1. 让听众可以参与.
 2. 完整讲了论文的细节.
 3. QA, 给一些问题. refer一些detail. 回答问题. 
-
-65%  project.
-
-
 
 2024年9月9日
 
@@ -67,8 +61,6 @@ https://zhuanlan.zhihu.com/p/676362983
 
 二创 https://github.com/a16z-infra/ai-town  提供了前后端的JS/TS框架.
 
-
-
 #### camel ai
 
 https://github.com/camel-ai/camel 使用初始提示来指导聊天代理完成任务，同时保持与人类意图的一致性。我们展示了如何使用角色扮演来生成对话数据，以研究代理社会的行为和能力.  可以快速产生agent, 让agent对话. 做了infra的工作.  这个或许可以用. 
@@ -77,7 +69,7 @@ https://github.com/mistralai/cookbook/blob/main/third_party/CAMEL_AI/camel_rolep
 
 ####  crab
 
-目前支持安卓和大部分桌面环境. linux windwos macos都可用，但效果还要看prompt设计和model性能. 
+目前支持安卓和大部分桌面环境. linux windows macos都可用，但效果还要看prompt设计和model性能. 
 
 让agent 控制鼠标键盘, 去触发 mac和windows 的事件. 其实就是网络传输动作和参数，加一个控制mac鼠标键盘的库.
 
@@ -103,10 +95,6 @@ users可以控制agent记住什么. 也是可视化的很好, 可以view, edit m
 
 怎么重构的? 
 
-Good evening everyone, today I would like to introduce the paper , benchmark self evolving, a Multi-Agent Framework for Dynamic LLM Evaluation.
-
-The first author is from Fudan University and Tongji university.  
-
 The evaluation of LLMs has emerged as a crucial area. A lot of benchmark datasets have been proposed to evaluate LLMs. However, with the rapid development of LLMs, these static datasets are inadequate. 
 
 There are two problems
@@ -125,7 +113,6 @@ There are two problems
 
 1. 我们通过基于原始上下文创建替代或更复杂的问题来引入**可扩展评估**。 
 2. **稳健的评估**。这涉及将各种扰动合并到原始实例的上下文中，包括释义、添加噪声和反转极性    
-3. 
 
 instance verfier
 
