@@ -94,27 +94,19 @@ https://learn.microsoft.com/en-us/windows/ai/directml/dml-fused-activations
 
 https://lilianweng.github.io/posts/2021-07-11-diffusion-models/
 
-
-
 X0->x1->x2 -> z
 
 #### Forward diffusion process
 
 每次加一点高斯噪声. 
 
-
-
 #### reverse diffusion
 
-用Unet, 每次
-
-
+用Unet, 每个step
 
 ## Unet
 
 跳过路径直接将丰富且相对更多的低级信息从 Di 转发到 Ui 。在 U-Net 架构中的前向传播期间，数据同时通过两条路径遍历：主分支和 skip 分支. 
-
-
 
 skip分支代码在哪里?`hidden_states = torch.cat([hidden_states, res_hidden_states], dim=1)`
 
@@ -122,19 +114,11 @@ skip分支代码在哪里?`hidden_states = torch.cat([hidden_states, res_hidden_
 
 attention和 spatial transformer 差异是啥?  
 
-
-
 #### ResnetBlock2D
-
-
-
-
 
 #### cross attention
 
 Q is projected from noisy data zt, K and V are projected from text conditio
-
-
 
 ## pruning
 
@@ -158,7 +142,7 @@ Accelerating Diffusion Models for Free. CVPR'24
 
 #### SnapFusion
 
-: Text-to-Image Diffusion Model on Mobile Devices within Two Seconds nips 23
+Text-to-Image Diffusion Model on Mobile Devices within Two Seconds nips 23
 
 没有公开代码. 仓库只有图. 
 
@@ -215,13 +199,9 @@ https://arxiv.org/pdf/2305.10924
 
 https://arxiv.org/abs/2410.10812   Hybrid Autoregressive Transformer.  用传统的AR模型生成图像,  混合分词器，它将自动编码器的连续潜在因素分解为两个部分：代表大局的离散分词和代表离散分量无法表示的残余分量的连续分量。离散分量由可扩展分辨率的离散 AR 模型建模，而连续分量则使用只有 37M 参数的轻量级残差扩散模块进行学习. 
 
-
-
-
-
 ## stable video diffusion
 
-量化可以节省显存, 省GPU, pruning可以吗? 
+量化可以节省显存, 省GPU, pruning可以吗? 可以 
 
 34w下载, stable-video-diffusion-img2vid-xt, 9.56gb, fp16是 4.2 GB. 但是还是跑不起来. 不支持bf16.
 
@@ -229,25 +209,9 @@ onediff的 int8 运行不起来, 没人管.
 
 A100支持bf16.
 
-也可以看看加速 cogvideox 智普AI和清华的. cogvideox 有8w下载, 非常可以. 
-
-LanguageBind/Open-Sora-Plan-v1.3.0, 0下载. 没啥人用.  不管他.
+加速 cogvideox 智普AI和清华的. cogvideox 有8w下载, 非常可以. 
 
 ```
-torch._dynamo.exc.Unsupported: call_method NNModuleVariable() to [ConstantVariable(str)] {}
-
-from user code:
-   File "/usr/local/lib/python3.10/dist-packages/accelerate/hooks.py", line 717, in offload
-    self.hook.init_hook(self.model)
-  File "/usr/local/lib/python3.10/dist-packages/accelerate/hooks.py", line 696, in init_hook
-    return module.to("cpu")
-
-Set TORCH_LOGS="+dynamo" and TORCHDYNAMO_VERBOSE=1 for more information
-
-
-You can suppress this exception and fall back to eager by setting:
-    import torch._dynamo
-    torch._dynamo.config.suppress_errors = Truez
    Function                                  Runtimes (s)
 --------------------------------------  --------------
 _compile                                      146.867
@@ -257,6 +221,3 @@ compile_fx.<locals>.fw_compiler_base          113.608
 ```
 
 compile的时间非常久. 
-
-
-
