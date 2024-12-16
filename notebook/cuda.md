@@ -137,19 +137,11 @@ undefined reference to `cublasGemmEx'
 nvcc gemmwmma.cu -o a.out --gpu-architecture=compute_80 -lcublas -lcurand 
 ```
 
-
-
  可能和编译器搜索路径有关系, 也可能和动态链接库搜索地址和库的软链接有关系.
-
-试试这个. 
 
 ```
 
 还是不行, ./a.out: error while loading shared libraries: libcublas.so.12: cannot open shared object file: No such file or directory 
-
-
-
-
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/linj/miniconda3/envs/condaexample/lib 就可以了.
 普通的$LD_LIBRARY_PATH不全. 
 LD_LIBRARY_PATH 中的动态链接库拥有被调度的更高的优先级,有同名也会用它. 
@@ -177,8 +169,6 @@ __global__ void vector_add(float *out, float *a, float *b, int n) {
 
 int tid = blockIdx.x * blockDim.x + threadIdx.x;
 ```
-
-
 
 https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html
 
@@ -253,8 +243,6 @@ https://zhuanlan.zhihu.com/p/544492099
 
 gpu内存带宽, 理论性能是：`5120/8*1512*1e6*2/1e12` TBps, 大概1.9T左右 那个2的系数是因为ddr
 
-#### debug
-
 #### vectorize
 
 从global memory读取数据可以使用lgd.128指令，一次读4个float32的数据，从share memory 读取数据，可以用lgs.128. 首先需要从循环中把可以vectorize的shape手动拆出来，再进行向量化.
@@ -275,8 +263,6 @@ GEMM  被解决完了, 只有其他任务可能还有memory conflict.
 
 wgmma指令，完成异步mma计算
 
-
-
 #### 减少cache miss
 
 xor trick解决bank conflict。block swizzle访存局部性
@@ -284,8 +270,6 @@ xor trick解决bank conflict。block swizzle访存局部性
 https://github.com/microsoft/BitBLAS/blob/main/bitblas/base/roller/rasterization.py
 
 hint感觉只能有1%左右的影响,  block swizzle大shape有10%
-
-
 
 ## cutlass
 

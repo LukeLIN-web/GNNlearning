@@ -6,8 +6,6 @@ triton.autotune 是调多少次?啥时候结束?   就是这个函数，第1次�
 
 AttributeError: 'Constant' object has no attribute 'lineno'
 
-
-
 矩阵乘法, accumulator 是创建一个矩阵存结果. 
 
 addvector, 在BLOCK_SIZE很小的时候triton性能很差,为什么?  因为blocksize 太小没法充分利用. 

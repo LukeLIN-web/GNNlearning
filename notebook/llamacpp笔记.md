@@ -89,10 +89,6 @@ number of tokens processed in batches at the beginning
 prompt processing到底干了啥? 
 ```
 
-
-
-
-
 #### 代码
 
 ```cpp
@@ -139,10 +135,6 @@ int8转fp16 有特殊的算法. 具体看视频.
 2. 笔记：Llama.cpp 代码浅析（四）：量化那些事 - 刀刀宁的文章 - 知乎
    https://zhuanlan.zhihu.com/p/672983861
 
-
-
-
-
 ## metal
 
 数据类型 : https://github.com/alexiscn/metal-shading-language-specification/blob/master/ch02.md
@@ -173,8 +165,6 @@ I wonder whether I could `cp /Applications/Xcode.app/Contents/Developer ` to `/L
 
 移动到哪里呢?  /Library/Developer/CommandLineTools/Library/Developer/ 还是sdk文件夹. 
 
-
-
 #### 结构
 
 包装了metal buffer, context,
@@ -203,8 +193,6 @@ read the source from "ggml-metal.metal" into a string and use newLibraryWithSour
 
 https://github.com/ggerganov/llama.cpp/pull/1642/commits/b23fe8c9c78d066461c81447566844ecf22a4a8e
 
-
-
 没有测试, 都不知道怎么单独运行算子. 
 
 将缓冲区里的指令提交到指令队列中。在完成这些后，Metal API 会将这些指令发送至 GPU 以进行计算。
@@ -218,8 +206,6 @@ https://github.com/ggerganov/llama.cpp/pull/1642/commits/b23fe8c9c78d066461c8144
 - Encode the commands in parallel on separate threads
 - Each thread commits its buffer
 - Wait for the last one to finish
-
-
 
 该 `dispatch_apply` 函数是 Apple C 语言 Grand Central Dispatch （GCD） 的一部分。它用于并行执行循环，将循环的迭代分布在可用线程之间。这可以显著加快可并行化的操作速度。
 
@@ -256,11 +242,7 @@ metal文档有object c和swift 两种语言
 
 靠buffer没法得到运行时间.  但是不靠buffer我们不知道什么时候完成. 
 
-
-
 intel cpu上, pytorch 不支持fp16, apple 底层arm是支持的. 
-
-
 
 #### MTLComputeCommandEncoder
 
@@ -281,10 +263,6 @@ id <MTLComputePipelineState> filterState
 
 并行计算程序按照 Encoder 被推入 command buffer 的次序执行.  前一个 Encoder 产生的数据可以被下一个 Encoder 使用。
 
-
-
-
-
 #### handler
 
  addScheduledHandler,    Registers a completion handler the GPU device calls immediately after it **schedules** the command buffer to run on the GPU. 
@@ -294,8 +272,6 @@ gpu 可以 identifies command buffer’s dependencies, 然后schedule command bu
 addCompletedHandler, Registers a completion handler the GPU device calls immediately after the GPU **finishes** running the commands in the command buffer. 
 
 这两个都是 completion handler
-
-
 
 #### 测时间
 
@@ -324,8 +300,6 @@ uint64_t startTime = clock::get_timestamp();
 
 metal代码里不能直接print. 
 
-
-
 sd.cpp 用Ggml graph print 可以打印时间. 
 
 ggml assert不对会直接报错吗. 停吗? 
@@ -340,19 +314,13 @@ simdgroup 是 cuda 的 warps.
 
 两个unroll嵌套，我记得会提示展开失败吧. 两个unroll嵌套, 会展开4x4次吗? 会很长?
 
-
-
 simdgroup要手动指定, warp是GPU自动指定的吗? 是的.  如果没有32个并行的怎么办? CUDA仍然会将这些线程分配到`warp`中，但这些`warp`会部分填充，剩余线程被称为“空闲线程”，不会实际执行指令。
 
 为什么他要有1x4和8x4两个kernel? 
 
-
-
 fa不需要读取weight.  所以和Q8 无关. 
 
 mm 矩阵乘法有模版.  mv没有模版. getrows有模板. 
-
-
 
 prompt和 eval 不是同一个kernel. 
 
@@ -437,8 +405,6 @@ chat 和普通的区别? chat weight不一样.   text是续写. chat要考虑提
 第一次 prompt eval  用 gemm kernel.   prompt eval 是并行的吗 ?   
 
 后面的decode  用 gemv kernel . 因为 只有一个tokens. 
-
-
 
 LLM_ARCH_NOMIC_BERT, LLM_ARCH_BERT等用的是gqa
 

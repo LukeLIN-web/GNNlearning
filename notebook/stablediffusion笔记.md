@@ -114,31 +114,9 @@ skip分支代码在哪里?`hidden_states = torch.cat([hidden_states, res_hidden_
 
 attention和 spatial transformer 差异是啥?  
 
-#### ResnetBlock2D
-
-#### cross attention
-
-Q is projected from noisy data zt, K and V are projected from text conditio
-
 ## pruning
 
-#### 挑战
-
-challenge stems from the step-by-step denoising process required during their reverse phase, limiting parallel decoding capabilities 
-
-方法:  减少采样步骤的数量, 通过模型修剪、蒸馏和量化等方法减少每步的模型推理开销.
-
 需要大规模数据集来重新训练这些轻量级模型.
-
-#### DeepCache
-
-Accelerating Diffusion Models for Free. CVPR'24
-
-观察到连续步骤之间高级特征的显着时间一致性。我们发现这些高级特征甚至可以缓存，可以计算一次，然后再次检索以进行后续步骤。通过利用 U-Net 的结构特性，可以缓存高级特征，同时保持在每个降噪步骤中更新的低级特征。
-
-是怎么缓存的? 
-
-作者改进出了, https://github.com/VainF/Diff-Pruning
 
 #### SnapFusion
 
@@ -190,14 +168,6 @@ step就是循环Unet 32次.
 不逐步进行,  因为凭经验观察到渐进式蒸馏比直接蒸馏略差. 32蒸馏到16, 16蒸馏到8 step.
 
 16node*8个 40G A100GPU.
-
-#### structual pruning for for diffusion models.
-
-https://arxiv.org/pdf/2305.10924
-
-该术语 |𝜽′|0 表示参数的 L-0 范数，它计算非零行向量的数量，并 s 表示修剪模型的稀疏性。然而，由于扩散模型固有的迭代性质，训练目标 ℒ 可以被视为相互关联的任务的组合 T ： {ℒ1,ℒ2,…,ℒT} 。每项任务都会影响并依赖于其他任务，从而带来了不同于传统修剪问题的新挑战，传统修剪问题主要集中在优化单个目标上。根据公式 [4](https://arxiv.org/html/2305.10924?_immersive_translate_auto_translate=1#S4.E4) 中定义的修剪目标，我们首先深入研究了每个损失分量 ℒt 在修剪中的单独贡献，随后提出了一种专为扩散模型修剪而设计的定制方法，即 Diff-Pruning。
-
-https://arxiv.org/abs/2410.10812   Hybrid Autoregressive Transformer.  用传统的AR模型生成图像,  混合分词器，它将自动编码器的连续潜在因素分解为两个部分：代表大局的离散分词和代表离散分量无法表示的残余分量的连续分量。离散分量由可扩展分辨率的离散 AR 模型建模，而连续分量则使用只有 37M 参数的轻量级残差扩散模块进行学习. 
 
 ## stable video diffusion
 

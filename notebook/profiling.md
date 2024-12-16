@@ -17,10 +17,6 @@ https://github.com/krrishnarraj/clpeak
 
 这也是为啥绝大大大大部分模型打不满芯片，算子也是随着nchw逐渐增大而逐渐能够充分利用芯片呀，但是模型内部大部分算子的输入输出的大小都达不到稳定带宽和稳定GFLOPS的那个线呀.
 
-
-
-
-
 pyg2.1.0不能用torch_profile, 不过它就包装了一行, 自己写也可以. 
 
 https://github.com/mrshenli/ptd_benchmark
@@ -125,8 +121,6 @@ refer:
 
 1. PyTorch训练加速的量化分析 - 风车车车的文章 - 知乎 https://zhuanlan.zhihu.com/p/416942523
 2. https://dev-discuss.pytorch.org/t/using-nsight-systems-to-profile-gpu-workload/59
-
-
 
 #### 小kernel怎么测
 
