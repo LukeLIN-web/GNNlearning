@@ -11,6 +11,17 @@
 9. 你要知道流程里哪些数据是关键, 想好要加哪些log, 小数据试试, 要知道每个预期是啥, log出来看看是否和预期一样, 不是就往上找为啥, quit来中途退出检查每一行代码. 
 10. 如果你代码强依赖事件流, 比如连接到服务器维持心跳, 但是单步调试会卡住心跳, 就不能单步调试. 
 
+```
+import IPython
+IPython.embed() #类似于vscode的debug.
+
+
+import ipdb
+ipdb.set_trace()可交互的pdb
+```
+
+
+
 #### Cpp
 
 1. Segmentation fault (core dumped) ,gdb python opt_conv_cuda.py 看看. 
