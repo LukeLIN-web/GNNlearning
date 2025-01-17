@@ -14,10 +14,12 @@
 ```
 import IPython
 IPython.embed() #类似于vscode的debug.
-
-
 import ipdb
-ipdb.set_trace()可交互的pdb
+ipdb.set_trace()可交互的pdb, 非常有用, 
+
+https://github.com/OscarSavolainen/Quantization-Tutorials/blob/main/Resnet-FX-Graph-Mode-Quant/ipdb_hook.py
+
+
 ```
 
 
