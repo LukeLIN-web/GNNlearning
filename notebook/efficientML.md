@@ -30,4 +30,11 @@ prune一点, train 一下, 再prune 一些, 再train, 效果很好.
 
 哪些weight 应该被prune?
 
-- prune 绝对值最小的weight.
+- prune 绝对值最小的weight. 也可以用L2 norm
+- prune  scaling factor 小的, scaling factor
+- prune 来让最小化loss ,
+
+
+
+
+
