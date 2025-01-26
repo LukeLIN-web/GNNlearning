@@ -22,4 +22,18 @@ Empirical Risk Minimization, ERM
 
 
 
+
+
+## HW1
+
+
+
+
+
+
+
+
+
+
+
 神经切线核
