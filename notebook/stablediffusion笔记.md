@@ -4,7 +4,7 @@ Quasar-ViT: Hardware-Oriented Quantization-Aware Architecture Search for Vision 
 
 HeatViT: Hardware-Efficient Adaptive Token Pruning for Vision Transformers: 
 
- 很容易录了HPCA, algorithm  publish 别的paper了.   FPGA是林雪的学生写的, 回国了. 动态remove patchs, sequence layer也可以remove,  可以predict, 训练了一个predicter.  优点就是prune 一层,  acc下降了, 不会传播.   为什么? 问问arman .  没人知道 hardware怎么支持不同dimension的. 
+ 很容易录了HPCA, algorithm  publish 别的paper了.   FPGA是林雪的学生写的, 回国了. 动态remove patchs, sequence layer也可以remove,  可以predict, 训练了一个predicter.  优点就是prune 一层,  acc下降了, 不会传播. 没人知道 hardware怎么支持不同dimension的. 
 
 Peeling the Onion: Hierarchical Reduction of Data Redundancy for Efficient Vision Transformer Training
 
@@ -19,7 +19,7 @@ Unet:  https://pic3.zhimg.com/v2-03cf776c6281ff727e157e6088dbb394_r.jpg
 
 vae : https://pic3.zhimg.com/v2-a390d53cc59c0e76b0bbc86864f226ac_r.jpg
 
-stable diffusion training, teacher是冻结的, 训练student这个vae+ Unet + encoder, 两个loss 加起来. 辨别器会平衡到50% 输出达到真假难辨. 
+stable diffusion training, teacher是冻结的, 训练student  vae+ Unet + encoder, 两个loss 加起来. 辨别器会平衡到50% 输出达到真假难辨. 
 
 在扩散模型中，如果定义了 3 个反向去噪的步骤（Step），**UNet 会在每个步骤中执行一次**。每一步都会将当前的带噪数据传递给 UNet，让其去噪并生成一个更接近最终输出的数据。因此，经过 3 个步骤，UNet 就会被调用 3 次。
 
