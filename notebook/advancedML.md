@@ -82,3 +82,27 @@ Rademacher Complexity 是一种用于衡量假设类（hypothesis class）容量
 
 
 
+
+
+## project
+
+See the current list of paper reading here: [https://docs.google.com/document/d/1uqmO_KRcX_Wy_6csd7bOqoNK8hgQU8oDBa6v9ZgyVPc/edit?usp=sharingLinks to an external site.](https://docs.google.com/document/d/1uqmO_KRcX_Wy_6csd7bOqoNK8hgQU8oDBa6v9ZgyVPc/edit?usp=sharing)
+
+
+
+
+
+CLIP ,模型有多大? 可以做什么? 
+
+
+
+https://github.com/stanford-crfm/helm
+
+
+
+https://github.com/web-arena-x/visualwebarena
+
+
+
+
+
