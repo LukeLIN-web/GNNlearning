@@ -58,6 +58,9 @@ print(tokenizer.decode(model_inputs["input_ids"])) #就可以看text了. 用的�
 特殊token:
 llama2等模型的中<s>是 BOS (beginning of a sentence) token
 [CLS] 代表分类。之所以在开头添加，是因为这里的训练任务是句子分类。由于他们需要可以表示整个句子含义的输入，因此他们引入了一个新标签。
+0 <unk>,  1 <s>, 2 </s>, 
+有的会插入 im_start 
+tokenizer.special_tokens_map 看
 ```
 
 
@@ -84,6 +87,12 @@ def tokenize_function(example):
 这将允许我们在调用 map（） 时使用选项 batched=True，这将大大加快分词速度。分词器由 Tokenizers 库中用 Rust 编写的🤗分词器提供支持。这个分词器可以非常快，但前提是我们一次给它很多输入。请注意，我们现在在 tokenization 函数中省略了 padding 参数。这是因为将所有样本填充到最大长度效率不高：最好在构建批次时填充样本，因为这样我们只需要填充该批次中的最大长度，而不是整个数据集中的最大长度。当输入的长度非常可变时，这可以节省大量时间和处理能力！
 
 tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)
+
+
+tok("dog walked", add_special_tokens=True)) 的讲解  https://github.com/huggingface/transformers/issues/22935
+当设置为 True 时，add_special_tokens用于在输入序列的开头和结尾添加特殊标记。在您的情况下，由于您使用的是单个输入序列，因此分词器将分别在句子的开头和结尾添加特殊标记 [CLS] 和 [SEP]。
+请注意，并非所有分词器都支持添加特殊分词。如果分词器不支持添加特殊标记，则将 add_special_tokens 设置为 True 将不起作用。
+
 
 # todo
 继续阅读后面内容, Dynamic padding  
