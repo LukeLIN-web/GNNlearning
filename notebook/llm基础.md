@@ -16,7 +16,7 @@ pad是因为不同的batch 不一样长. attention mask也会设为0 表示这�
 
 输出的logits不是概率,  softmax 之后变成概率 
 
-head 是什么?   The model heads take the high-dimensional vector of hidden states as input and project them onto logits. 就是几个linear.  可以使用相同的架构执行不同的任务，但每个任务都将具有不同的 head 与之关联。  Transformer 模型的输出直接发送到模型头进行处理.  看图  https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/en/chapter2/transformer_and_head.svg  
+head 是什么?   The model heads take the high-dimensional vector of hidden states as input and project them onto logits.  输出dim是vocab size 就是几个linear.  可以使用相同的架构执行不同的任务，但每个任务都将具有不同的 head 与之关联。  Transformer 模型的输出直接发送到模型头进行处理.  看图  https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/en/chapter2/transformer_and_head.svg  
 
 所有 🤗 Transformers 模型都输出 logits，因为用于训练的损失函数通常会将最后一个激活函数（如 SoftMax）与实际的损失函数（如交叉熵）融合
 
@@ -24,9 +24,8 @@ quiz:
 
 - loss是怎么算的?
 
-- logits是什么? 
+- logits是什么?
 
-  
 
 2-3 models
 
@@ -127,3 +126,8 @@ todo
 
 https://techdiylife.github.io/blog/blog.html?category1=c02&blogid=0005
 
+
+
+
+
+应该训练多久? 
