@@ -4,9 +4,11 @@
 
 
 
+## huggingface NLP course
 
+### 第二章
 
-## 2-2 
+2-2 
 
 https://huggingface.co/learn/nlp-course/chapter2/2?fw=pt
 
@@ -107,14 +109,52 @@ todo
 
 
 
+### 第七
+
+7-3
+
+您还可以检查 `train` 和 `test` splits 中的标签是否确实是 `0` 或 `1` — 这是一个有用的健全性检查，每个 NLP 从业者都应该在新项目开始时执行
+
+对于自回归和掩码语言建模，一个常见的预处理步骤是连接所有示例，然后将整个语料库拆分为大小相等的块。这与我们通常的方法完全不同，在通常的方法中，我们只是简单地对单个示例进行标记。为什么要把所有东西都连接在一起呢？原因是如果单个示例太长，它们可能会被截断，这会导致丢失可能对语言建模任务有用的信息.  所以不在分词器中设置 `truncation=True`
+
+We’ll also grab the word IDs if they are available ((which they will be if we’re using a fast tokenizer, as described in [Chapter 6](https://huggingface.co/course/chapter6/3)), as we will need them later on to do whole word masking.   啥意思? 
+
+```python
+def tokenize_function(examples):
+    result = tokenizer(examples["text"])
+    if tokenizer.is_fast:
+        result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))] # word id就是除去特殊字符的每个token的顺序. 
+    return result
+
+# Use batched=True to activate fast multithreading!
+tokenized_datasets = imdb_dataset.map(
+    tokenize_function, batched=True, remove_columns=["text", "label"]
+)
+
+为什么要在每句话加上[SEP] 和[CLS]?  因为是多个examples放在一个chunk里了
+return_overflowing_tokens是怎么用的? 
+```
+
+现在我们已经对电影评论进行了标记化，下一步是将它们全部分组在一起并将结果拆分为块。但是这些块应该有多大呢？这最终将由您可用的 GPU 内存量决定，但一个好的起点是查看模型的最大上下文大小是多少。`tokenizer.model_max_length`  
+
+在实际场景中使用较小的数据块大小可能是有害的，因此您应该使用与您将应用模型的用例相对应的大小。
+
+有的也有点老了, 都还在用p100 和bert.
 
 
-7-6
+
+
+
+7-6 Training a causal language model from scratch
 
 ```
-对更多使用这些库的训练样本给予更多权重是有意义的。我们可以通过使用 plt、pd、sk、fit 和 predict 等关键字轻松识别这些示例，这些关键字是 matplotlib.pyplot、pandas 和 sklearn 最常见的导入名称，以及后者的 fit/predict 模式。如果它们都表示为单个 token，我们可以轻松检查它们是否出现在 input 序列中。标记可以具有空格前缀，因此我们还将在 tokenizer 词汇表中检查这些版本。为了验证它是否有效，我们将添加一个测试令牌，该令牌应拆分为多个令牌：
-
+清洗数据: 
+对更多使用这些库的训练样本给予更多权重是有意义的。我们可以通过使用 plt、pd、sk、fit 和 predict 等关键字轻松识别这些示例，这些关键字是 matplotlib.pyplot、pandas 和 sklearn 最常见的导入名称，以及后者的 fit/predict 模式。如果它们都表示为单个 token，我们可以轻松检查它们是否出现在 input 序列中。标记可以具有空格前缀，因此我们还将在 tokenizer 词汇表中检查这些版本。
 ```
+
+mask 是什么? 这里没有讲这些细节.  都用 DataCollatorForLanguageModeling 包装了, `data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)` 就是因果建模
+
+casual llm  forward怎么写?
 
 
 
@@ -130,4 +170,56 @@ https://techdiylife.github.io/blog/blog.html?category1=c02&blogid=0005
 
 
 
-应该训练多久? 
+
+
+#### 生成的输出
+
+https://huggingface.co/docs/transformers/en/internal/generation_utils
+
+如果模型尚未返回该属性，您将得到 `None`, 不会报错. 
+
+`logits` 是 **模型的原始输出**，未经修改。
+
+`scores` 是 **用于生成 token 的处理后的分数**，可能已经过温度缩放或其他处理。
+
+在标准 `greedy` 或 `beam search` 生成时，`scores` 和 `logits` 可能相同；但在 **Top-k / Top-p / 温度采样** 等情况下，`scores` 可能与 `logits` 有显著区别。
+
+
+
+When you set `output_hidden_states=True` and `return_dict_in_generate=True`, the `language_model_output.hidden_states` will be a tuple of tuples containing the hidden states for each generation step.  就是输出8个token, 会输出一个 ( 8 输出token数,33 层数, hidden size) 这样一个. 
+
+
+
+## attentionmask 问题
+
+可以看看   torchtune的文档. 
+
+https://pytorch.org/torchtune/stable/_modules/torchtune/generation/_generation.html#get_causal_mask_from_padding_mask
+
+推理的时候需要 attention_mask 吗? 
+
+**如果 inputs_embeds 是 padding 后的变长输入**
+
+- LLaMA 2 默认不处理 `padding`，所以 **需要提供 attention_mask，确保模型忽略填充部分**。
+
+**多模态输入场景（如 CLIP + LLaMA）**
+
+- 你可能需要 `attention_mask`，以区分 **文本部分** 和 **多模态部分**（如图像 embeddings
+
+手动控制模型注意力范围,  如果你想让模型关注 **特定 token**（如只对文本部分做注意力计算），可以手动提供 `attention_mask`。 **LLaMA 2 是 decoder-only Transformer**，默认使用 ，即： 因果（causal）masking , 自动屏蔽未来 tokens，确保模型只能看到过去的信息。 这种 mask 在 generate() 过程中是 隐式添加的，不需要额外传 attention_mask。 源码会自动屏蔽 pad id  如果你直接调用 `self.language_model()`（即不使用 `.generate()`，而是直接前向传播 `forward` 方法），**通常需要提供 attention_mask**，具体情况如下.
+
+对于掩码语言模型（masked language model，如BERT），self.language_model确实可以一次预测所有被掩码的token。这是掩码语言模型与自回归语言模型的一个重要区别。
+
+直接使用self.language_model不能原生地一次输出8个token。self.language_model通常是前向传播的核心实现，每次调用只会根据输入上下文预测下一个token的概率分布.
+
+自回归和掩码语言模型区别?
+
+一次预测所有被掩码的token 是做几个prefill 几次decode? 
+
+主要是计算快 双向是真的耗资源. 为什么 自回归模型训练更为高效. masked model不也是一样的token数量吗? 
+
+哦他训练会更慢,因为要算所有token 的loss. ? 
+
+masked model , bert是15%，只有15%的token参与计算loss.
+
+causal model的训练label怎么设置.
