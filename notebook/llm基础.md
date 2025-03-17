@@ -182,11 +182,17 @@ https://huggingface.co/docs/transformers/en/internal/generation_utils
 
 `scores` 是 **用于生成 token 的处理后的分数**，可能已经过温度缩放或其他处理。
 
-在标准 `greedy` 或 `beam search` 生成时，`scores` 和 `logits` 可能相同；但在 **Top-k / Top-p / 温度采样** 等情况下，`scores` 可能与 `logits` 有显著区别。
+在标准 `greedy` 或 `beam search` 生成时，`scores` 和 `logits` 可能相同；但在 **Top-k / Top-p / 温度采样** 等情况下，`scores` 可能与 `logits` 有显著区别.
 
+ When you set `output_hidden_states=True` and `return_dict_in_generate=True`, the `language_model_output.hidden_states` will be a tuple of tuples containing the hidden states for each generation step.  就是输出8个token, 会输出一个 ( 8 输出token数,33 层数, hidden size) 这样一个 Tuple (one element for each generated token) of tuples (one element for each layer of the decoder) of `torch.FloatTensor` of shape `(batch_size, generated_length, hidden_size)`.  
 
+是不是就算shape不对, 但是
 
-When you set `output_hidden_states=True` and `return_dict_in_generate=True`, the `language_model_output.hidden_states` will be a tuple of tuples containing the hidden states for each generation step.  就是输出8个token, 会输出一个 ( 8 输出token数,33 层数, hidden size) 这样一个. 
+Hidden states怎么append的？
+
+要看看原始代码, 
+
+输入 inputs_embeds 而不是 input_ids,    outputs.sequences 不包含输入的 input_ids.
 
 
 
@@ -210,7 +216,7 @@ https://pytorch.org/torchtune/stable/_modules/torchtune/generation/_generation.h
 
 对于掩码语言模型（masked language model，如BERT），self.language_model确实可以一次预测所有被掩码的token。这是掩码语言模型与自回归语言模型的一个重要区别。
 
-直接使用self.language_model不能原生地一次输出8个token。self.language_model通常是前向传播的核心实现，每次调用只会根据输入上下文预测下一个token的概率分布.
+直接使用self.language_model不能原生地一次输出8个token.   需要编写额外的循环和控制逻辑。 .  self.language_model通常是前向传播的核心实现，每次调用只会根据输入上下文预测下一个token的概率分布.
 
 自回归和掩码语言模型区别?
 
@@ -223,3 +229,4 @@ https://pytorch.org/torchtune/stable/_modules/torchtune/generation/_generation.h
 masked model , bert是15%，只有15%的token参与计算loss.
 
 causal model的训练label怎么设置.
+
