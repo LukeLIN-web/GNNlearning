@@ -29,6 +29,8 @@ quiz:
 - logits是什么?
 
 
+训练自回归模型还是应该用forward而不是generate.
+
 2-3 models
 
 config load的时候可以直接改config. 
@@ -147,14 +149,21 @@ return_overflowing_tokens是怎么用的?
 
 7-6 Training a causal language model from scratch
 
-```
-清洗数据: 
-对更多使用这些库的训练样本给予更多权重是有意义的。我们可以通过使用 plt、pd、sk、fit 和 predict 等关键字轻松识别这些示例，这些关键字是 matplotlib.pyplot、pandas 和 sklearn 最常见的导入名称，以及后者的 fit/predict 模式。如果它们都表示为单个 token，我们可以轻松检查它们是否出现在 input 序列中。标记可以具有空格前缀，因此我们还将在 tokenizer 词汇表中检查这些版本。
-```
-
 mask 是什么? 这里没有讲这些细节.  都用 DataCollatorForLanguageModeling 包装了, `data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)` 就是因果建模
 
+清洗数据: 
+对更多使用这些库的训练样本给予更多权重是有意义的。我们可以通过使用 plt、pd、sk、fit 和 predict 等关键字轻松识别这些示例，这些关键字是 matplotlib.pyplot、pandas 和 sklearn 最常见的导入名称，以及后者的 fit/predict 模式。如果它们都表示为单个 token，我们可以轻松检查它们是否出现在 input 序列中。标记可以具有空格前缀，因此我们还将在 tokenizer 词汇表中检查这些版本。
+
 casual llm  forward怎么写?
+
+labels 
+
+```
+    shift_labels = inputs[..., 1:].contiguous() 
+    
+```
+
+我们需要对齐 logits 和 inputs：向右移动 1 的 input 序列形成标签，因为下一个 token 是当前 token 的标签。我们可以通过从输入序列的第二个标记开始标记来实现这一点，因为模型无论如何都不会对第一个标记进行预测。然后我们切断最后一个 logit，因为我们没有遵循完整 input 序列的 token 的标签。这样，我们就可以计算每个样本的损失.
 
 
 
