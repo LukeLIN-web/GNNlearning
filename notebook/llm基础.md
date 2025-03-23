@@ -156,16 +156,16 @@ mask 是什么? 这里没有讲这些细节.  都用 DataCollatorForLanguageMode
 
 casual llm  forward怎么写?
 
-labels 
+
+
+底层原理
 
 ```
     shift_labels = inputs[..., 1:].contiguous() 
-    
+我们需要对齐 logits 和 inputs：向右移动 1 的 input 序列形成标签，因为下一个 token 是当前 token 的标签。我们可以通过从输入序列的第二个标记开始标记来实现这一点，因为模型无论如何都不会对第一个标记进行预测。然后我们切断最后一个 logit，因为我们没有遵循完整 input 序列的 token 的标签。这样，我们就可以计算每个样本的损失.
 ```
 
-我们需要对齐 logits 和 inputs：向右移动 1 的 input 序列形成标签，因为下一个 token 是当前 token 的标签。我们可以通过从输入序列的第二个标记开始标记来实现这一点，因为模型无论如何都不会对第一个标记进行预测。然后我们切断最后一个 logit，因为我们没有遵循完整 input 序列的 token 的标签。这样，我们就可以计算每个样本的损失.
-
-
+input id和labels是对齐的, 在causal LM中会自动偏移算loss.  所以我们不用写上面的操作. 
 
 
 

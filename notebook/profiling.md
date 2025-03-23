@@ -1,9 +1,31 @@
+python可以用 tracemalloc
+
+https://docs.python.org/3/library/tracemalloc.html
+
+
+
+
+
+#### profiler
+
+torch profiler 看的太底层了,   有没有能看哪一行python代码 消耗内存在不断增加的呢. profiler好像也可以看, 
+
+导出成chrome trace   ,放到  https://ui.perfetto.dev/ 中可视化分析就行了. 
+
+PyTorch Profiler在渲染很大的网络的Trace图时需要的时间可能会比较久.为了避免这个问题你可以控制Profile的step为1或者减少Transformer Block的层数为原始的1/4，这样就能很快的得到Trace视图了. step =1 是啥意思? 
+
+
+
+
+
+
+
+
+
 #### Roofline model
 
 MegPeak可以绘制. https://github.com/MegEngine/MegPeak 
 https://github.com/krrishnarraj/clpeak
-
-
 
 要是直接参考芯片给的GFLOPS和带宽就比较简单可以画出来，但是芯片自己标的是理想值。 
 假如自己要去通过程序把这个算出真实GFLOPS和峰值带宽，这个没有多年体系结构知识其实很难写出来的呀. 我的理解是,如果从算子优化的角度来讲，像一些高性能的gemm算子，更多的是涉及L1，L2 cache, register 相关的优化trick，测量一个总体的带宽可能没有太大作用.  有个博后大佬写某款芯片的benchmark，写了好几个月，才写完。 
@@ -56,8 +78,6 @@ https://github.com/Stonesjtu/pytorch_memlab
 https://github.com/nicolargo/nvidia-ml-py3 
 
 用nvitop，看gpu利用率. 
-
-
 
 ## Nsight
 
