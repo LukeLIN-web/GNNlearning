@@ -239,3 +239,39 @@ masked model , bert是15%，只有15%的token参与计算loss.
 
 causal model的训练label怎么设置.
 
+
+
+# Lora
+
+```
+    vla_lora = PeftModel.from_pretrained(base_vla, model_id=cfg.pretrained_checkpoint, subfolder="lora_adapter") 
+    vla_lora = vla_lora.merge_and_unload() 
+        vla_lora = vla_lora.merge_and_unload() #eval 需要merge. 这样可以读取  config, 不merge不能读取pre ckpt的config. model.config还是 basevla的. 
+    
+    
+# 和下面是不一样的 
+    # from peft import get_peft_model, LoraConfig, TaskType
+    # lora_rank = 32
+    # lora_config = LoraConfig(
+    #             r=lora_rank,
+    #             # lora_alpha=min(cfg.lora_rank, 16),
+    #             lora_alpha=16,  # Xuan: usually, lora_alpha = 2 * lora_rank
+    #             lora_dropout=0.0,
+    #             target_modules="all-linear",
+    #             init_lora_weights="gaussian",
+    #         )
+    # vla_lora = get_peft_model(base_vla, lora_config)
+    # vla_lora.load_adapter(adapter_dir, adapter_name="default") # juyi: 会 assert unnorm_key in norm_stats, 报错.
+
+```
+
+https://huggingface.co/docs/peft/tutorial/peft_model_config
+
+
+
+`mlp.up_proj.lora_A.default.weight`   
+
+`merge_and_unload()`之后我们就不是lora模型了, 就是普通模型了. 
+
+
+
