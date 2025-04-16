@@ -267,8 +267,6 @@ causal model的训练label怎么设置.
 
 https://huggingface.co/docs/peft/tutorial/peft_model_config
 
-
-
 `mlp.up_proj.lora_A.default.weight`   
 
 `merge_and_unload()`之后我们就不是lora模型了, 就是普通模型了. 
