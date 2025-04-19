@@ -105,6 +105,20 @@ tok("dog walked", add_special_tokens=True)) 的讲解  https://github.com/huggin
 
 todo
 
+```
+Trainer 里面有一个方法叫 compute_loss：
+
+默认实现是调用 model(**inputs) 得到 outputs，然后从 outputs 里取 loss。
+你可以自定义 Trainer，重写 compute_loss，比如直接调用自定义的 loss 计算函数
+
+def compute_loss(self, model, inputs, return_outputs=False):
+    outputs = model(**inputs)  # 这里其实就是 forward
+    loss = outputs["loss"]     # 或者你可以自定义怎么取 loss
+    return (loss, outputs) if return_outputs else loss
+```
+
+
+
 3-4 A full training 
 
 todo
@@ -202,6 +216,18 @@ Hidden states怎么append的？
 要看看原始代码, 
 
 输入 inputs_embeds 而不是 input_ids,    outputs.sequences 不包含输入的 input_ids.
+
+`tokenizer.add_special_tokens(...)` 会把 `<ACT>` 加入 vocab
+
+**但 model 的 embedding 层大小不会自动更新**
+
+`model.resize_token_embeddings(len(tokenizer))`
+
+
+
+
+
+
 
 
 
