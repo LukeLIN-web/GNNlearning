@@ -1,6 +1,6 @@
 
 
-
+有了GPT 之后, 想系统学习也许只需要一个目录,  不断问GPT 细节就行. 
 
 
 
@@ -11,8 +11,6 @@
 2-2 
 
 https://huggingface.co/learn/nlp-course/chapter2/2?fw=pt
-
-听youtube,
 
 pad是因为不同的batch 不一样长. attention mask也会设为0 表示这些是padding 的.
 
@@ -66,8 +64,6 @@ llama2等模型的中<s>是 BOS (beginning of a sentence) token
 tokenizer.special_tokens_map 看
 ```
 
-
-
 3-2 
 
 ```
@@ -117,13 +113,35 @@ def compute_loss(self, model, inputs, return_outputs=False):
     return (loss, outputs) if return_outputs else loss
 ```
 
+输出太多了, 但是 `disable_tqdm=True` 会导致 `Trainer` 不触发 `on_log`，从而 wandb 不记录任何日志。  所以还需要手动log
 
+有trainer, wandb 在shell里面初始化最方便, 不用修改任何python代码 .没有trainer就要加很多wandb 的代码.
+
+```
+export WANDB_PROJECT=
+export WANDB_ENTITY=
+ trainer 会自动读取这两个. 
+```
+
+
+
+
+
+
+
+ 
 
 3-4 A full training 
 
 todo
 
+```
 
+trainer.save_state（） 是一种负责保存训练循环本身的当前状态的方法，而不仅仅是模型权重。这对于能够从上次中断的地方恢复训练至关重要。
+
+
+优化器状态： 保存优化器的内部状态（例如，Adam/AdamW 的动量缓冲区、运行平均值等）。如果您在没有此功能的情况下重新开始训练，优化器将从头开始，这可能会导致不同的收敛行为。通常保存为 optimizer.pt。
+```
 
 ### 第七
 
@@ -159,8 +177,6 @@ return_overflowing_tokens是怎么用的?
 
 
 
-
-
 7-6 Training a causal language model from scratch
 
 mask 是什么? 这里没有讲这些细节.  都用 DataCollatorForLanguageModeling 包装了, `data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)` 就是因果建模
@@ -169,8 +185,6 @@ mask 是什么? 这里没有讲这些细节.  都用 DataCollatorForLanguageMode
 对更多使用这些库的训练样本给予更多权重是有意义的。我们可以通过使用 plt、pd、sk、fit 和 predict 等关键字轻松识别这些示例，这些关键字是 matplotlib.pyplot、pandas 和 sklearn 最常见的导入名称，以及后者的 fit/predict 模式。如果它们都表示为单个 token，我们可以轻松检查它们是否出现在 input 序列中。标记可以具有空格前缀，因此我们还将在 tokenizer 词汇表中检查这些版本。
 
 casual llm  forward怎么写?
-
-
 
 底层原理
 
@@ -188,12 +202,6 @@ input id和labels是对齐的, 在causal LM中会自动偏移算loss.  所以我
 大部分模型 继承了PreTrainedModel , 继承了GenerationMixin, 调用generate, 就可以把self 自己传进去, 这里是调用了 WhisperForConditionalGeneration 中的forward函数。这是因为 PyTorch 的 nn.Module 基类定义了一个 __call__ 方法，当你调用模型实例（即 self）时，它会自动调用这个 __call__ 方法，而这个 __call__ 方法又会调用 forward 方法。
 
 https://techdiylife.github.io/blog/blog.html?category1=c02&blogid=0005
-
-
-
-
-
-
 
 #### 生成的输出
 
@@ -222,14 +230,6 @@ Hidden states怎么append的？
 **但 model 的 embedding 层大小不会自动更新**
 
 `model.resize_token_embeddings(len(tokenizer))`
-
-
-
-
-
-
-
-
 
 ## attentionmask 问题
 
@@ -264,8 +264,6 @@ https://pytorch.org/torchtune/stable/_modules/torchtune/generation/_generation.h
 masked model , bert是15%，只有15%的token参与计算loss.
 
 causal model的训练label怎么设置.
-
-
 
 # Lora
 
