@@ -229,7 +229,20 @@ Hidden states怎么append的？
 
 **但 model 的 embedding 层大小不会自动更新**
 
-`model.resize_token_embeddings(len(tokenizer))`
+HuggingFace 的 `resize_token_embeddings()` 默认行为只处理 **input embedding**。
+ 而 **output embedding** 可能是：
+
+1. 被 `tie_weights()` 共享，或者
+2. 是一个单独的 `Linear` 层 所以需要手动平均
+
+````
+    model.resize_token_embeddings(len(tokenizer))
+    output_embeddings = model.language_model.get_output_embeddings().weight.data
+    output_embeddings_avg = output_embeddings[:-num_new_tokens].mean(dim=0, keepdim=True)
+    output_embeddings[-num_new_tokens:] = output_embeddings_avg
+````
+
+
 
 ## attentionmask 问题
 
