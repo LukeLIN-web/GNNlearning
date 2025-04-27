@@ -310,3 +310,14 @@ https://huggingface.co/docs/peft/tutorial/peft_model_config
 
 
 
+
+
+# 学习率怎么调
+
+bs大, lr 应该大.
+
+lora , 训练参数少 , LoRA这点小参数，必须**快速学会校正**整个系统,  lr 应该大. 
+
+qlora ,**int4量化**本身就引入了**噪声**，所以训练时系统天然“容忍度变高”，可以允许更大的梯度变化,   lr 应该大.
+
+模型大,梯度求偏导数 平均到每个参数，每个参数变化幅度很小.  lr应该大. 
