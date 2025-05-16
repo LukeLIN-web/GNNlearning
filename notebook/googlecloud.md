@@ -35,6 +35,12 @@ git clone https://huggingface.co/datasets/lerobot-raw/fractal20220817_data_raw
 - `highmem` - 每个 vCPU 7 到 14 GB 内存；通常每个 vCPU 8 GB 内存。
 - `megamem` - 每个 vCPU 14 到 19 GB 内存 mega内存大一点. 
 
+很多地方申请不到, 需要换地区申请, 
+
+
+
+
+
 # vscode连接
 
 安装插件 cloud code . 就可以直接终端连接.

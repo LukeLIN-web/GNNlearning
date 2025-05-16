@@ -1,9 +1,3 @@
-python可以用 tracemalloc
-
-https://docs.python.org/3/library/tracemalloc.html
-
-
-
 
 
 #### profiler
@@ -13,14 +7,6 @@ torch profiler 看的太底层了,   有没有能看哪一行python代码 消耗
 导出成chrome trace   ,放到  https://ui.perfetto.dev/ 中可视化分析就行了. 
 
 PyTorch Profiler在渲染很大的网络的Trace图时需要的时间可能会比较久.为了避免这个问题你可以控制Profile的step为1或者减少Transformer Block的层数为原始的1/4，这样就能很快的得到Trace视图了. step =1 是啥意思? 
-
-
-
-
-
-
-
-
 
 #### Roofline model
 
@@ -61,11 +47,21 @@ profiler可以用: Python如何快速定位最慢的代码？ - pyinstrument   �
 
 计算 Python 代码的内存和模型显存消耗的小技巧 - deephub的文章 - 知乎 https://zhuanlan.zhihu.com/p/446903067
 
+
+
+https://github.com/pyutils/line_profiler
+
+
+
 ##### Py-spy
 
 https://github.com/benfred/py-spy  只能测cpu time
 
-启动之前需要[`--cap-add SYS_PTRACE`](https://docs.docker.com/engine/security/seccomp/)
+docker 里面, 启动之前需要[`--cap-add SYS_PTRACE`](https://docs.docker.com/engine/security/seccomp/)
+
+
+
+
 
 #### Torch bench
 
@@ -160,3 +156,6 @@ tok = time()
 用一下cuda graph, 把pytorch启动kernel的时间弄掉
 ```
 
+python可以用 tracemalloc
+
+https://docs.python.org/3/library/tracemalloc.html
