@@ -22,6 +22,38 @@ git clone https://huggingface.co/datasets/lerobot-raw/fractal20220817_data_raw
 
 
 
+inference是和train 不是一个pool.
+
+training有单独的pool. 
+
+https://cloud.google.com/compute/docs/instance-groups/create-resize-requests-mig
+
+
+
+**flex-start** 
+
+最长一周.
+
+也可以delete GPU.
+
+training pool 便宜 40% . 
+
+GKEhttps://cloud.google.com/kubernetes-engine/docs/concepts/dws
+
+ flex-start在哪里呢? 没找到. 
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # 申请VM 
