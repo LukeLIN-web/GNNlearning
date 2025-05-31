@@ -20,8 +20,6 @@ git lfs install
 git clone https://huggingface.co/datasets/lerobot-raw/fractal20220817_data_raw
 ```
 
-
-
 inference是和train 不是一个pool.
 
 training有单独的pool. 
@@ -42,15 +40,19 @@ GKEhttps://cloud.google.com/kubernetes-engine/docs/concepts/dws
 
  flex-start在哪里呢? 没找到. 
 
+It must have kubernetes?
+
+shoudl we need queued provisioning?
+
+好像必须用命令行来启动. 
+
+https://sfcompute.com/
+
+非常便宜
 
 
 
-
-
-
-
-
-
+谷歌云, 每个region 都必须申请quota, 啥权限都没有, 最弱智的云. 
 
 
 
