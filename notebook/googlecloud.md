@@ -42,19 +42,11 @@ GKEhttps://cloud.google.com/kubernetes-engine/docs/concepts/dws
 
 It must have kubernetes?
 
-shoudl we need queued provisioning?
+ we need queued provisioning?
 
 好像必须用命令行来启动. 
 
-https://sfcompute.com/
-
-非常便宜
-
-
-
 谷歌云, 每个region 都必须申请quota, 啥权限都没有, 最弱智的云. 
-
-
 
 
 
@@ -70,10 +62,6 @@ https://sfcompute.com/
 - `megamem` - 每个 vCPU 14 到 19 GB 内存 mega内存大一点. 
 
 很多地方申请不到, 需要换地区申请, 
-
-
-
-
 
 # vscode连接
 
@@ -152,3 +140,6 @@ docker run --rm -it \
 
 搞好了环境可以创建机器映像. 机器映像包含虚拟机的属性、元数据、权限及其所有挂接磁盘中的数据。您可以使用机器映像创建、备份或恢复虚拟机 
 
+https://sfcompute.com/
+
+非常便宜
