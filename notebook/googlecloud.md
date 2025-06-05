@@ -48,8 +48,6 @@ It must have kubernetes?
 
 谷歌云, 每个region 都必须申请quota, 啥权限都没有, 最弱智的云. 
 
-
-
 # 申请VM 
 
 一开始换了region都申请不到一个GPU, 因为 gcp个人账号有quota要人工audit.  点 request quota adjustment, 就会被拒绝.. 得先去要quota批了才能用. 过两天就批准了.  但是还是只有一个A100,  不能多个GPU,  又申请一次. 
