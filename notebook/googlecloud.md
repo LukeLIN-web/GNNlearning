@@ -18,6 +18,7 @@ hg的数据这样下载
 ```
 git lfs install
 git clone https://huggingface.co/datasets/lerobot-raw/fractal20220817_data_raw
+
 ```
 
 inference是和train 不是一个pool.
@@ -25,8 +26,6 @@ inference是和train 不是一个pool.
 training有单独的pool. 
 
 https://cloud.google.com/compute/docs/instance-groups/create-resize-requests-mig
-
-
 
 **flex-start** 
 
@@ -60,6 +59,26 @@ It must have kubernetes?
 - `megamem` - 每个 vCPU 14 到 19 GB 内存 mega内存大一点. 
 
 很多地方申请不到, 需要换地区申请, 
+
+
+
+申请了之后第一个确认有没有nvidia-smi  [c0-deeplearning-common-cpu-v20250325-debian-11](https://console.cloud.google.com/compute/imagesDetail/projects/ml-images/global/images/c0-deeplearning-common-cpu-v20250325-debian-11?inv=1&invt=Ab0fzQ&project=neu-research) 是没有的.
+
+要选cuda image.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # vscode连接
 

@@ -350,9 +350,26 @@ muon需要加weight decay.
 
 
 
+## 激活函数
 
+silu 在视觉任务中比 ReLU 更不容易梯度截断（ReLU 的 dead neuron 问题） 
+Swish 是由 Google 研究人员在 2017 年提出的一种激活函数，结合了 Sigmoid 的平滑性和 ReLU 的稀疏激活特性，实验证明其在多种任务中优于 ReLU，尤其在深层网络中表现优异，也是现在主流LLM中FeedForward层使用的激活函数，只是它们使用的是SiLU.
+低精度fp8或更低 swiglu 和gelu 会数值不稳定 , 应该用relu, . relu在 稀疏的时候flops可以减少很多. 
+聊一聊Transformer中的FFN - 盘子正的文章 - 知乎 . 改silu不会提高很多. 但是ReLU造成dead neurons，因此在Transformer上逐渐被抛弃。但是cv改激活函数就没啥用. 
+https://zhuanlan.zhihu.com/p/685943779
+自己也有过一些ViT上的实验 (相信其他人也做过)，两个FC中间会有个hidden dimension的expansion ratio，一般设置为4。把这个地方调小会发现怎么都不如大点好。但是更大memory太费.  
+FFN中的activations非低秩 都很难low rank.
+应该用transformer.
+问题
+- 为什么之前vit 不如mlp 16好?  直接用vit, 没有空间结构、也不是 patch，不符合 ViT 的 inductive bias
+- 
+图像任务上 , ViT-Small参数量少于resnet101，但是微调后性能好于resnet101 
 
+- MLP 是逐维映射，没有 token 间建模能力（无 attention）
+- 无局部建模、无时间建模 → MLP 只能学到全局趋势，难建模细节模式
 
+head多,  通常更快（batch 大, GPU 并行好）, 内存占用更大, 更稳定,  **表示力更强，收敛更快**。
+但是head太多, `d` 太小时，注意力变“近似点积”，容易梯度爆炸或收敛慢。Jetson 系列在 head 数多时反而吞吐下降。
 
 
 
