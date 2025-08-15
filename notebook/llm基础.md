@@ -4,6 +4,100 @@
 
 
 
+语言模型的数学原理
+
+# physics of LM
+
+https://physics.allen-zhu.com/ 
+
+宣传一下 这本大作, 应该熟练背诵, 汇总一下结论. 
+
+## part1
+
+**SSRN** **paper**: https://ssrn.com/abstract=5250639 
+
+包括说明为什么绝对位置嵌入不如相对嵌入和旋转嵌入
+
+与自回归模型（例如 GPT）相比，仅编码器模型（例如 BERT、DeBERTa）在深度嵌套的 CFG 中遇到困难;将结构或语法噪声注入预训练数据可显着提高对损坏语言提示的鲁棒性。
+
+## part2.1
+
+**SSRN** **paper**: https://ssrn.com/abstract=5250629  (last update: July 2024)
+(arxiv link is deprecated) https://arxiv.org/abs/2407.20311
+
+gpt 2 真的会和人一样做数学! 
+
+1. 在我们的例子中，模型**从未见过任何与测试时间长度相同的训练示例。** 这意味着模型可以真正学习一些推理技能，而不是死记硬背解模板。
+2. 该模型可以学习生成最短的解决方案，几乎总是避免*不必要的*计算。
+3. 我们发现模型在开始任何生成之前预处理了全套必要的参数。同样，人类也会做这个预处理，尽管我们把它写在便签本上。
+4. 该模型在预训练后还学习了*不必要但重要的*技能，例如全对依赖性。在提出任何问题之前，它已经（在脑海中）很好地准确地计算出哪些参数依赖于哪些参数，即使有些参数*不是解决数学问题所必需*的。请注意，计算全对依赖关系并不是拟合训练数据中所有解所**必需**的技能。据我们所知，这是语言模型可以*学习有用的技能*的第一个证据，超出了拟合其预训练数据所需的技能。 这可能是 *AGI 中 G 可能来自哪里*的初步信号。
+5. 我们解释*为什么会出现错误* 。例如，模型犯了系统错误，可以通过探测其内部状态来解释。有时，这些错误可以在模型生成答案之前进行预测，使其独立于随机生成过程。我们将此与实践联系起来，并指出 GPT-4/4o 也犯了类似的错误.
+6. **语言模型的深度对于其推理能力至关重要**。例如， a 16-layer, 576-dim transformer solves harder problems (in reasoning length) than a 4-layer, 1920-dim one。即使使用思维链 （CoT），这也成立。我们主张使用受控的合成数据作为一种更有原则的方法来得出此类声明，这与基于使用互联网预训练数据 的训练损失的“只有大小重要”等预测形成鲜明对比.
+
+## part 2.2 How to Learn From Mistakes 
+
+**SSRN** **paper**: https://ssrn.com/abstract=5250631
+
+https://arxiv.org/abs/2408.16293
+
+- 了解将“纠错”数据直接纳入预训练阶段的有用性.与在相同数量的无错误数据上进行预训练相比，这种类型的**预训练数据**可以帮助语言模型直接实现更高的推理准确性（即通过简单的自回归，无需多轮提示）
+- 使用重试数据非常安全：即使在使用高错误率重试数据进行预训练后，模型也**很少出错**，并且无需更改训练过程（简单地自回归，无需标记掩蔽错误）。重试数据教会模型如何在需要时纠正错误，而不是鼓励错误。
+- 需要注意的是，这样的*纠错技巧*来之不易。仅使用无错误数据进行预训练的模型不能使用 (1) beam search or (2) retry based on error detection (“retry upon regret”)  来实现可比的性能.  纠错能力**难以在 LoRA** 等参数高效微调 （PEFT） 中学习. 有必要将重试数据添加到语言模型的**预训练**数据中，以真正学习纠正错误的能力。
+
+## Part 3.1, Knowledge Storage and Extraction
+
+**SSRN** **paper**: https://ssrn.com/abstract=5250633 (last updated July 2024)
+
+https://arxiv.org/abs/2309.14316
+
+- **从本质上讲** ，为了可靠地提取知识，必须*在预训练期间*对其进行充分的增强（例如，通过释义、句子打洗、翻译）。如果没有这样的增强，知识可能会被记忆但不可提取，导致准确率为 0%，无论后续指令微调如何。
+- **本文为业界的 LLM 预训练提供了几个关键建议：（1） 使用小型辅助模型重写预训练数据以提供知识增强，以及 （2） 在为时已晚之前将更多的指令微调数据纳入预训练阶段。**
+- 即使知识增强应用于一部分人，what we call celebrities, 其他人的测试准确性（没有增强）也会显着提高。 (celebrities是需要拥有大量数据还是随机subset 就可以? )
+- *encoder-only models akin to BERT* , 无论是混合训练还是预训练然后微调，无论知识增强如何，都无法在微调后提取一个人的知识.
+
+### Part 3.2Knowledge Manipulation
+
+**SSRN** **paper**: https://ssrn.com/abstract=5250621 (last updated July 2024)
+
+https://arxiv.org/abs/2309.14402
+
+- 语言模型在知识检索方面表现出色，但即使在最简单的分类或比较任务中也表现不佳，除非在训练和推理过程中都使用思维链 （CoT）。此外，无论提示如何，它们在逆向知识搜索中的表现几乎为 0%。我们的主要贡献是一个*受控的合成实验* ，证实了这些弱点是语言模型固*有*的. 
+- 缓解方法包括, 生成更多的 CoT 数据，并采用检索增强生成（RAG) 和反转训练等方法来帮助反向搜索。我们自己还建议重写训练文档以包含反转数据并引入文档行号以增强逆向搜索功能。
+
+### Part 3.3, Knowledge Capacity Scaling Laws
+
+**SSRN** **paper**: https://ssrn.com/abstract=5250617 (last updated April 2024)
+
+https://arxiv.org/abs/2404.05405
+
+这篇非常重要. 非常有用! 
+
+- 通过多个受控数据集，我们确定语言模型每个参数可以而且只能存储 *2 位知识，即使量化为 int8，并且*可以灵活提取此类知识用于下游应用。因此，一个 7B 模型可以存储 14B 位知识，超过了我们估计的英文维基百科和教科书的总和。研究各种模型大小、深度、宽度、数据大小、类型（合成/半合成）和超参数。所有模型，即使没有 MLP 层，也接近这个比率。
+- GPT-2 架构, with rotary embedding,，在*知识存储方面*与 LLaMA/Mistral 架构相当甚至超过，尤其是在较短的训练持续时间内。出现这种情况是因为 LLaMA/Mistral 使用 GatedMLP，它不太稳定且更难训练。
+- 在训练数据前面加上域名（例如 wikipedia.org）可以显着提高模型的知识容量。语言模型可以自主识别知识丰富的领域并确定其优先级，从而优化其存储容量。  (然而有些公司出于某些隐私还是合规的原因决定去掉数据集中的域名. )
+- 要实现 capacity ratio = 2 bit/param，每个知识片段在训练期间都要暴露/访问 1000 次，称为 *1000-exposure* .在 100 次的情况下， *训练不足*的 GPT2 的capacity ratio降至 1bit/param。换句话说, 在训练期间仅遇到 100 次的*稀有*知识以 1 bit/param存储。 
+- 只有100 次时，部分架构出现局限性;值得注意的是，LLaMA/Mistral 的capacity ratio is 1.3x lower than GPT2’s ，即使在最佳调整学习率之后也是如此。(capacity ratio)
+- GPTQ 量化到 int8 不会影响模型容量（即使对于 2bit/param 边界上的模型）,  量化到 int4 会将容量减少到 0.7 bit/param。 由于 2bit/param 是在充分训练后获得的，因此训练时间更长*可能不会*进一步提高模型容量， **but quantization can**. 
+- 专家混合 （MoE） 模型提供比密集模型更快的推理速度，但通常表现不佳于具有相同总参数数（非有效参数）的密集模型。我们表明，性能下降应该不是缺乏知识存储能力。MoE models, even with 32 experts, only reduce 1.3x in capacity compared to the base scaling laws, despite using just 8.8% of the total parameters during inference.
+- 垃圾数据显著  降低了模型容量。例如，“有用与垃圾”训练令牌的比例为 1：7，即使有用知识暴露了 100 次，有用知识的能力*也会损失 20 倍*.
+- *有效的缓解措施*是在所有有用知识的前面添加一个特殊标记。这类似于在每个维基百科段落的开头添加一个像 wikipedia.org 这样的域名;该模型无需事先了解有价值的领域即可***自主***识别高质量数据。在上面的示例中，损耗因子从 20 倍提高到 2 倍。
+
+### Part 4.1, Architecture Design and the Magic of Canon Layers
+
+**SSRN** **paper**: https://ssrn.com/abstract=5240330 (**v1.1**, last updated May 19, 2025)
+
+这里开始没有 arxiv 了.
+
+Canon layer, 可以改善模型层内相邻token之间的水平信息流,计算附近token表示的加权总和. 显著提升了NoPE和GLA模型的性能.  有助于模型提高推理能力和可扩展性.
+
+
+
+
+
+
+
+
+
 ## huggingface NLP course
 
 ### 第二章
@@ -123,13 +217,7 @@ export WANDB_ENTITY=
  trainer 会自动读取这两个. 
 ```
 
-
-
-
-
 `self.language_model`通常是前向传播的核心实现，每次调用只会根据输入上下文预测下一个token的概率分布（logits）。
-
- 
 
 3-4 A full training 
 
