@@ -140,7 +140,7 @@ padding必须和 attention mask组合使用不然就出错.
 非常强大, 
 
 ```
-model_inputs = tokenizer(sequences, padding=True, return_tensors="np")# 可以返回torch, TensorFlow和numpy数组. 
+model_inputs = tokenizer(sequences, padding=True, return_tensors="np")# 可以返回torch, TensorFlow和numpy数组.model_inputs = tokenizer(sequences, padding=True, return_tensors="np")# 可以返回torch, TensorFlow和numpy数组.q 
 
 model_inputs = tokenizer(sequence) 分词器在开头添加了特殊单词 [CLS]，在结尾添加了特殊单词 [SEP]。这是因为模型是用这些进行预训练的，因此为了获得相同的推理结果需要添加. 
 print(model_inputs["input_ids"])
@@ -449,6 +449,7 @@ https://zhuanlan.zhihu.com/p/685943779
 FFN中的activations非低秩 都很难low rank.
 应该用transformer.
 问题
+
 - 为什么之前vit 不如mlp 16好?  直接用vit, 没有空间结构、也不是 patch，不符合 ViT 的 inductive bias
 - 
 图像任务上 , ViT-Small参数量少于resnet101，但是微调后性能好于resnet101 
@@ -461,5 +462,31 @@ head多,  通常更快（batch 大, GPU 并行好）, 内存占用更大, 更稳
 
 
 
+## KL 散度
 
+【【中字】原来KL散度这么厉害，还有到底怎么落地计算】 https://www.bilibili.com/video/BV1Y57jzfE6N/?share_source=copy_web&vd_source=bb7496f78e4d303270b7c97ae8f69402
+
+可能性更高的, 可以用更少的 bit 来编码.   
+
+用了不同的分布模型, cross entropy 会变大. 
+
+KL 散度就是cross entropy-  entropy. 
+
+KL散度有一个不太好的地方，比方有两个正态分布N(0, 0.001)，N(0.01, 0.001)，虽然这两个分布形状一样，相互之间的偏差也非常小，但由于它们的标准差特别小，这时候算出来的KL散度就会特别大（约摸50），但其实两个分布之间点的距离只有大概0.01而已。这就是为什么有时候会用  wasserstein距离 来衡量分布之间的差距。
+
+forward KL 和 reverse KL 是不同的.
+
+reverse KL 惩罚 Q 在 p 没有质量的地方分配质量, 导致 mode seeking, Q 选择一个峰值,而忽略其他的. 
+
+不可能精确计算, 所以用 monte carlo 估计. 算期望. 也就是取平均, 无偏估计. 
+
+对数平方, 保证 估计量非负, 来减少方差. 但是是有偏估计.
+
+所以提出了一个方式, 换一种方法无偏估计, 
+
+
+
+
+
+openhands 可以跑 swebench.  terminal bench也挺好用的.
 
