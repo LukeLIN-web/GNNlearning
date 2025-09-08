@@ -416,7 +416,8 @@ qlora ,**int4量化**本身就引入了**噪声**，所以训练时系统天然�
 
 在训练过程中，尤其是还没完全收敛时，参数更新的方向会逐渐使梯度范数变大。这可能反映了模型在持续调整其权重范围来更好拟合数据。
 - 若 loss 同时在下降，这种缓慢上升是可接受的。
-### 2. **学习率未衰减 or 衰减过晚**
+
+**学习率未衰减 or 衰减过晚**
 
 若你在这段期间还没执行学习率 decay，梯度 norm 也可能呈缓慢上升趋势。尤其你在用较大模型（如 LLaMA2-7B）时，这个现象更明显。
 
@@ -435,6 +436,35 @@ lr 比 adamw 大10倍.
 muon需要加weight decay.
 
 将Muon用于微调（SFT）时，可能会因为预训练没用Muon而不如adam。具体来说，如果预训练和微调都用Muon，那么表现是最好的,
+
+
+
+param norm大了除了会overconfident/overfit还有其他坏处吗? 
+
+- overflow, 然后nan了.更可怕的是有outlier , 一个参数吃了99%的norm.
+- 学习效率可能会变低, update_rms基本上是固定的,  weight norm 越大, 每一步的更新幅度相对就变小了
+
+olmo经典老坑了。olmo2两个经典结论我记得我看过，一个是说embedding不要wd，一个是rmsnorm gamma不wd，我个人觉得在SP搞法下两个都很坑...其实比l2norm更有信息量的是RMS，帮助你判断每一个数大概多大（不过因为有square，spike会放大整个range）
+- without wd的l2norm是2000+，那rms = 2000 / sqrt(4096) ~= 30+ 
+- with wd的l2norm是500，那rms = 500 / sqrt(4096) ~= 8+
+
+这样一看显然是with wd的更加健康啊，考虑到bf16的表达精度，0附近显著多很多数。实际上除了embedding RMS，最好是监控lm head logit，那个信息量更大.  可以看llama3的pretrain没用上的special token，embedding rms小的离谱，反推可以得出llama3是在embedding上加了decay的，这些special token由于没有gradients，只有decay，所以被压倒越来越小. 国内有公司在这里吃过亏的，建议多加监控多多观察（尤其是lm head logit和attn logit这些，每一个要走有exp算子前的logit），然后SD下所有参数该decay就decay.
+
+不知道为啥都喜欢记录l2norm，感觉不如abs_mean和rms直观？
+
+问题甚至出在进softmax前，params norm大了之后，你去看进softmax之前的那些logit可能大小爆炸了，比如到了200多之后，可能前后+-20的range，才几百个数，太容易撞了，本来不是一样大小的数也变成一个大小了，那你再进softmax，没区分度了，top1和top2都是一样了. 所以参数不能太大. 
+
+
+
+
+
+### 减少幻觉
+
+https://openai.com/index/why-language-models-hallucinate/
+
+不要奖励幸运猜测,  所有主要评估指标都需要重新设计，以奖励不确定性的表达。
+
+
 
 
 
