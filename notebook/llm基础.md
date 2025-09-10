@@ -421,7 +421,9 @@ qlora ,**int4量化**本身就引入了**噪声**，所以训练时系统天然�
 
 若你在这段期间还没执行学习率 decay，梯度 norm 也可能呈缓慢上升趋势。尤其你在用较大模型（如 LLaMA2-7B）时，这个现象更明显。
 
-看loss都看不出来效果, 只能eval  
+看loss都看不出来效果, 只能eval  .
+
+就是embedding 的lr 可以设大很多 (10x, 20x之类的)，因为他不是个linear，是个look up table. Mamba2就是这么做的。embedding用0.1，然后lm_head用1/sqrt{d}
 
 ### muon
 
