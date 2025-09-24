@@ -92,12 +92,6 @@ Canon layer, 可以改善模型层内相邻token之间的水平信息流,计算�
 
 
 
-
-
-
-
-
-
 ## huggingface NLP course
 
 ### 第二章
@@ -112,7 +106,7 @@ pad是因为不同的batch 不一样长. attention mask也会设为0 表示这�
 
 head 是什么?   The model heads take the high-dimensional vector of hidden states as input and project them onto logits.  输出dim是vocab size 就是几个linear.  可以使用相同的架构执行不同的任务，但每个任务都将具有不同的 head 与之关联。  Transformer 模型的输出直接发送到模型头进行处理.  看图  https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/en/chapter2/transformer_and_head.svg  
 
-所有 🤗 Transformers 模型都输出 logits，因为用于训练的损失函数通常会将最后一个激活函数（如 SoftMax）与实际的损失函数（如交叉熵）融合
+所有 Transformers 模型都输出 logits，因为用于训练的损失函数通常会将最后一个激活函数（如 SoftMax）与实际的损失函数（如交叉熵）融合
 
 quiz: 
 
@@ -149,7 +143,6 @@ tokens = tokenizer.tokenize(sequence) # 和直接调用不一样!没有CLS了.
 ids = tokenizer.convert_tokens_to_ids(tokens) #就可以看数字了.
 print(tokenizer.decode(model_inputs["input_ids"])) #就可以看text了. 用的是同一个tokenizer
 
-
 特殊token:
 llama2等模型的中<s>是 BOS (beginning of a sentence) token
 [CLS] 代表分类。之所以在开头添加，是因为这里的训练任务是句子分类。由于他们需要可以表示整个句子含义的输入，因此他们引入了一个新标签。
@@ -185,7 +178,6 @@ tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)
 tok("dog walked", add_special_tokens=True)) 的讲解  https://github.com/huggingface/transformers/issues/22935
 当设置为 True 时，add_special_tokens用于在输入序列的开头和结尾添加特殊标记。在您的情况下，由于您使用的是单个输入序列，因此分词器将分别在句子的开头和结尾添加特殊标记 [CLS] 和 [SEP]。
 请注意，并非所有分词器都支持添加特殊分词。如果分词器不支持添加特殊标记，则将 add_special_tokens 设置为 True 将不起作用。
-
 
 # todo
 继续阅读后面内容, Dynamic padding  
@@ -224,7 +216,6 @@ export WANDB_ENTITY=
 todo
 
 ```
-
 trainer.save_state（） 是一种负责保存训练循环本身的当前状态的方法，而不仅仅是模型权重。这对于能够从上次中断的地方恢复训练至关重要。
 
 
@@ -257,13 +248,11 @@ tokenized_datasets = imdb_dataset.map(
 return_overflowing_tokens是怎么用的? 
 ```
 
-现在我们已经对电影评论进行了标记化，下一步是将它们全部分组在一起并将结果拆分为块。但是这些块应该有多大呢？这最终将由您可用的 GPU 内存量决定，但一个好的起点是查看模型的最大上下文大小是多少。`tokenizer.model_max_length`  
+现在我们已经对电影评论进行tokenizer，下一步是将它们全部分组在一起并将结果拆分为块。但是这些块应该有多大呢？这最终将由您可用的 GPU 内存量决定，但一个好的起点是查看模型的最大上下文大小是多少。`tokenizer.model_max_length`  
 
 在实际场景中使用较小的数据块大小可能是有害的，因此您应该使用与您将应用模型的用例相对应的大小。
 
-有的也有点老了, 都还在用p100 和bert.
-
-
+有点老了, 都还在用p100 和bert.
 
 7-6 Training a causal language model from scratch
 
@@ -282,8 +271,6 @@ casual llm  forward怎么写?
 ```
 
 input id和labels是对齐的, 在causal LM中会自动偏移算loss.  所以我们不用写上面的操作. 
-
-
 
 #### generate
 
@@ -305,15 +292,7 @@ https://huggingface.co/docs/transformers/en/internal/generation_utils
 
  When you set `output_hidden_states=True` and `return_dict_in_generate=True`, the `language_model_output.hidden_states` will be a tuple of tuples containing the hidden states for each generation step.  就是输出8个token, 会输出一个 ( 8 输出token数,33 层数, hidden size) 这样一个 Tuple (one element for each generated token) of tuples (one element for each layer of the decoder) of `torch.FloatTensor` of shape `(batch_size, generated_length, hidden_size)`.  
 
-是不是就算shape不对, 但是
-
-Hidden states怎么append的？
-
-要看看原始代码, 
-
 输入 inputs_embeds 而不是 input_ids,    outputs.sequences 不包含输入的 input_ids.
-
-`tokenizer.add_special_tokens(...)` 会把 `<ACT>` 加入 vocab
 
 **但 model 的 embedding 层大小不会自动更新**
 
@@ -356,49 +335,21 @@ https://pytorch.org/torchtune/stable/_modules/torchtune/generation/_generation.h
 
 自回归和掩码语言模型区别?
 
-一次预测所有被掩码的token 是做几个prefill 几次decode? 
+一次预测所有被掩码的token 是做几个prefill 几次decode?  做一次 prefill, 不需要多次 decode。
 
-主要是计算快 双向是真的耗资源. 为什么 自回归模型训练更为高效. masked model不也是一样的token数量吗? 
+为什么 自回归模型训练更为高效. masked model不也是一样的token数量吗? 
 
-哦他训练会更慢,因为要算所有token 的loss. ? 
+需要更多训练步才能达到类似的表征质量。  masked model , bert是15%，只有15%的token参与计算loss.
 
-masked model , bert是15%，只有15%的token参与计算loss.
-
-causal model的训练label怎么设置.
+causal model的训练label怎么设置? 往右推一个就行. 
 
 # Lora
-
-```
-    vla_lora = PeftModel.from_pretrained(base_vla, model_id=cfg.pretrained_checkpoint, subfolder="lora_adapter") 
-    vla_lora = vla_lora.merge_and_unload() 
-        vla_lora = vla_lora.merge_and_unload() #eval 需要merge. 这样可以读取  config, 不merge不能读取pre ckpt的config. model.config还是 basevla的. 
-    
-    
-# 和下面是不一样的 
-    # from peft import get_peft_model, LoraConfig, TaskType
-    # lora_rank = 32
-    # lora_config = LoraConfig(
-    #             r=lora_rank,
-    #             # lora_alpha=min(cfg.lora_rank, 16),
-    #             lora_alpha=16,  # Xuan: usually, lora_alpha = 2 * lora_rank
-    #             lora_dropout=0.0,
-    #             target_modules="all-linear",
-    #             init_lora_weights="gaussian",
-    #         )
-    # vla_lora = get_peft_model(base_vla, lora_config)
-    # vla_lora.load_adapter(adapter_dir, adapter_name="default") # juyi: 会 assert unnorm_key in norm_stats, 报错.
-
-```
 
 https://huggingface.co/docs/peft/tutorial/peft_model_config
 
 `mlp.up_proj.lora_A.default.weight`   
 
 `merge_and_unload()`之后我们就不是lora模型了, 就是普通模型了. 
-
-
-
-
 
 # 学习率怎么调
 
@@ -439,36 +390,26 @@ muon需要加weight decay.
 
 将Muon用于微调（SFT）时，可能会因为预训练没用Muon而不如adam。具体来说，如果预训练和微调都用Muon，那么表现是最好的,
 
-
-
 param norm大了除了会overconfident/overfit还有其他坏处吗? 
 
 - overflow, 然后nan了.更可怕的是有outlier , 一个参数吃了99%的norm.
 - 学习效率可能会变低, update_rms基本上是固定的,  weight norm 越大, 每一步的更新幅度相对就变小了
 
-olmo经典老坑了。olmo2两个经典结论我记得我看过，一个是说embedding不要wd，一个是rmsnorm gamma不wd，我个人觉得在SP搞法下两个都很坑...其实比l2norm更有信息量的是RMS，帮助你判断每一个数大概多大（不过因为有square，spike会放大整个range）
+olmo2两个经典结论一个是说embedding不要wd，一个是rmsnorm gamma不wd，我个人觉得在SP搞法下两个都很坑...其实比l2norm更有信息量的是RMS，帮助你判断每一个数大概多大（不过因为有square，spike会放大整个range）
 - without wd的l2norm是2000+，那rms = 2000 / sqrt(4096) ~= 30+ 
 - with wd的l2norm是500，那rms = 500 / sqrt(4096) ~= 8+
 
-这样一看显然是with wd的更加健康啊，考虑到bf16的表达精度，0附近显著多很多数。实际上除了embedding RMS，最好是监控lm head logit，那个信息量更大.  可以看llama3的pretrain没用上的special token，embedding rms小的离谱，反推可以得出llama3是在embedding上加了decay的，这些special token由于没有gradients，只有decay，所以被压倒越来越小. 国内有公司在这里吃过亏的，建议多加监控多多观察（尤其是lm head logit和attn logit这些，每一个要走有exp算子前的logit），然后SD下所有参数该decay就decay.
+with wd的更加健康啊，考虑到bf16的表达精度，0附近显著多很多数。实际上除了embedding RMS，最好是监控lm head logit，那个信息量更大.  可以看llama3的pretrain没用上的special token，embedding rms小的离谱，反推可以得出llama3是在embedding上加了decay的，这些special token由于没有gradients，只有decay，所以被压倒越来越小. 国内有公司在这里吃过亏的，建议多加监控多多观察（尤其是lm head logit和attn logit这些，每一个要走有exp算子前的logit），然后SD下所有参数该decay就decay.
 
 不知道为啥都喜欢记录l2norm，感觉不如abs_mean和rms直观？
 
 问题甚至出在进softmax前，params norm大了之后，你去看进softmax之前的那些logit可能大小爆炸了，比如到了200多之后，可能前后+-20的range，才几百个数，太容易撞了，本来不是一样大小的数也变成一个大小了，那你再进softmax，没区分度了，top1和top2都是一样了. 所以参数不能太大. 
-
-
-
-
 
 ### 减少幻觉
 
 https://openai.com/index/why-language-models-hallucinate/
 
 不要奖励幸运猜测,  所有主要评估指标都需要重新设计，以奖励不确定性的表达。
-
-
-
-
 
 ## 激活函数
 
@@ -521,4 +462,67 @@ reverse KL 惩罚 Q 在 p 没有质量的地方分配质量, 导致 mode seeking
 
 
 openhands 可以跑 swebench.  terminal bench也挺好用的.
+
+# 面试题
+
+
+
+为什么RMSNorm (Root Mean Square Layer Normalization)，相比传统的 LayerNorm 计算更简单、效率更高?
+
+不计算均值,没有 beta, 只做尺度归一化,  “只把向量缩放到合适大小” → 保留方向，不干涉均值.LLaMA 实验证明它能更稳定地收敛.  
+
+
+
+````python
+
+
+wq = linear()
+3 个 linear. 
+
+Q = x  * Wq
+K = x * Wk
+V = x * Wv
+
+需要 view 一下
+
+xq, xk = apply_rotary_emb(xq, xk, freqs_cis=freqs_cis)
+
+存一下 最新的 xk 和 xv 到 cache kv
+
+得到整个完整的 k 和v 
+repeat keys . 和 values
+每个 key-value 头需要被复制 8 次来匹配查询头的数量。
+
+
+scores = Q @ K^T  torch.matmul (xq, keys) / math.sqrt (self. head im)
+scores  = scores  / sqrt(k.shape(-1))#也是对的. 
+weight = F.softmax(scores, dim = -1)
+Output =  torch.matmul  Attention_Weights ,V
+return  self.wo(output)
+
+
+
+````
+
+rope 旋转是啥意思?
+
+就是 x sin 和cos  
+
+Grouped-Query Attention 是啥意思?
+
+看代码吧. 就复制kv 
+
+为什么 attention 要 scale 再Softmax ?
+
+差值一样, softmax后就一样,  scale 后差值绝对值变小了. 
+
+为什么 transformer block 后要加FFN . 
+
+注意力是“跨 token 信息交互”，如果只在结果上加个 ReLU，模型相当于只是“过滤一下”，而不是“深度处理”每个 token 的表示。
+
+
+
+
+
+
 

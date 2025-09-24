@@ -1,4 +1,60 @@
-## Vit
+https://huggingface.co/learn/diffusion-course/unit0/1
+
+
+
+
+
+```python
+noise_scheduler.alphas_cumprod 就已经有了
+
+DDPMScheduler(num_train_timesteps=1000, beta_start=0.001, beta_end=0.004)
+噪音少.
+
+noise_scheduler = DDPMScheduler(num_train_timesteps=1000, beta_schedule='squaredcos_cap_v2')  增加的很慢, 相当于 warmup 和退火,  小 image 更好, 不会一开始就太大.
+
+noise = torch.randn(clean_images.shape).to(clean_images.device)
+noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
+noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
+loss = F.mse_loss(noise_pred, noise)
+
+
+保存 ckpt: 
+image_pipe = DDPMPipeline(unet=model, scheduler=noise_scheduler)
+pipeline_output = image_pipe()
+pipeline_output.images[0]
+image_pipe.save_pretrained("my_pipeline")
+
+反向采样: 
+for i, t in enumerate(noise_scheduler.timesteps):
+    with torch.no_grad():
+        residual = model(sample, t).sample # 得到随机噪声项
+    # Update sample with step
+    sample = noise_scheduler.step(residual, t, sample).prev_sample
+
+前向过程是随机的，反向过程也必须是随机的，否则采样出来的样本分布不对。
+ddim 通过修改调度公式可以 去掉随机噪声，仍然生成高质量样本     步数少很多. 
+不加随机性, 所以可以跳步. 确定性近似. 
+
+DDIM 的反向采样公式可以简化理解为：
+x_{t-1} = (预测的 x₀) + (指向 xₜ 的方向) + (随机噪声)
+其更具体的公式形式为：
+x_{t-1} = sqrt(α_{t-1}) * (预测的 x₀) + sqrt(1 - α_{t-1} - σ_t²) * (预测的噪声) + σ_t * z
+这里的关键在于 σ_t 的定义，它与 η 直接相关：
+σ_t = η * sqrt((1 - α_{t-1}) / (1 - α_t)) * sqrt(1 - α_t / α_{t-1})
+当 η = 0 时：σ_t 项变为 0，公式中的随机噪声项 z 被消除。此时，给定相同的初始噪声 xₜ，生成过程将是完全确定的（Deterministic）
+
+
+```
+
+
+
+
+
+
+
+
+
+
 
 Quasar-ViT: Hardware-Oriented Quantization-Aware Architecture Search for Vision Transformers
 
