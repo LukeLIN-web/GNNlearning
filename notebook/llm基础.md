@@ -4,7 +4,19 @@
 
 
 
-语言模型的数学原理
+
+
+# stanford CS336 
+
+
+
+https://www.youtube.com/watch?v=JdGFdViaOJk
+
+纯讲代码, 讲 RL for llm.
+
+
+
+
 
 # physics of LM
 
@@ -92,7 +104,7 @@ Canon layer, 可以改善模型层内相邻token之间的水平信息流,计算�
 
 
 
-## huggingface NLP course
+# huggingface NLP course
 
 ### 第二章
 
