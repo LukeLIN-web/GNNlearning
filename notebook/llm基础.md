@@ -10,9 +10,97 @@
 
 
 
+### lec17 
+
 https://www.youtube.com/watch?v=JdGFdViaOJk
 
 纯讲代码, 讲 RL for llm.
+
+我们希望最大化期望奖励（expected reward）  E[R] 求梯度, 
+
+用 logpi 的梯度 代替 pi的梯度 , 有啥用? 
+
+积分 (pi x 概率) , 就可以写成期望的形式.  就是采样算期望,  就不需要积分了! 不需要所有的积分. 
+
+- 这里奖励 R(s,a)是权重（比如正确 = 1，错误 = 0），
+   所以只有被判定为“正确”的样本会产生梯度。
+
+问题：高方差 & 稀疏奖励
+
+- 如果 R(s,a)∈{0,1}
+   → 大多数样本 reward=0，几乎没梯度
+   → 训练非常慢，方差高（noisy updates）
+- 后来的 RLHF（如 PPO）引入连续 reward 来改进这一点。 使用 **reward model**（基于人类偏好训练的连续函数）
+   → reward 值是连续的（如 -1~1 或 0~5）
+   → 梯度更平滑，训练更稳定。
+
+需要一个 baseline,  防止数值上的shift., 大大减小方差!  方差小, 容易收敛, 可以用更大的学习率, 所以训练速度快, 需要更少的样本, 
+
+baseline 怎么获得呢? 
+
+- **V(s)** ：状态价值函数
+   V(s)=E[R∣s]V(s) 
+   → 从状态 s 出发、按照当前策略 π 行动，能得到的 **期望回报**。
+- **Q(s, a)** ：动作价值函数
+   Q(s,a)=E[R∣s,a]
+   → 从状态 s 出发，执行动作 a，然后继续按照策略 π 行动，得到的 **期望回报**。
+- **A(s, a)** ：优势函数（advantage function）
+   A(s,a)=Q(s,a)−V(s)
+   → 表示在状态 s 下，**采取动作 a 比平均水平（V(s)）好多少或差多少**。
+   如果 A(s,a)>0，说明动作 a 比平均策略更好；如果 <0，说明更差。
+
+如果选 bs = Vs , 那么 **baseline 修正后的奖励正是优势函数**。
+
+使用 b(s)=V(s) 的 policy gradient 等价于使用优势函数作为目标信号!
+
+### PPO 
+
+不需要 value function
+
+LM setting ,一个 prompt 会有多个 response. which, provides a natural baseline b(s)
+
+ordering reward, 对了给奖励. 
+
+定义 inclusion reward, 只要出现了就给奖励, . 
+
+他的 model 只是一个 seq to seq, 不是 transformer, 
+
+每个 prompt ,会 sample 多个 response.
+
+先给每个 reponse 都算reward.
+
+算 delta.
+
+也需要归一化. 
+
+概率 π(a|s) 非常小（比如 `1e-5`），直接乘会数值下溢，梯度不稳定。
+ log 形式：
+
+- 把乘法变加法，更稳定；
+
+直接用当前策略的log概率乘以优势函数(deltas), 这是最原始的REINFORCE算法, **问题**: 可能导致策略更新步长过大,训练不稳定
+
+**Unclipped模式**  使用**重要性采样比率** (importance ratio): π_new/π_old
+
+允许用旧策略采集的数据来更新新策略(off-policy)
+
+**问题**: 如果新旧策略差异太大,ratio可能变得非常大或非常小,导致梯度爆炸
+
+**Clipped模式** (PPO - Proximal Policy Optimization)
+
+**限制策略更新幅度**: ratio被clamp在[0.99, 1.01]范围内
+
+取unclipped和clipped loss的**最小值**(因为是负号,实际是取最悲观的估计)
+
+**优点**: 防止策略变化太快,保证训练稳定性
+
+这是PPO算法的核心思想
+
+1. 用当前策略采集数据
+2. 多次更新策略(通常3-10个epoch) , 在PPO中,采集的数据 = 训练数据
+3. 下一轮采集数据时,才更新old_log_probs
+
+grpo 也是冻结old_log_prob  . 
 
 
 
@@ -538,3 +626,4 @@ Grouped-Query Attention 是啥意思?
 
 
 
+Princeton CS336（Kernel & Transformer 优化课）
