@@ -1,3 +1,15 @@
+## uv
+
+Or, install the package into the active environment (e.g. conda):
+
+```
+uv sync --active --inexact
+```
+
+
+
+
+
 #### dockerfile
 
 dockerfile, 非常好用.可以看看经典仓库的dockerfile. 以后建环境的时候把过程记在dockerfile上, 因为dockfile 文件小不用下载很久. 

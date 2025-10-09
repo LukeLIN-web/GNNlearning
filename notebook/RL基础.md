@@ -12,7 +12,7 @@ https://huggingface.co/learn/deep-rl-course/unit4/hands-on
 
 
 
-
+GRPO 的思想是，在一个批次（group）内，对同一个问题生成的多个候选回答进行比较，计算它们相对于该批次平均奖励的“相对优势”（relative advantage）。性能越好的回答（相对优势越高），其生成概率被提升；性能差的回答则被抑制。
 
 
 
