@@ -16,11 +16,15 @@ https://www.youtube.com/watch?v=JdGFdViaOJk
 
 纯讲代码, 讲 RL for llm.
 
-我们希望最大化期望奖励（expected reward）  E[R] 求梯度, 
 
-用 logpi 的梯度 代替 pi的梯度 , 有啥用? 
 
-积分 (pi x 概率) , 就可以写成期望的形式.  就是采样算期望,  就不需要积分了! 不需要所有的积分. 
+- 产生 response
+- 计算 reward 和 delta. delta 就是 优势函数. 
+- 算 response 的 log 概率
+
+我们希望最大化期望奖励（expected reward）->   E[R] 求梯度, 
+
+用 logpi 的梯度 代替 pi的梯度 , 有啥用?  ->  积分 (pi x 概率) , 就可以写成期望的形式.  就是采样算期望,  就不需要积分了! 不需要所有的积分. 
 
 - 这里奖励 R(s,a)是权重（比如正确 = 1，错误 = 0），
    所以只有被判定为“正确”的样本会产生梯度。
@@ -34,7 +38,7 @@ https://www.youtube.com/watch?v=JdGFdViaOJk
    → reward 值是连续的（如 -1~1 或 0~5）
    → 梯度更平滑，训练更稳定。
 
-需要一个 baseline,  防止数值上的shift., 大大减小方差!  方差小, 容易收敛, 可以用更大的学习率, 所以训练速度快, 需要更少的样本, 
+需要一个 baseline,  防止数值上的shift., 大大减小方差!  方差小, 容易收敛, 可以用更大的学习率, 所以训练速度快, 需要更少的样本.
 
 baseline 怎么获得呢? 
 
@@ -100,9 +104,33 @@ ordering reward, 对了给奖励.
 2. 多次更新策略(通常3-10个epoch) , 在PPO中,采集的数据 = 训练数据
 3. 下一轮采集数据时,才更新old_log_probs
 
-grpo 也是冻结old_log_prob  . 
+grpo 也是冻结old_log_prob. 
+
+gpt 说这样是compute_kl_penalty. 
+
+loss 的原理 : 如果一个 response 有很高的 reward、但模型原本概率很低， 那我们应该大幅**提升**它的概率；  如果本来概率就高、reward 也高，那调整幅度就小。
+
+这个 `delta` 实际上就是 GRPO 的核心 advantage。
+
+这里 **log_probs 必须算**，因为我们还是在对策略进行梯度更新。
+
+但是 **ref_log_probs 不一定要算**  
+
+只用 delta（组内 reward 差）加权 log_prob，直接梯度上升高 reward 的 response，拉低低 reward 的 response。
+
+`loss = -advantage_i * log_prob(response_i)`
 
 
+
+### deltas
+
+
+
+naive 就和 reward 一样, 
+
+center 就是减去 mean.
+
+normalize, 就是 标准差. 
 
 
 
@@ -143,6 +171,10 @@ https://arxiv.org/abs/2408.16293
 - 了解将“纠错”数据直接纳入预训练阶段的有用性.与在相同数量的无错误数据上进行预训练相比，这种类型的**预训练数据**可以帮助语言模型直接实现更高的推理准确性（即通过简单的自回归，无需多轮提示）
 - 使用重试数据非常安全：即使在使用高错误率重试数据进行预训练后，模型也**很少出错**，并且无需更改训练过程（简单地自回归，无需标记掩蔽错误）。重试数据教会模型如何在需要时纠正错误，而不是鼓励错误。
 - 需要注意的是，这样的*纠错技巧*来之不易。仅使用无错误数据进行预训练的模型不能使用 (1) beam search or (2) retry based on error detection (“retry upon regret”)  来实现可比的性能.  纠错能力**难以在 LoRA** 等参数高效微调 （PEFT） 中学习. 有必要将重试数据添加到语言模型的**预训练**数据中，以真正学习纠正错误的能力。
+
+
+
+
 
 ## Part 3.1, Knowledge Storage and Extraction
 
@@ -558,10 +590,6 @@ reverse KL 惩罚 Q 在 p 没有质量的地方分配质量, 导致 mode seeking
 所以提出了一个方式, 换一种方法无偏估计, 
 
 
-
-
-
-openhands 可以跑 swebench.  terminal bench也挺好用的.
 
 # 面试题
 
