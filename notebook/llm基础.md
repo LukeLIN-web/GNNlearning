@@ -120,11 +120,11 @@ loss 的原理 : 如果一个 response 有很高的 reward、但模型原本概�
 
 `loss = -advantage_i * log_prob(response_i)`
 
+**GRPO**: 不需要 Critic！
+
 
 
 ### deltas
-
-
 
 naive 就和 reward 一样, 
 
