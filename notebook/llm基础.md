@@ -16,8 +16,6 @@ https://www.youtube.com/watch?v=JdGFdViaOJk
 
 纯讲代码, 讲 RL for llm.
 
-
-
 - 产生 response
 - 计算 reward 和 delta. delta 就是 优势函数. 
 - 算 response 的 log 概率
@@ -234,11 +232,19 @@ https://huggingface.co/learn/nlp-course/chapter2/2?fw=pt
 
 pad是因为不同的batch 不一样长. attention mask也会设为0 表示这些是padding 的.
 
-输出的logits不是概率,  softmax 之后变成概率 
+在分类或语言模型的最后一层，模型输出一个未归一化的向量, 就是 logits, 输出的logits不是概率,  softmax 之后变成概率.
 
-head 是什么?   The model heads take the high-dimensional vector of hidden states as input and project them onto logits.  输出dim是vocab size 就是几个linear.  可以使用相同的架构执行不同的任务，但每个任务都将具有不同的 head 与之关联。  Transformer 模型的输出直接发送到模型头进行处理.  看图  https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/en/chapter2/transformer_and_head.svg  
+head 是什么?就是几个linear层.    The model heads take the high-dimensional vector of hidden states as input and project them onto logits.    可以使用相同的架构执行不同的任务，但每个任务都将具有不同的 head 与之关联。  看图  https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/en/chapter2/transformer_and_head.svg  
 
-所有 Transformers 模型都输出 logits，因为用于训练的损失函数通常会将最后一个激活函数（如 SoftMax）与实际的损失函数（如交叉熵）融合
+softmax 为啥要 exp
+
+- **放大差异**：e^x 会把较大的值指数级放大,较小的值压缩得更小。比如 e2≈7.4e^2 ≈ 7.4 e2≈7.4，e5≈148e^5 ≈ 148 e5≈148，差距从 3 变成了 140 倍 
+- **保证非负**：指数函数永远为正，这样计算出的概率值自然就是非负的
+- **平滑可导**：处处可导且导数形式简洁，方便反向传播
+
+交叉熵确实会让正确类别的 logit 上升，分布变得更集中。
+
+
 
 quiz: 
 
@@ -282,6 +288,8 @@ llama2等模型的中<s>是 BOS (beginning of a sentence) token
 有的会插入 im_start 
 tokenizer.special_tokens_map 看
 ```
+
+### 第三章
 
 3-2 
 
