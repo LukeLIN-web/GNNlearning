@@ -1,4 +1,6 @@
-# GNNlearning
+# Blogs
+
+这个 repo 主要记载了我自己的一些学习笔记/读后感/思索/参考过的资料 etc，我姑且按照自己的大版图进行分类，也欢迎大家 PR。
 
 solutions for Stanford University course CS224W: Machine Learning with Graphs Fall 2021 colabs
 
