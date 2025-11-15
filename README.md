@@ -1,42 +1,56 @@
 # Blogs
 
-这个 repo 主要记载了我自己的一些学习笔记/读后感/思索/参考过的资料 etc，我姑且按照自己的大版图进行分类，也欢迎大家 PR。
+个人博客和学习笔记集合，涵盖 LLM、ML System、GNN、系统编程等多个领域。
 
-solutions for Stanford University course CS224W: Machine Learning with Graphs Fall 2021 colabs
+## 基础内容
 
-Course materials can be found here [CS224W: Machine Learning with Graphs Materials](http://web.stanford.edu/class/cs224w/)
+- [Python Basics](./python-basics.md)
+- [Reinforcement Learning Basics](./RL-bascics.md)
+- [Advanced ML](./advancedML.md)
+- [Diffusion Models](./diffusion.md)
 
-Lectures can be found here [CS224W: Machine Learning with Graphs Video Lectures](https://youtube.com/playlist?list=PLoROMvodv4rPLKxIpqhjhPgdQy7imNkDn)
+## LLM
 
-我的笔记 ：斯坦福cs224w图机器学习课程lec1-8笔记  https://zhuanlan.zhihu.com/p/479505721
+- [LLM Basics](./LLM/llm-basics.md)
+- [LLM Agent](./LLM/llm-agent.md)
 
-Visualiztion:  https://distill.pub/2021/gnn-intro/ . 
+## ML System 基本功
 
-colabhttps://github.com/hdvvip/CS224W_Winter2021 
+- [LLM Quantization](./mlsys/llm-quant.md)
+- [CUDA](./mlsys/cuda.md)
+- [PyTorch Basics](./mlsys/pytorch-basic.md)
+- [Course MIT 6.5940 (Efficient ML)](./mlsys/efficientML.md)
+- [CS25](./mlsys/cs25.md)
+- [MPS VRAM](./mlsys/MPS-vram.md)
 
-https://sands.kaust.edu.sa/classes/CS294E/F21/schedule.html
+## 纯 System
 
-PyG: https://pytorch-geometric.readthedocs.io/en/latest/notes/introduction.html
+- [Compiler](./system/compiler.md)
+- [CMake and Pybind](./system/cmake_pybind.md)
+- [H100 Report](./system/H100-report.md)
+- [LLaMA.cpp](./system/llamacpp.md)
+- [Multiple Process](./system/multipleprocess.md)
+- [Profiling](./system/profiling.md)
+- [SLURM](./system/slrum.md)
+- [Triton](./system/triton.md)
+- [TVM](./system/tvm.md)
 
-GNN Sampling Papers:
-1. Inductive Representation Learning on Large Graphs.
-2. Cluster-GCN: An Efficient Algorithm for Training Deep and Large Graph Convolutional Networks.
-3. GraphSAINT: Graph Sampling Based Inductive Learning Method.
+## GNN
 
+### 学习笔记
 
-There are three general types of prediction tasks on graphs: graph-level, node-level, and edge-level. 预测点, 边的性质. 比如一个分子表示成图, 就可以知道她的味道, 有几个环可能和性质有关. 边的预测, 可以判断图像物体之间的关系. 
+- [CS224W Colab 学习笔记](./GNN/colab/)
+## 环境配置
 
-CRS  compress row storage
+- [Install Environment](./env/installenv.md)
+- [Google Cloud](./env/googlecloud.md)
 
-对row_ptr的补充：
-[0, 3, 4, 6]中，
-0：矩阵第一行数11在values的索引是0.
-3:　矩阵第二行的第一个数值19 在values中的索引是3.
-４：矩阵第三行的第一个数值23 在values中的索引是4.
-6：显然矩阵没有第四行。6表示当矩阵有虚拟的第四行时，6就是这虚拟行的第一个值在values里的索引。因此，6也是values的元素数量。
+## 开发指南
 
-行数 = length(row_ptr) -1
-列数 = max(col_index)
+- [How to Write Paper](./How-to-write-paper.md)
+- [How to Debug](./Howtodebug.md)
+- [How to Use Docker](https://github.com/LukeLIN-web/DockerLearning/blob/main/docker.md)：如何使用 docker 来管理开发环境。
 
+---
 
-
+也欢迎大家 PR。
